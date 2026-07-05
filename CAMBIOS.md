@@ -1,5 +1,20 @@
 # Cambios realizados
 
+## 2026-07-05 - Tarea 1.3: proteccion de borrado de `MediaAsset`
+
+Se protegio el endpoint administrativo de borrado de assets para impedir que un `MediaAsset` se elimine cuando sigue referenciado por avatar de perfil, iconos de skills, portada de proyecto, galeria de proyectos o archivo PDF de certificacion. El backend ahora revisa esas relaciones antes del `delete` y responde con `409 Conflict` y un detalle claro cuando el asset sigue en uso.
+
+Archivos tocados:
+
+- `backend/app/repositories/admin_repository.py`
+- `backend/app/services/admin_service.py`
+- `CAMBIOS.md`
+
+Comportamiento conservado:
+
+- Retirar una imagen de la galeria sigue eliminando solo la asociacion en `project_images`, no el `MediaAsset` global.
+- Un asset sin referencias activas se sigue pudiendo eliminar por el flujo administrativo actual.
+
 ## 2026-07-05 - Tarea 1.2: integridad y foreign keys de SQLite
 
 Se activo `PRAGMA foreign_keys=ON` mediante un evento `connect` del engine de SQLAlchemy para que se aplique a cada conexion SQLite del backend. El script seguro de chequeo ahora reporta `PRAGMA foreign_keys`, `PRAGMA integrity_check` y `PRAGMA foreign_key_check`, y detiene la verificacion con un error claro si encuentra inconsistencias, sin intentar corregir datos.

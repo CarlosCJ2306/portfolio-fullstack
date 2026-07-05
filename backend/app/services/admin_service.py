@@ -378,8 +378,42 @@ class AdminService:
         log_success("Media asset creado.", asset_id=asset.id, asset_type=asset.asset_type)
         return asset
 
+    def _build_media_asset_in_use_message(
+        self,
+        asset_id: int,
+        usages: list[dict[str, object]]
+    ) -> str:
+        usage_parts = []
+
+        for usage in usages:
+            record_ids = usage["record_ids"]
+            usage_parts.append(
+                f'{usage["label"]} ({usage["relation"]}, IDs: {record_ids})'
+            )
+
+        usage_summary = "; ".join(usage_parts)
+
+        return (
+            f"No se puede eliminar el asset multimedia {asset_id} porque esta en uso en: "
+            f"{usage_summary}."
+        )
+
     def delete_media_asset(self, asset_id: int) -> None:
         asset = self.get_media_asset(asset_id)
+        usages = self.repository.get_media_asset_usage(asset_id)
+
+        if usages:
+            detail = self._build_media_asset_in_use_message(asset_id, usages)
+            log_info(
+                "Eliminacion de media asset bloqueada por referencias activas.",
+                asset_id=asset_id,
+                usages=usages
+            )
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=detail
+            )
+
         self.repository.delete_media_asset(asset)
         self._commit(
             "Error eliminando media asset.",

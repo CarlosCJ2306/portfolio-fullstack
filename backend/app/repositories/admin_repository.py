@@ -330,5 +330,99 @@ class AdminRepository:
         self.db.flush()
         return asset
 
+    def get_media_asset_usage(self, asset_id: int) -> list[dict[str, object]]:
+        usages: list[dict[str, object]] = []
+
+        profile_ids = [
+            profile_id
+            for profile_id, in (
+                self.db.query(Profile.id)
+                .filter(Profile.avatar_asset_id == asset_id)
+                .all()
+            )
+        ]
+        if profile_ids:
+            usages.append(
+                {
+                    "relation": "profile.avatar_asset_id",
+                    "label": "avatar del perfil",
+                    "record_ids": profile_ids,
+                }
+            )
+
+        skill_ids = [
+            skill_id
+            for skill_id, in (
+                self.db.query(Skill.id)
+                .filter(Skill.icon_asset_id == asset_id)
+                .order_by(Skill.id.asc())
+                .all()
+            )
+        ]
+        if skill_ids:
+            usages.append(
+                {
+                    "relation": "skills.icon_asset_id",
+                    "label": "icono de skill",
+                    "record_ids": skill_ids,
+                }
+            )
+
+        project_cover_ids = [
+            project_id
+            for project_id, in (
+                self.db.query(Project.id)
+                .filter(Project.image_asset_id == asset_id)
+                .order_by(Project.id.asc())
+                .all()
+            )
+        ]
+        if project_cover_ids:
+            usages.append(
+                {
+                    "relation": "projects.image_asset_id",
+                    "label": "portada de proyecto",
+                    "record_ids": project_cover_ids,
+                }
+            )
+
+        project_gallery_ids = [
+            project_id
+            for project_id, in (
+                self.db.query(ProjectImage.project_id)
+                .filter(ProjectImage.media_asset_id == asset_id)
+                .order_by(ProjectImage.project_id.asc())
+                .all()
+            )
+        ]
+        if project_gallery_ids:
+            usages.append(
+                {
+                    "relation": "project_images.media_asset_id",
+                    "label": "galeria de proyecto",
+                    "record_ids": project_gallery_ids,
+                }
+            )
+
+        certification_ids = [
+            certification_id
+            for certification_id, in (
+                self.db.query(Certification.id)
+                .filter(Certification.certificate_file_id == asset_id)
+                .order_by(Certification.id.asc())
+                .all()
+            )
+        ]
+        if certification_ids:
+            usages.append(
+                {
+                    "relation": "certifications.certificate_file_id",
+                    "label": "archivo de certificacion",
+                    "record_ids": certification_ids,
+                }
+            )
+
+        return usages
+
     def delete_media_asset(self, asset: MediaAsset) -> None:
         self.db.delete(asset)
