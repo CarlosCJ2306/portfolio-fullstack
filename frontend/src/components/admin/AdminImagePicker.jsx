@@ -1,5 +1,9 @@
 import { useCallback, useRef, useState } from "react";
 import { uploadMediaAsset } from "../../services/adminApi";
+import {
+  getSafeSvgDataUrl,
+  validateSafeSvgContent,
+} from "../../utils/svgSecurity";
 import "./AdminImagePicker.css";
 
 const MB = 1024 * 1024;
@@ -179,13 +183,8 @@ export default function AdminImagePicker({
     return null;
   }
 
-  function getAssetSvg(asset) {
-    if (!asset) return null;
-    return asset.svg_content || null;
-  }
-
   const previewSrc = getAssetPreviewSrc(selectedAsset);
-  const previewSvg = getAssetSvg(selectedAsset);
+  const previewSvgSrc = getSafeSvgDataUrl(selectedAsset?.svg_content);
   const isPdf = selectedAsset?.mime_type === "application/pdf";
 
   // ---- Lectura de archivo y conversión a base64 ----
@@ -233,7 +232,7 @@ export default function AdminImagePicker({
       let payload;
 
       if (isSvg) {
-        const svgContent = await readFileAsText(file);
+        const svgContent = validateSafeSvgContent(await readFileAsText(file));
         payload = {
           asset_type: assetType,
           file_name: file.name,
@@ -344,10 +343,11 @@ export default function AdminImagePicker({
               alt={selectedAsset?.alt_text || label}
               className="image-picker__preview-img"
             />
-          ) : previewSvg ? (
-            <div
-              className="image-picker__preview-svg"
-              dangerouslySetInnerHTML={{ __html: previewSvg }}
+          ) : previewSvgSrc ? (
+            <img
+              src={previewSvgSrc}
+              alt={selectedAsset?.alt_text || label}
+              className="image-picker__preview-img"
             />
           ) : (
             <div className="image-picker__preview-empty">
@@ -468,7 +468,7 @@ export default function AdminImagePicker({
                 <div className="image-picker__gallery">
                   {filteredAssets.map((asset) => {
                     const src = getAssetPreviewSrc(asset);
-                    const svg = getAssetSvg(asset);
+                    const safeSvgSrc = getSafeSvgDataUrl(asset.svg_content);
                     const isSelected = asset.id === value;
 
                     const isItemPdf = asset.mime_type === "application/pdf";
@@ -491,10 +491,11 @@ export default function AdminImagePicker({
                             alt={asset.alt_text || ""}
                             className="image-picker__gallery-img"
                           />
-                        ) : svg ? (
-                          <div
-                            className="image-picker__gallery-svg"
-                            dangerouslySetInnerHTML={{ __html: svg }}
+                        ) : safeSvgSrc ? (
+                          <img
+                            src={safeSvgSrc}
+                            alt={asset.alt_text || asset.file_name || ""}
+                            className="image-picker__gallery-img"
                           />
                         ) : (
                           <div className="image-picker__gallery-placeholder">

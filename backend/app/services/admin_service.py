@@ -29,6 +29,7 @@ from app.schemas.admin_schema import (
     SocialLinkUpdate,
     SkillCreate,
     SkillUpdate,
+    validate_safe_svg_content,
 )
 
 
@@ -478,6 +479,15 @@ class AdminService:
         return asset
 
     def upload_media_asset(self, payload: MediaAssetCreate):
+        if payload.svg_content:
+            try:
+                validate_safe_svg_content(payload.svg_content)
+            except ValueError as error:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=str(error)
+                ) from error
+
         asset = self.repository.create_media_asset(payload.model_dump())
         self._commit(
             "Error creando media asset.",

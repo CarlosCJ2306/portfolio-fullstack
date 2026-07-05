@@ -1,5 +1,27 @@
 # Cambios realizados
 
+## 2026-07-05 - Tarea 1.6: eliminacion del vector XSS en SVG
+
+Se elimino la insercion de `svg_content` como HTML crudo en la vista publica y el panel administrativo. Los SVG seguros ahora se muestran como imagen mediante una data URL codificada; si un asset historico no supera la politica de seguridad, se usa el fallback visual existente y nunca se inserta su contenido en el DOM como HTML.
+
+La carga de nuevos SVG aplica defensa en profundidad:
+
+- El frontend rechaza el archivo antes de enviarlo si contiene contenido activo.
+- El schema del backend valida XML bien formado y rechaza scripts, eventos `on*`, `foreignObject`, estilos inline, animaciones, elementos embebidos, esquemas `javascript:`, `vbscript:` o `data:`, referencias externas, `DOCTYPE`, entidades e instrucciones de procesamiento.
+- El servicio administrativo vuelve a validar el SVG inmediatamente antes de persistirlo.
+- Los SVG seguros existentes, incluidos los iconos iniciales de Python, FastAPI y React, conservan su visualizacion.
+
+Archivos tocados:
+
+- `backend/app/schemas/admin_schema.py`
+- `backend/app/services/admin_service.py`
+- `frontend/src/utils/svgSecurity.js`
+- `frontend/src/components/sections/SkillsSection.jsx`
+- `frontend/src/components/admin/AdminImagePicker.jsx`
+- `frontend/src/components/admin/AdminProjectGalleryPicker.jsx`
+- `frontend/src/components/admin/AdminSkillsPanel.jsx`
+- `CAMBIOS.md`
+
 ## 2026-07-05 - Tarea 1.5: limites de tamano y validacion de archivos en `MediaAsset`
 
 Se agregaron validaciones preventivas para uploads administrativos de `MediaAsset` tanto en frontend como en backend. El admin ahora rechaza archivos sobredimensionados o con tipo no permitido antes de usar `FileReader`, y el backend valida nuevamente MIME, extension, Base64 y SVG antes de persistir.

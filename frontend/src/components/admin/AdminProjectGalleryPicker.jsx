@@ -1,5 +1,9 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import { uploadMediaAsset } from "../../services/adminApi";
+import {
+  getSafeSvgDataUrl,
+  validateSafeSvgContent,
+} from "../../utils/svgSecurity";
 import "./AdminProjectGalleryPicker.css";
 
 const MB = 1024 * 1024;
@@ -199,7 +203,7 @@ export default function AdminProjectGalleryPicker({
         asset_type: "image",
         file_name: file.name,
         mime_type: effectiveMimeType,
-        svg_content: await readFileAsText(file),
+        svg_content: validateSafeSvgContent(await readFileAsText(file)),
         alt_text: file.name.replace(/\.[^.]+$/, ""),
       };
     } else {
@@ -330,6 +334,7 @@ export default function AdminProjectGalleryPicker({
         <div className="project-gallery-picker__list">
           {selectedAssets.map((asset, index) => {
             const previewSrc = getAssetPreviewSrc(asset);
+            const safeSvgSrc = getSafeSvgDataUrl(asset.svg_content);
             const isFirst = index === 0;
             const isLast = index === selectedAssets.length - 1;
 
@@ -342,10 +347,11 @@ export default function AdminProjectGalleryPicker({
                       alt={asset.alt_text || asset.file_name || `Asset ${asset.id}`}
                       className="project-gallery-picker__thumb-img"
                     />
-                  ) : asset.svg_content ? (
-                    <div
-                      className="project-gallery-picker__thumb-svg"
-                      dangerouslySetInnerHTML={{ __html: asset.svg_content }}
+                  ) : safeSvgSrc ? (
+                    <img
+                      src={safeSvgSrc}
+                      alt={asset.alt_text || asset.file_name || `Asset ${asset.id}`}
+                      className="project-gallery-picker__thumb-img"
                     />
                   ) : (
                     <div className="project-gallery-picker__thumb-placeholder">?</div>
@@ -465,6 +471,7 @@ export default function AdminProjectGalleryPicker({
               <div className="project-gallery-picker__grid">
                 {filteredAssets.map((asset) => {
                   const previewSrc = getAssetPreviewSrc(asset);
+                  const safeSvgSrc = getSafeSvgDataUrl(asset.svg_content);
                   const isSelected = selectedAssetIds.includes(asset.id);
 
                   return (
@@ -481,10 +488,11 @@ export default function AdminProjectGalleryPicker({
                           alt={asset.alt_text || ""}
                           className="project-gallery-picker__grid-img"
                         />
-                      ) : asset.svg_content ? (
-                        <div
-                          className="project-gallery-picker__grid-svg"
-                          dangerouslySetInnerHTML={{ __html: asset.svg_content }}
+                      ) : safeSvgSrc ? (
+                        <img
+                          src={safeSvgSrc}
+                          alt={asset.alt_text || asset.file_name || ""}
+                          className="project-gallery-picker__grid-img"
                         />
                       ) : (
                         <div className="project-gallery-picker__grid-placeholder">?</div>

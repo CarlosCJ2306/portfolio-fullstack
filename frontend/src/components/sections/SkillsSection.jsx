@@ -1,3 +1,4 @@
+import { getSafeSvgDataUrl } from "../../utils/svgSecurity";
 import "./SkillsSection.css";
 
 export default function SkillsSection({ skills = [] }) {
@@ -64,6 +65,8 @@ export default function SkillsSection({ skills = [] }) {
             const level =
               skill.level || skill.proficiency || skill.level_name || "";
 
+            const safeSvgSrc = getSafeSvgDataUrl(skill.icon?.svg_content);
+
             return (
               <article
                 className="skill-card"
@@ -74,10 +77,11 @@ export default function SkillsSection({ skills = [] }) {
                   Si luego el backend entrega SVG controlado, podemos renderizarlo aquí.
                 */}
                 <div className="skill-icon">
-                  {skill.icon?.svg_content ? (
-                    <div 
-                      className="skill-icon-svg"
-                      dangerouslySetInnerHTML={{ __html: skill.icon.svg_content }} 
+                  {safeSvgSrc ? (
+                    <img
+                      src={safeSvgSrc}
+                      alt={skill.icon?.alt_text || skillName}
+                      className="skill-icon-img"
                     />
                   ) : skill.icon?.data_base64 && skill.icon?.mime_type ? (
                     <img 

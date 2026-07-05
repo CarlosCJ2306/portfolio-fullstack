@@ -6,11 +6,13 @@ Schemas de entrada y lectura para el panel administrativo.
 
 from __future__ import annotations
 
+import re
 from base64 import b64decode
 from binascii import Error as BinasciiError
 from datetime import date, datetime
 from pathlib import Path
 from typing import ClassVar
+from xml.etree import ElementTree
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -31,6 +33,143 @@ def _strip_text(value):
         return value.strip()
 
     return value
+
+
+_FORBIDDEN_SVG_ELEMENTS = {
+    "a",
+    "animate",
+    "animatemotion",
+    "animatetransform",
+    "audio",
+    "canvas",
+    "discard",
+    "embed",
+    "feimage",
+    "foreignobject",
+    "handler",
+    "iframe",
+    "image",
+    "link",
+    "listener",
+    "mpath",
+    "object",
+    "script",
+    "set",
+    "style",
+    "video",
+}
+_ALLOWED_SVG_ELEMENT_NAMESPACES = {
+    "",
+    "http://www.w3.org/2000/svg",
+}
+_ALLOWED_SVG_ATTRIBUTE_NAMESPACES = {
+    "",
+    "http://www.w3.org/1999/xlink",
+    "http://www.w3.org/XML/1998/namespace",
+}
+_LOCAL_SVG_URL_PATTERN = re.compile(
+    r"url\(\s*['\"]?#[A-Za-z_][\w:.-]*['\"]?\s*\)",
+    re.IGNORECASE,
+)
+
+
+def _split_xml_name(name: str) -> tuple[str, str]:
+    if name.startswith("{") and "}" in name:
+        namespace, local_name = name[1:].split("}", 1)
+        return namespace, local_name
+
+    return "", name
+
+
+def _has_unsafe_svg_url(value: str) -> bool:
+    normalized_value = re.sub(r"[\x00-\x20\x7f]+", "", value).lower()
+
+    if any(
+        scheme in normalized_value
+        for scheme in ("javascript:", "vbscript:", "data:")
+    ):
+        return True
+
+    without_local_urls = _LOCAL_SVG_URL_PATTERN.sub("", value)
+    return "url(" in without_local_urls.lower()
+
+
+def validate_safe_svg_content(svg_content: str) -> str:
+    """Valida SVG inline con una politica estricta antes de persistirlo."""
+
+    normalized_svg_content = svg_content.strip()
+    lowered_svg_content = normalized_svg_content.lower()
+
+    if "<!doctype" in lowered_svg_content or "<!entity" in lowered_svg_content:
+        raise ValueError("El SVG no puede contener declaraciones DOCTYPE o ENTITY.")
+
+    content_without_xml_declaration = re.sub(
+        r"^\s*<\?xml\s+[^?]*\?>",
+        "",
+        normalized_svg_content,
+        count=1,
+        flags=re.IGNORECASE,
+    )
+
+    if "<?" in content_without_xml_declaration:
+        raise ValueError("El SVG no puede contener instrucciones de procesamiento.")
+
+    try:
+        root = ElementTree.fromstring(normalized_svg_content)
+    except ElementTree.ParseError as error:
+        raise ValueError("El campo 'svg_content' no contiene XML SVG valido.") from error
+
+    root_namespace, root_local_name = _split_xml_name(root.tag)
+
+    if (
+        root_local_name.lower() != "svg"
+        or root_namespace not in _ALLOWED_SVG_ELEMENT_NAMESPACES
+    ):
+        raise ValueError("El elemento raiz del archivo debe ser un SVG valido.")
+
+    for element in root.iter():
+        element_namespace, element_local_name = _split_xml_name(element.tag)
+        normalized_element_name = element_local_name.lower()
+
+        if element_namespace not in _ALLOWED_SVG_ELEMENT_NAMESPACES:
+            raise ValueError("El SVG contiene elementos de un namespace no permitido.")
+
+        if normalized_element_name in _FORBIDDEN_SVG_ELEMENTS:
+            raise ValueError(
+                f"El SVG contiene el elemento no permitido '{element_local_name}'."
+            )
+
+        for attribute_name, attribute_value in element.attrib.items():
+            attribute_namespace, attribute_local_name = _split_xml_name(attribute_name)
+            normalized_attribute_name = attribute_local_name.lower()
+
+            if attribute_namespace not in _ALLOWED_SVG_ATTRIBUTE_NAMESPACES:
+                raise ValueError(
+                    "El SVG contiene atributos de un namespace no permitido."
+                )
+
+            if normalized_attribute_name.startswith("on"):
+                raise ValueError(
+                    f"El SVG contiene el evento no permitido '{attribute_local_name}'."
+                )
+
+            if normalized_attribute_name in {"style", "base"}:
+                raise ValueError(
+                    f"El SVG contiene el atributo no permitido '{attribute_local_name}'."
+                )
+
+            if _has_unsafe_svg_url(attribute_value):
+                raise ValueError("El SVG contiene una referencia URL no segura.")
+
+            if normalized_attribute_name in {"href", "src"}:
+                reference = attribute_value.strip()
+
+                if reference and not reference.startswith("#"):
+                    raise ValueError(
+                        "El SVG solo puede usar referencias internas que empiecen por '#'."
+                    )
+
+    return normalized_svg_content
 
 
 class ProfileUpdate(BaseModel):
@@ -613,6 +752,10 @@ class MediaAssetCreate(BaseModel):
                 raise ValueError(
                     "El campo 'svg_content' no contiene un SVG valido."
                 )
+
+            normalized_svg_content = validate_safe_svg_content(
+                normalized_svg_content
+            )
 
             if len(normalized_svg_content.encode("utf-8")) > max_bytes:
                 raise ValueError(

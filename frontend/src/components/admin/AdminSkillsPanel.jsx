@@ -1,4 +1,5 @@
 import AdminImagePicker from "./AdminImagePicker";
+import { getSafeSvgDataUrl } from "../../utils/svgSecurity";
 import "./AdminSkillsPanel.css";
 
 export default function AdminSkillsPanel({
@@ -100,7 +101,7 @@ export default function AdminSkillsPanel({
             const iconSrc = skill.icon?.data_base64 && skill.icon?.mime_type
               ? `data:${skill.icon.mime_type};base64,${skill.icon.data_base64}`
               : null;
-            const iconSvg = skill.icon?.svg_content || null;
+            const safeSvgSrc = getSafeSvgDataUrl(skill.icon?.svg_content);
 
             return (
               <article className="entity-card" key={skill.id}>
@@ -109,10 +110,11 @@ export default function AdminSkillsPanel({
                   <div className="entity-card__icon">
                     {iconSrc ? (
                       <img src={iconSrc} alt={skill.name} className="entity-card__icon-img" />
-                    ) : iconSvg ? (
-                      <div
-                        className="entity-card__icon-svg"
-                        dangerouslySetInnerHTML={{ __html: iconSvg }}
+                    ) : safeSvgSrc ? (
+                      <img
+                        src={safeSvgSrc}
+                        alt={skill.icon?.alt_text || skill.name}
+                        className="entity-card__icon-img"
                       />
                     ) : (
                       <div className="entity-card__icon-placeholder">
