@@ -4,12 +4,13 @@
 """
 Módulo: app.scripts.check_db
 
-Script para verificar la conexión con la base de datos.
+Script de solo lectura para verificar la conexión e integridad de SQLite.
 
-Este script ejecuta una consulta simple `SELECT 1` para confirmar que:
-- La configuración fue leída correctamente.
-- SQLAlchemy puede conectarse a SQLite.
-- El sistema de logs está funcionando durante operaciones de base de datos.
+Este script confirma:
+- Que SQLAlchemy puede conectarse a SQLite.
+- Que `PRAGMA foreign_keys` está activo en la conexión.
+- Que `PRAGMA integrity_check` devuelve `ok`.
+- Que `PRAGMA foreign_key_check` no encuentra violaciones.
 
 Uso:
     python -m app.scripts.check_db
@@ -30,7 +31,11 @@ from app.database.connection import DATABASE_URL, engine
 
 def check_database_connection() -> None:
     """
-    Verifica la conexión a la base de datos ejecutando una consulta básica.
+    Verifica la conexión y los PRAGMA de integridad sin modificar datos.
+
+    Raises:
+        RuntimeError: Si foreign keys está desactivado o la base presenta
+            errores de integridad o relaciones inválidas.
     """
     log_info(
         "Preparando verificación de conexión a base de datos.",
@@ -43,9 +48,63 @@ def check_database_connection() -> None:
                 text("SELECT 1")
             ).scalar_one()
 
+            foreign_keys = connection.execute(
+                text("PRAGMA foreign_keys")
+            ).scalar_one()
+
+            integrity_results = connection.execute(
+                text("PRAGMA integrity_check")
+            ).scalars().all()
+
+            foreign_key_violations = connection.execute(
+                text("PRAGMA foreign_key_check")
+            ).mappings().all()
+
             log_success(
                 "Conexión a base de datos verificada correctamente.",
                 result=result
+            )
+
+            log_info(
+                "Resultado de PRAGMA foreign_keys.",
+                foreign_keys=foreign_keys
+            )
+            log_info(
+                "Resultado de PRAGMA integrity_check.",
+                integrity_check=integrity_results
+            )
+            log_info(
+                "Resultado de PRAGMA foreign_key_check.",
+                violations=[dict(row) for row in foreign_key_violations]
+            )
+
+            errors = []
+
+            if foreign_keys != 1:
+                errors.append(
+                    f"PRAGMA foreign_keys devolvió {foreign_keys}; se esperaba 1."
+                )
+
+            if integrity_results != ["ok"]:
+                errors.append(
+                    "PRAGMA integrity_check reportó: "
+                    f"{integrity_results}."
+                )
+
+            if foreign_key_violations:
+                errors.append(
+                    "PRAGMA foreign_key_check encontró violaciones: "
+                    f"{[dict(row) for row in foreign_key_violations]}."
+                )
+
+            if errors:
+                raise RuntimeError(" ".join(errors))
+
+            log_success(
+                "Integridad SQLite verificada correctamente.",
+                foreign_keys=foreign_keys,
+                integrity_check="ok",
+                foreign_key_violations=0
             )
 
 

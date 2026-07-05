@@ -23,7 +23,7 @@ from __future__ import annotations
 
 from collections.abc import Generator
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -126,6 +126,21 @@ engine: Engine = create_engine(
     DATABASE_URL,
     connect_args=_build_connect_args(DATABASE_URL)
 )
+
+
+if DATABASE_URL.startswith("sqlite"):
+    @event.listens_for(engine, "connect")
+    def _enable_sqlite_foreign_keys(
+        dbapi_connection,
+        _connection_record
+    ) -> None:
+        """Activa las restricciones foreign key en cada conexión SQLite."""
+        cursor = dbapi_connection.cursor()
+
+        try:
+            cursor.execute("PRAGMA foreign_keys=ON")
+        finally:
+            cursor.close()
 
 SessionLocal = sessionmaker(
     autocommit=False,
