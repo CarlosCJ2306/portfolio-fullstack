@@ -7,6 +7,7 @@ Schemas de entrada y lectura para el panel administrativo.
 from __future__ import annotations
 
 from datetime import date, datetime
+from typing import ClassVar
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -388,10 +389,20 @@ class MediaAssetCreate(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
+    ALLOWED_ASSET_TYPES: ClassVar[set[str]] = {
+        "avatar",
+        "image",
+        "icon",
+        "icon_svg",
+        "document",
+    }
+
     asset_type: str = Field(
         ...,
         max_length=80,
-        description="Tipo de asset: 'image', 'icon_svg' o 'avatar'."
+        description=(
+            "Tipo de asset: 'avatar', 'image', 'icon', 'icon_svg' o 'document'."
+        )
     )
     file_name: str | None = Field(default=None, max_length=180)
     mime_type: str | None = Field(default=None, max_length=100)
@@ -410,10 +421,38 @@ class MediaAssetCreate(BaseModel):
     def clean_text_fields(cls, value):
         return _strip_text(value)
 
+    @field_validator("asset_type")
+    @classmethod
+    def validate_asset_type(cls, value: str) -> str:
+        if value not in cls.ALLOWED_ASSET_TYPES:
+            allowed_values = ", ".join(sorted(cls.ALLOWED_ASSET_TYPES))
+            raise ValueError(
+                f"Tipo de asset invalido. Valores permitidos: {allowed_values}."
+            )
+
+        return value
+
     @model_validator(mode="after")
     def require_content(self):
         if not self.data_base64 and not self.svg_content:
             raise ValueError("Se requiere 'data_base64' o 'svg_content'.")
+
+        if self.asset_type == "document":
+            if not self.data_base64:
+                raise ValueError(
+                    "Los assets de tipo 'document' requieren 'data_base64'."
+                )
+
+            if self.svg_content:
+                raise ValueError(
+                    "Los assets de tipo 'document' no aceptan 'svg_content'."
+                )
+
+            if self.mime_type != "application/pdf":
+                raise ValueError(
+                    "Los assets de tipo 'document' deben usar mime_type 'application/pdf'."
+                )
+
         return self
 
 

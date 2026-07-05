@@ -31,9 +31,18 @@ export default function AdminImagePicker({
   const [dragging, setDragging] = useState(false);
   const fileInputRef = useRef(null);
 
+  function getCompatibleAssetTypes(type) {
+    if (type === "icon" || type === "icon_svg") {
+      return ["icon", "icon_svg"];
+    }
+
+    return [type];
+  }
+
   // ---- Filtrar assets por tipo ----
+  const compatibleAssetTypes = getCompatibleAssetTypes(assetType);
   const filteredAssets = mediaAssets.filter(
-    (asset) => asset.asset_type === assetType
+    (asset) => compatibleAssetTypes.includes(asset.asset_type)
   );
 
   // ---- Preview del asset seleccionado ----

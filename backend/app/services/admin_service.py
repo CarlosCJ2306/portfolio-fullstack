@@ -51,6 +51,53 @@ class AdminService:
 
         return None
 
+    def _format_allowed_asset_types(self, allowed_asset_types: set[str]) -> str:
+        return ", ".join(sorted(allowed_asset_types))
+
+    def _validate_media_asset_reference(
+        self,
+        asset_id: int | None,
+        *,
+        field_label: str,
+        allowed_asset_types: set[str],
+        allowed_mime_types: set[str] | None = None
+    ) -> None:
+        if asset_id is None:
+            return
+
+        asset = self.repository.get_media_asset(asset_id)
+
+        if asset is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=(
+                    f"El asset #{asset_id} indicado para {field_label} no existe."
+                )
+            )
+
+        if asset.asset_type not in allowed_asset_types:
+            expected_types = self._format_allowed_asset_types(allowed_asset_types)
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    f"El asset #{asset_id} indicado para {field_label} debe ser de tipo "
+                    f"{expected_types}. Se recibio '{asset.asset_type}'."
+                )
+            )
+
+        if (
+            allowed_mime_types is not None
+            and asset.mime_type not in allowed_mime_types
+        ):
+            valid_mime_types = ", ".join(sorted(allowed_mime_types))
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    f"El asset #{asset_id} indicado para {field_label} debe usar un mime_type "
+                    f"valido ({valid_mime_types}). Se recibio '{asset.mime_type}'."
+                )
+            )
+
     def _validate_project_gallery_image_ids(
         self,
         gallery_image_ids: list[int] | None
@@ -79,7 +126,10 @@ class AdminService:
         if missing_ids:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Una o mas imagenes de galeria no existen."
+                detail=(
+                    "Una o mas imagenes de galeria no existen. "
+                    f"IDs: {missing_ids}."
+                )
             )
 
         invalid_asset_ids = [
@@ -91,7 +141,10 @@ class AdminService:
         if invalid_asset_ids:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Uno o mas assets de la galeria no corresponden a imagenes."
+                detail=(
+                    "Uno o mas assets de la galeria no corresponden a imagenes "
+                    f"(asset_type 'image'). IDs: {invalid_asset_ids}."
+                )
             )
 
     def get_dashboard(self) -> AdminDashboardRead:
@@ -115,7 +168,16 @@ class AdminService:
         return profile
 
     def update_profile(self, payload: ProfileUpdate):
-        profile = self.repository.upsert_profile(payload.model_dump(exclude_unset=True))
+        profile_data = payload.model_dump(exclude_unset=True)
+
+        if "avatar_asset_id" in profile_data:
+            self._validate_media_asset_reference(
+                profile_data["avatar_asset_id"],
+                field_label="el avatar del perfil",
+                allowed_asset_types={"avatar"}
+            )
+
+        profile = self.repository.upsert_profile(profile_data)
         self._commit(
             "Error actualizando perfil.",
             "No se pudo actualizar el perfil."
@@ -160,7 +222,15 @@ class AdminService:
         return self.repository.list_skills()
 
     def create_skill(self, payload: SkillCreate):
-        skill = self.repository.create_skill(payload.model_dump())
+        skill_data = payload.model_dump()
+
+        self._validate_media_asset_reference(
+            skill_data.get("icon_asset_id"),
+            field_label="el icono de la skill",
+            allowed_asset_types={"icon", "icon_svg"}
+        )
+
+        skill = self.repository.create_skill(skill_data)
         self._commit("Error creando skill.", "No se pudo crear la skill.")
         self.repository.db.refresh(skill)
         return skill
@@ -175,7 +245,16 @@ class AdminService:
 
     def update_skill(self, skill_id: int, payload: SkillUpdate):
         skill = self.get_skill(skill_id)
-        for key, value in payload.model_dump(exclude_unset=True).items():
+        update_data = payload.model_dump(exclude_unset=True)
+
+        if "icon_asset_id" in update_data:
+            self._validate_media_asset_reference(
+                update_data["icon_asset_id"],
+                field_label="el icono de la skill",
+                allowed_asset_types={"icon", "icon_svg"}
+            )
+
+        for key, value in update_data.items():
             setattr(skill, key, value)
 
         self._commit("Error actualizando skill.", "No se pudo actualizar la skill.")
@@ -194,6 +273,11 @@ class AdminService:
         project_data = payload.model_dump(exclude_unset=True)
         skill_ids = project_data.get("skill_ids", [])
         gallery_image_ids = project_data.get("gallery_image_ids", [])
+        self._validate_media_asset_reference(
+            project_data.get("image_asset_id"),
+            field_label="la portada del proyecto",
+            allowed_asset_types={"image"}
+        )
         if skill_ids:
             skills = self.repository.get_skills_by_ids(skill_ids)
             if len(skills) != len(set(skill_ids)):
@@ -218,6 +302,12 @@ class AdminService:
         project_data = payload.model_dump(exclude_unset=True)
         skill_ids = project_data.get("skill_ids")
         gallery_image_ids = project_data.get("gallery_image_ids")
+        if "image_asset_id" in project_data:
+            self._validate_media_asset_reference(
+                project_data.get("image_asset_id"),
+                field_label="la portada del proyecto",
+                allowed_asset_types={"image"}
+            )
 
         if skill_ids is not None:
             skills = self.repository.get_skills_by_ids(skill_ids)
@@ -299,7 +389,16 @@ class AdminService:
         return self.repository.list_certifications()
 
     def create_certification(self, payload: CertificationCreate):
-        certification = self.repository.create_certification(payload.model_dump())
+        certification_data = payload.model_dump()
+
+        self._validate_media_asset_reference(
+            certification_data.get("certificate_file_id"),
+            field_label="el archivo de certificacion",
+            allowed_asset_types={"document"},
+            allowed_mime_types={"application/pdf"}
+        )
+
+        certification = self.repository.create_certification(certification_data)
         self._commit("Error creando certificación.", "No se pudo crear la certificación.")
         self.repository.db.refresh(certification)
         return certification
@@ -314,7 +413,17 @@ class AdminService:
 
     def update_certification(self, certification_id: int, payload: CertificationUpdate):
         certification = self.get_certification(certification_id)
-        for key, value in payload.model_dump(exclude_unset=True).items():
+        update_data = payload.model_dump(exclude_unset=True)
+
+        if "certificate_file_id" in update_data:
+            self._validate_media_asset_reference(
+                update_data.get("certificate_file_id"),
+                field_label="el archivo de certificacion",
+                allowed_asset_types={"document"},
+                allowed_mime_types={"application/pdf"}
+            )
+
+        for key, value in update_data.items():
             setattr(certification, key, value)
 
         self._commit("Error actualizando certificación.", "No se pudo actualizar la certificación.")

@@ -1,5 +1,29 @@
 # Cambios realizados
 
+## 2026-07-05 - Tarea 1.4: validacion de tipos de `MediaAsset` en asociaciones admin
+
+Se formalizaron los tipos esperados de `MediaAsset` en backend y se validan antes de asociarlos desde el panel admin. El servicio ahora comprueba existencia y tipo para `avatar_asset_id`, `icon_asset_id`, `image_asset_id`, `gallery_image_ids` y `certificate_file_id`, con mensajes claros cuando el ID no existe o el tipo no corresponde. Tambien se mantuvo compatibilidad con iconos historicos `icon` e `icon_svg`.
+
+Reglas aplicadas:
+
+- `avatar` para avatar de perfil.
+- `image` para portada y galeria de proyectos.
+- `icon` o `icon_svg` para iconos de skills.
+- `document` con `mime_type=application/pdf` para certificados PDF.
+
+Compatibilidad conservada:
+
+- Los iconos historicos `asset_type=icon` siguen siendo validos y ahora vuelven a aparecer en el picker admin junto con `icon_svg`.
+- No se migraron datos ni se borraron assets existentes.
+- La galeria de proyectos sigue usando solo `image`.
+
+Archivos tocados:
+
+- `backend/app/schemas/admin_schema.py`
+- `backend/app/services/admin_service.py`
+- `frontend/src/components/admin/AdminImagePicker.jsx`
+- `CAMBIOS.md`
+
 ## 2026-07-05 - Tarea 1.3: proteccion de borrado de `MediaAsset`
 
 Se protegio el endpoint administrativo de borrado de assets para impedir que un `MediaAsset` se elimine cuando sigue referenciado por avatar de perfil, iconos de skills, portada de proyecto, galeria de proyectos o archivo PDF de certificacion. El backend ahora revisa esas relaciones antes del `delete` y responde con `409 Conflict` y un detalle claro cuando el asset sigue en uso.
