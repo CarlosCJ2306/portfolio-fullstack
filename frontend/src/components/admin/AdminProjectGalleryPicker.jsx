@@ -2,6 +2,87 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import { uploadMediaAsset } from "../../services/adminApi";
 import "./AdminProjectGalleryPicker.css";
 
+const MB = 1024 * 1024;
+const GALLERY_MAX_BYTES = 5 * MB;
+const GALLERY_ACCEPT_ATTR = "image/jpeg,image/png,image/webp,image/svg+xml,.jpg,.jpeg,.png,.webp,.svg";
+const GALLERY_ALLOWED_MIME_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/svg+xml",
+];
+const GALLERY_ALLOWED_EXTENSIONS = [
+  ".jpg",
+  ".jpeg",
+  ".png",
+  ".webp",
+  ".svg",
+];
+const MIME_TYPE_BY_EXTENSION = {
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".png": "image/png",
+  ".webp": "image/webp",
+  ".svg": "image/svg+xml",
+};
+
+function getFileExtension(fileName) {
+  const lastDotIndex = fileName.lastIndexOf(".");
+
+  if (lastDotIndex === -1) {
+    return "";
+  }
+
+  return fileName.slice(lastDotIndex).toLowerCase();
+}
+
+function isDubiousMimeType(mimeType) {
+  return !mimeType || mimeType === "application/octet-stream";
+}
+
+function validateGalleryFileBeforeRead(file) {
+  const normalizedMimeType = (file.type || "").toLowerCase();
+  const fileExtension = getFileExtension(file.name || "");
+  const hasAllowedMimeType = GALLERY_ALLOWED_MIME_TYPES.includes(normalizedMimeType);
+  const hasAllowedExtension = GALLERY_ALLOWED_EXTENSIONS.includes(fileExtension);
+
+  if (file.size > GALLERY_MAX_BYTES) {
+    throw new Error("El archivo supera el limite de 5 MB para la galeria del proyecto.");
+  }
+
+  if (
+    normalizedMimeType &&
+    !isDubiousMimeType(normalizedMimeType) &&
+    !hasAllowedMimeType
+  ) {
+    throw new Error(
+      `El tipo de archivo '${normalizedMimeType}' no es valido para la galeria del proyecto.`
+    );
+  }
+
+  if (!hasAllowedMimeType && !hasAllowedExtension) {
+    throw new Error(
+      `La extension '${fileExtension || "(sin extension)"}' no es valida para la galeria del proyecto.`
+    );
+  }
+
+  const effectiveMimeType =
+    hasAllowedMimeType
+      ? normalizedMimeType
+      : MIME_TYPE_BY_EXTENSION[fileExtension];
+
+  if (!effectiveMimeType) {
+    throw new Error(
+      "No se pudo determinar un tipo de archivo valido para la galeria del proyecto."
+    );
+  }
+
+  return {
+    effectiveMimeType,
+    isSvg: effectiveMimeType === "image/svg+xml",
+  };
+}
+
 function getAssetPreviewSrc(asset) {
   if (!asset?.data_base64 || !asset?.mime_type) {
     return null;
@@ -109,15 +190,15 @@ export default function AdminProjectGalleryPicker({
     });
   }
 
-  async function uploadSingleFile(file) {
-    const isSvg = file.type === "image/svg+xml" || file.name.toLowerCase().endsWith(".svg");
+  async function uploadSingleFile(file, validation) {
+    const { effectiveMimeType, isSvg } = validation;
     let payload;
 
     if (isSvg) {
       payload = {
         asset_type: "image",
         file_name: file.name,
-        mime_type: "image/svg+xml",
+        mime_type: effectiveMimeType,
         svg_content: await readFileAsText(file),
         alt_text: file.name.replace(/\.[^.]+$/, ""),
       };
@@ -125,7 +206,7 @@ export default function AdminProjectGalleryPicker({
       payload = {
         asset_type: "image",
         file_name: file.name,
-        mime_type: file.type || "image/png",
+        mime_type: effectiveMimeType,
         data_base64: await readFileAsBase64(file),
         alt_text: file.name.replace(/\.[^.]+$/, ""),
       };
@@ -151,7 +232,8 @@ export default function AdminProjectGalleryPicker({
     try {
       for (const file of files) {
         try {
-          const newAsset = await uploadSingleFile(file);
+          const validation = validateGalleryFileBeforeRead(file);
+          const newAsset = await uploadSingleFile(file, validation);
 
           if (onAssetUploaded) {
             onAssetUploaded(newAsset);
@@ -352,7 +434,7 @@ export default function AdminProjectGalleryPicker({
                 ref={fileInputRef}
                 type="file"
                 multiple
-                accept="image/*,.svg"
+                accept={GALLERY_ACCEPT_ATTR}
                 className="project-gallery-picker__file-input"
                 onChange={handleFileChange}
                 disabled={uploading}
@@ -366,7 +448,7 @@ export default function AdminProjectGalleryPicker({
                   ? `Subiendo ${uploadingCount} imagen${uploadingCount === 1 ? "" : "es"}...`
                   : "Arrastra una o varias imagenes o haz clic para subir"}
               </p>
-              <small>PNG, JPG, WebP o SVG. Cada archivo se sube por separado, queda disponible globalmente y se agrega a esta galeria.</small>
+              <small>PNG, JPG, WebP o SVG hasta 5 MB. Cada archivo se sube por separado, queda disponible globalmente y se agrega a esta galeria.</small>
             </div>
 
             {uploadError && (

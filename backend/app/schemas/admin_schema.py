@@ -6,7 +6,10 @@ Schemas de entrada y lectura para el panel administrativo.
 
 from __future__ import annotations
 
+from base64 import b64decode
+from binascii import Error as BinasciiError
 from datetime import date, datetime
+from pathlib import Path
 from typing import ClassVar
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
@@ -396,6 +399,61 @@ class MediaAssetCreate(BaseModel):
         "icon_svg",
         "document",
     }
+    MAX_BYTES_BY_ASSET_TYPE: ClassVar[dict[str, int]] = {
+        "avatar": 2 * 1024 * 1024,
+        "image": 5 * 1024 * 1024,
+        "icon": 5 * 1024 * 1024,
+        "icon_svg": 5 * 1024 * 1024,
+        "document": 10 * 1024 * 1024,
+    }
+    ALLOWED_MIME_TYPES_BY_ASSET_TYPE: ClassVar[dict[str, set[str]]] = {
+        "avatar": {
+            "image/jpeg",
+            "image/png",
+            "image/webp",
+            "image/svg+xml",
+        },
+        "image": {
+            "image/jpeg",
+            "image/png",
+            "image/webp",
+            "image/svg+xml",
+        },
+        "icon": {
+            "image/jpeg",
+            "image/png",
+            "image/webp",
+            "image/svg+xml",
+        },
+        "icon_svg": {
+            "image/jpeg",
+            "image/png",
+            "image/webp",
+            "image/svg+xml",
+        },
+        "document": {
+            "application/pdf",
+        },
+    }
+    ALLOWED_EXTENSIONS_BY_ASSET_TYPE: ClassVar[dict[str, set[str]]] = {
+        "avatar": {".jpg", ".jpeg", ".png", ".webp", ".svg"},
+        "image": {".jpg", ".jpeg", ".png", ".webp", ".svg"},
+        "icon": {".jpg", ".jpeg", ".png", ".webp", ".svg"},
+        "icon_svg": {".jpg", ".jpeg", ".png", ".webp", ".svg"},
+        "document": {".pdf"},
+    }
+    MIME_TYPE_BY_EXTENSION: ClassVar[dict[str, str]] = {
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg",
+        ".png": "image/png",
+        ".webp": "image/webp",
+        ".svg": "image/svg+xml",
+        ".pdf": "application/pdf",
+    }
+    DUBIOUS_MIME_TYPES: ClassVar[set[str]] = {
+        "",
+        "application/octet-stream",
+    }
 
     asset_type: str = Field(
         ...,
@@ -432,10 +490,143 @@ class MediaAssetCreate(BaseModel):
 
         return value
 
+    @classmethod
+    def _get_file_extension(cls, file_name: str | None) -> str:
+        if not file_name:
+            return ""
+
+        return Path(file_name).suffix.lower()
+
+    @classmethod
+    def _format_max_size(cls, size_in_bytes: int) -> str:
+        size_in_mb = size_in_bytes / (1024 * 1024)
+
+        if size_in_mb.is_integer():
+            return f"{int(size_in_mb)} MB"
+
+        return f"{size_in_mb:.1f} MB"
+
+    @classmethod
+    def _resolve_effective_mime_type(
+        cls,
+        mime_type: str | None,
+        file_extension: str
+    ) -> str | None:
+        normalized_mime_type = (mime_type or "").strip().lower()
+
+        if (
+            normalized_mime_type
+            and normalized_mime_type not in cls.DUBIOUS_MIME_TYPES
+        ):
+            return normalized_mime_type
+
+        return cls.MIME_TYPE_BY_EXTENSION.get(file_extension)
+
     @model_validator(mode="after")
     def require_content(self):
         if not self.data_base64 and not self.svg_content:
             raise ValueError("Se requiere 'data_base64' o 'svg_content'.")
+
+        file_extension = self._get_file_extension(self.file_name)
+        allowed_extensions = self.ALLOWED_EXTENSIONS_BY_ASSET_TYPE[self.asset_type]
+        allowed_mime_types = self.ALLOWED_MIME_TYPES_BY_ASSET_TYPE[self.asset_type]
+        max_bytes = self.MAX_BYTES_BY_ASSET_TYPE[self.asset_type]
+        normalized_mime_type = (self.mime_type or "").strip().lower()
+
+        if file_extension and file_extension not in allowed_extensions:
+            allowed_extensions_text = ", ".join(sorted(allowed_extensions))
+            raise ValueError(
+                f"La extension '{file_extension}' no es valida para assets de tipo "
+                f"'{self.asset_type}'. Extensiones permitidas: {allowed_extensions_text}."
+            )
+
+        if (
+            not file_extension
+            and (
+                not normalized_mime_type
+                or normalized_mime_type in self.DUBIOUS_MIME_TYPES
+            )
+        ):
+            raise ValueError(
+                "No se pudo validar el archivo: falta una extension reconocible o "
+                "un mime_type confiable."
+            )
+
+        if (
+            normalized_mime_type
+            and normalized_mime_type not in self.DUBIOUS_MIME_TYPES
+            and normalized_mime_type not in allowed_mime_types
+        ):
+            allowed_mime_types_text = ", ".join(sorted(allowed_mime_types))
+            raise ValueError(
+                f"El mime_type '{normalized_mime_type}' no es valido para assets de tipo "
+                f"'{self.asset_type}'. Mime types permitidos: {allowed_mime_types_text}."
+            )
+
+        effective_mime_type = self._resolve_effective_mime_type(
+            normalized_mime_type,
+            file_extension
+        )
+
+        if effective_mime_type not in allowed_mime_types:
+            allowed_mime_types_text = ", ".join(sorted(allowed_mime_types))
+            raise ValueError(
+                f"No se pudo determinar un mime_type valido para assets de tipo "
+                f"'{self.asset_type}'. Mime types permitidos: {allowed_mime_types_text}."
+            )
+
+        self.mime_type = effective_mime_type
+
+        if self.data_base64:
+            normalized_base64 = "".join(self.data_base64.split())
+
+            try:
+                decoded_content = b64decode(normalized_base64, validate=True)
+            except (BinasciiError, ValueError) as error:
+                raise ValueError(
+                    "El campo 'data_base64' no contiene un Base64 valido."
+                ) from error
+
+            if not decoded_content:
+                raise ValueError(
+                    "El campo 'data_base64' no puede estar vacio."
+                )
+
+            if len(decoded_content) > max_bytes:
+                raise ValueError(
+                    f"El archivo supera el limite permitido de "
+                    f"{self._format_max_size(max_bytes)} para assets de tipo "
+                    f"'{self.asset_type}'."
+                )
+
+            self.data_base64 = normalized_base64
+
+        if self.svg_content:
+            normalized_svg_content = self.svg_content.strip()
+
+            if not normalized_svg_content:
+                raise ValueError(
+                    "El campo 'svg_content' no puede estar vacio."
+                )
+
+            if "<svg" not in normalized_svg_content.lower():
+                raise ValueError(
+                    "El campo 'svg_content' no contiene un SVG valido."
+                )
+
+            if len(normalized_svg_content.encode("utf-8")) > max_bytes:
+                raise ValueError(
+                    f"El contenido SVG supera el limite permitido de "
+                    f"{self._format_max_size(max_bytes)} para assets de tipo "
+                    f"'{self.asset_type}'."
+                )
+
+            self.svg_content = normalized_svg_content
+
+        if self.data_base64 and self.svg_content:
+            raise ValueError(
+                "Solo se permite uno de los campos 'data_base64' o 'svg_content'."
+            )
 
         if self.asset_type == "document":
             if not self.data_base64:
@@ -448,10 +639,15 @@ class MediaAssetCreate(BaseModel):
                     "Los assets de tipo 'document' no aceptan 'svg_content'."
                 )
 
-            if self.mime_type != "application/pdf":
-                raise ValueError(
-                    "Los assets de tipo 'document' deben usar mime_type 'application/pdf'."
-                )
+        if self.svg_content and self.mime_type != "image/svg+xml":
+            raise ValueError(
+                "El campo 'svg_content' solo se permite con mime_type 'image/svg+xml'."
+            )
+
+        if self.mime_type == "image/svg+xml" and not self.svg_content:
+            raise ValueError(
+                "Los archivos SVG deben enviarse usando el campo 'svg_content'."
+            )
 
         return self
 

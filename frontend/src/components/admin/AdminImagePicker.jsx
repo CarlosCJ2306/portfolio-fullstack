@@ -2,6 +2,126 @@ import { useCallback, useRef, useState } from "react";
 import { uploadMediaAsset } from "../../services/adminApi";
 import "./AdminImagePicker.css";
 
+const MB = 1024 * 1024;
+
+const UPLOAD_RULES_BY_ASSET_TYPE = {
+  avatar: {
+    label: "el avatar",
+    maxBytes: 2 * MB,
+    acceptAttr: "image/jpeg,image/png,image/webp,image/svg+xml,.jpg,.jpeg,.png,.webp,.svg",
+    acceptedMimeTypes: ["image/jpeg", "image/png", "image/webp", "image/svg+xml"],
+    acceptedExtensions: [".jpg", ".jpeg", ".png", ".webp", ".svg"],
+  },
+  image: {
+    label: "la imagen",
+    maxBytes: 5 * MB,
+    acceptAttr: "image/jpeg,image/png,image/webp,image/svg+xml,.jpg,.jpeg,.png,.webp,.svg",
+    acceptedMimeTypes: ["image/jpeg", "image/png", "image/webp", "image/svg+xml"],
+    acceptedExtensions: [".jpg", ".jpeg", ".png", ".webp", ".svg"],
+  },
+  icon: {
+    label: "el icono",
+    maxBytes: 5 * MB,
+    acceptAttr: "image/jpeg,image/png,image/webp,image/svg+xml,.jpg,.jpeg,.png,.webp,.svg",
+    acceptedMimeTypes: ["image/jpeg", "image/png", "image/webp", "image/svg+xml"],
+    acceptedExtensions: [".jpg", ".jpeg", ".png", ".webp", ".svg"],
+  },
+  icon_svg: {
+    label: "el icono",
+    maxBytes: 5 * MB,
+    acceptAttr: "image/jpeg,image/png,image/webp,image/svg+xml,.jpg,.jpeg,.png,.webp,.svg",
+    acceptedMimeTypes: ["image/jpeg", "image/png", "image/webp", "image/svg+xml"],
+    acceptedExtensions: [".jpg", ".jpeg", ".png", ".webp", ".svg"],
+  },
+  document: {
+    label: "el documento PDF",
+    maxBytes: 10 * MB,
+    acceptAttr: "application/pdf,.pdf",
+    acceptedMimeTypes: ["application/pdf"],
+    acceptedExtensions: [".pdf"],
+  },
+};
+
+const MIME_TYPE_BY_EXTENSION = {
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".png": "image/png",
+  ".webp": "image/webp",
+  ".svg": "image/svg+xml",
+  ".pdf": "application/pdf",
+};
+
+function getFileExtension(fileName) {
+  const lastDotIndex = fileName.lastIndexOf(".");
+
+  if (lastDotIndex === -1) {
+    return "";
+  }
+
+  return fileName.slice(lastDotIndex).toLowerCase();
+}
+
+function isDubiousMimeType(mimeType) {
+  return !mimeType || mimeType === "application/octet-stream";
+}
+
+function formatMaxSize(maxBytes) {
+  const sizeInMb = maxBytes / MB;
+
+  return Number.isInteger(sizeInMb) ? `${sizeInMb} MB` : `${sizeInMb.toFixed(1)} MB`;
+}
+
+function getUploadRules(assetType) {
+  return UPLOAD_RULES_BY_ASSET_TYPE[assetType] || UPLOAD_RULES_BY_ASSET_TYPE.image;
+}
+
+function validateFileBeforeRead(file, assetType) {
+  const rules = getUploadRules(assetType);
+  const normalizedMimeType = (file.type || "").toLowerCase();
+  const fileExtension = getFileExtension(file.name || "");
+  const hasAllowedMimeType = rules.acceptedMimeTypes.includes(normalizedMimeType);
+  const hasAllowedExtension = rules.acceptedExtensions.includes(fileExtension);
+
+  if (file.size > rules.maxBytes) {
+    throw new Error(
+      `El archivo supera el limite de ${formatMaxSize(rules.maxBytes)} para ${rules.label}.`
+    );
+  }
+
+  if (
+    normalizedMimeType &&
+    !isDubiousMimeType(normalizedMimeType) &&
+    !hasAllowedMimeType
+  ) {
+    throw new Error(
+      `El tipo de archivo '${normalizedMimeType}' no es valido para ${rules.label}.`
+    );
+  }
+
+  if (!hasAllowedMimeType && !hasAllowedExtension) {
+    throw new Error(
+      `La extension '${fileExtension || "(sin extension)"}' no es valida para ${rules.label}.`
+    );
+  }
+
+  const effectiveMimeType =
+    hasAllowedMimeType
+      ? normalizedMimeType
+      : MIME_TYPE_BY_EXTENSION[fileExtension];
+
+  if (!effectiveMimeType) {
+    throw new Error(
+      `No se pudo determinar un tipo de archivo valido para ${rules.label}.`
+    );
+  }
+
+  return {
+    effectiveMimeType,
+    isSvg: effectiveMimeType === "image/svg+xml",
+    acceptAttr: rules.acceptAttr,
+  };
+}
+
 /**
  * Componente reutilizable para seleccionar o subir imágenes en el panel admin.
  *
@@ -95,12 +215,21 @@ export default function AdminImagePicker({
   async function processFile(file) {
     if (!file) return;
 
-    setUploading(true);
     setUploadError("");
 
+    let validation;
+
     try {
-      const isSvg = file.type === "image/svg+xml" || file.name.endsWith(".svg");
-      const isPdf = file.type === "application/pdf" || file.name.endsWith(".pdf");
+      validation = validateFileBeforeRead(file, assetType);
+    } catch (error) {
+      setUploadError(error.message || "El archivo seleccionado no es valido.");
+      return;
+    }
+
+    setUploading(true);
+
+    try {
+      const { effectiveMimeType, isSvg } = validation;
       let payload;
 
       if (isSvg) {
@@ -108,7 +237,7 @@ export default function AdminImagePicker({
         payload = {
           asset_type: assetType,
           file_name: file.name,
-          mime_type: "image/svg+xml",
+          mime_type: effectiveMimeType,
           svg_content: svgContent,
           alt_text: file.name.replace(/\.[^.]+$/, ""),
         };
@@ -117,7 +246,7 @@ export default function AdminImagePicker({
         payload = {
           asset_type: assetType,
           file_name: file.name,
-          mime_type: file.type || (isPdf ? "application/pdf" : "image/png"),
+          mime_type: effectiveMimeType,
           data_base64: base64,
           alt_text: file.name.replace(/\.[^.]+$/, ""),
         };
@@ -299,7 +428,7 @@ export default function AdminImagePicker({
               <input
                 ref={fileInputRef}
                 type="file"
-                accept={assetType === "document" ? "application/pdf" : "image/*,.svg"}
+                accept={getUploadRules(assetType).acceptAttr}
                 className="image-picker__file-input"
                 onChange={handleFileChange}
                 disabled={uploading}
@@ -317,7 +446,7 @@ export default function AdminImagePicker({
                     Arrastra un archivo o haz clic para subir
                   </p>
                   <p className="image-picker__upload-hint">
-                    {assetType === "document" ? "Archivos PDF" : "PNG, JPG, WebP o SVG"}
+                    {assetType === "document" ? "Archivos PDF hasta 10 MB" : "PNG, JPG, WebP o SVG dentro del limite permitido"}
                   </p>
                 </>
               )}

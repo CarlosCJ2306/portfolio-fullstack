@@ -1,5 +1,31 @@
 # Cambios realizados
 
+## 2026-07-05 - Tarea 1.5: limites de tamano y validacion de archivos en `MediaAsset`
+
+Se agregaron validaciones preventivas para uploads administrativos de `MediaAsset` tanto en frontend como en backend. El admin ahora rechaza archivos sobredimensionados o con tipo no permitido antes de usar `FileReader`, y el backend valida nuevamente MIME, extension, Base64 y SVG antes de persistir.
+
+Limites aplicados:
+
+- `avatar`: maximo 2 MB.
+- `image`: maximo 5 MB.
+- `icon` y `icon_svg`: maximo 5 MB para conservar compatibilidad con iconos historicos basados en imagen.
+- `document`: maximo 10 MB.
+
+Validaciones agregadas:
+
+- MIME permitido por `asset_type`.
+- Extension permitida cuando el MIME viene vacio o dudoso.
+- Base64 valido y tamano real aproximado antes del commit.
+- `svg_content` no vacio y con contenido SVG reconocible.
+- Rechazo temprano en seleccion manual y drag and drop del admin.
+
+Archivos tocados:
+
+- `backend/app/schemas/admin_schema.py`
+- `frontend/src/components/admin/AdminImagePicker.jsx`
+- `frontend/src/components/admin/AdminProjectGalleryPicker.jsx`
+- `CAMBIOS.md`
+
 ## 2026-07-05 - Tarea 1.4: validacion de tipos de `MediaAsset` en asociaciones admin
 
 Se formalizaron los tipos esperados de `MediaAsset` en backend y se validan antes de asociarlos desde el panel admin. El servicio ahora comprueba existencia y tipo para `avatar_asset_id`, `icon_asset_id`, `image_asset_id`, `gallery_image_ids` y `certificate_file_id`, con mensajes claros cuando el ID no existe o el tipo no corresponde. Tambien se mantuvo compatibilidad con iconos historicos `icon` e `icon_svg`.
