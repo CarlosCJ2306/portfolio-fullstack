@@ -1,0 +1,24 @@
+.admin-topbar-panel {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.admin-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+@media (max-width: 768px) {
+  .admin-topbar-panel {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .admin-actions {
+    justify-content: flex-start;
+  }
+}

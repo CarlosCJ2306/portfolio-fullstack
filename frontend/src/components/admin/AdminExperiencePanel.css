@@ -1,0 +1,76 @@
+.admin-experience-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.admin-experience-panel .timeline-list {
+  display: grid;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.experience-admin-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: 14px;
+  padding: 16px;
+  border-radius: 18px;
+  background: rgba(2, 6, 23, 0.56);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.experience-admin-marker {
+  width: 14px;
+  height: 14px;
+  margin-top: 6px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+  box-shadow: 0 0 0 5px rgba(56, 189, 248, 0.12);
+}
+
+.experience-admin-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.experience-admin-top strong,
+.experience-admin-top p,
+.experience-admin-description,
+.experience-admin-list {
+  margin: 0;
+}
+
+.experience-admin-top p {
+  margin-top: 6px;
+  color: #cbd5e1;
+}
+
+.experience-admin-date,
+.experience-admin-location,
+.experience-admin-description {
+  color: #94a3b8;
+}
+
+.experience-admin-location,
+.experience-admin-description {
+  margin-top: 8px;
+}
+
+.experience-admin-list {
+  margin-top: 10px;
+  padding-left: 18px;
+  color: #cbd5e1;
+}
+
+.experience-admin-list li + li {
+  margin-top: 6px;
+}
+
+@media (max-width: 768px) {
+  .experience-admin-top {
+    flex-direction: column;
+  }
+}

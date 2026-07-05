@@ -1,0 +1,5 @@
+.admin-notice {
+  display: grid;
+  gap: 12px;
+  animation: adminCardRise 360ms ease-out;
+}

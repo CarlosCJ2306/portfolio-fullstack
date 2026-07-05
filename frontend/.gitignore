@@ -1,0 +1,71 @@
+# =====================================================
+# Variables de entorno
+# =====================================================
+.env
+.env.*
+backend/.env
+backend/.env.*
+frontend/.env
+frontend/.env.*
+
+# =====================================================
+# Python / Backend
+# =====================================================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+venv/
+.venv/
+backend/venv/
+backend/.venv/
+
+# =====================================================
+# Bases de datos locales
+# =====================================================
+*.db
+*.sqlite3
+backend/*.db
+backend/*.sqlite3
+
+# =====================================================
+# Logs
+# =====================================================
+logs/
+backend/logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# =====================================================
+# Node / Frontend
+# =====================================================
+node_modules/
+frontend/node_modules/
+
+dist/
+dist-ssr/
+build/
+frontend/dist/
+frontend/build/
+
+*.local
+
+# =====================================================
+# Editor / Sistema
+# =====================================================
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

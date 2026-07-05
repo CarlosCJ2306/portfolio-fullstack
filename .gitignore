@@ -1,0 +1,27 @@
+# Entorno local y secretos
+backend/.env
+frontend/.env
+
+# Bases de datos y respaldos
+backend/*.db
+backend/portfolio.db
+backend/portfolio_backup_*.db
+
+# Logs y temporales
+backend/*.log
+backend/logs/
+logs/
+*.log
+*.bak
+*.tmp
+*.old
+*.swp
+
+# Cachés y bytecode
+__pycache__/
+*.pyc
+
+# Frontend generado o local
+frontend/dist/
+frontend/node_modules/
+*.local

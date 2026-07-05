@@ -1,0 +1,26 @@
+/*
+  Estilos exclusivos del Footer.
+
+  Este archivo controla únicamente el cierre visual de la página.
+  No debe contener estilos del Header, Hero, Skills u otras secciones.
+*/
+
+.site-footer {
+  padding: 32px 20px;
+  border-top: 1px solid #1e293b;
+  background: #020617;
+  color: #94a3b8;
+  text-align: center;
+}
+
+.footer-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.site-footer p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+}

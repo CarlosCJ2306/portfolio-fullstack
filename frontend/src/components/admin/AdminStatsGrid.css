@@ -1,0 +1,40 @@
+.admin-stats-grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.admin-stats-grid .stat-card {
+  padding: 18px;
+  min-height: 110px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.admin-stats-grid .stat-card span {
+  color: #94a3b8;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.admin-stats-grid .stat-card strong {
+  font-size: 34px;
+  color: #f8fafc;
+}
+
+.admin-stats-grid .stat-card:hover {
+  transform: translateY(-2px);
+}
+
+@media (max-width: 1180px) {
+  .admin-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
