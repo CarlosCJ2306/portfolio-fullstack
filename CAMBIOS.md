@@ -134,6 +134,30 @@ Riesgo pendiente:
 
 - Si el backend devolviera `avatar` y `avatar_asset_id` desincronizados, React seguira priorizando `avatar_asset_id` y usando `avatar.id` solo como fallback.
 
+## Cierre de Fase 1
+
+La Fase 1 quedo cerrada con las correcciones base de integridad, contrato administrativo, proteccion de assets y endurecimiento de uploads y SVG. Se redujeron estos riesgos principales:
+
+- perdida accidental de `avatar_asset_id` al editar el perfil admin;
+- borrado de assets aun referenciados;
+- asociaciones invalidas entre assets y entidades;
+- uploads fuera de limite o con MIME/base64 dudoso;
+- inyeccion XSS por SVG no confiable;
+- persistencia de credenciales administrativas en almacenamiento del navegador.
+
+Verificaciones realizadas o pendientes:
+
+- `check_db` paso con `foreign_keys = 1`, `integrity_check = ok` y `foreign_key_check` sin violaciones.
+- Se mantuvo la compatibilidad con los flujos existentes de admin y galeria.
+- No se ejecuto `reset_db.py`.
+
+Pendientes para fases posteriores:
+
+- ajustes de integracion visual y funcional del frontend publico;
+- mejoras de responsividad;
+- limpieza final de componentes y documentacion operacional;
+- preparacion de despliegue y verificaciones manuales completas.
+
 ## Cambios recientes
 
 - Se implemento el visor PDF modal simple para certificaciones publicas.
