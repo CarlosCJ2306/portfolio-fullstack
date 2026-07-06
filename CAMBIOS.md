@@ -1,5 +1,41 @@
 # Cambios realizados
 
+## Cierre de Fase 3
+
+La Fase 3 del panel administrativo quedo completada con mejoras de resiliencia, validacion y experiencia de uso, sin tocar backend, base de datos ni autenticacion.
+
+Resumen:
+
+- los modulos admin cargan de forma independiente y un fallo puntual ya no derriba el panel completo;
+- los errores 422 de FastAPI se muestran de forma legible por campo;
+- los formularios admin validan de manera coherente con los schemas del backend antes de enviar;
+- las subidas muestran estado por archivo, permiten cancelacion y conservan los exitos parciales;
+- certificaciones, PDF y documentos quedaron mejor alineados en la interfaz administrativa;
+- proyectos, skills e iconos mantienen compatibilidad segura con la politica definida para assets;
+- el ciclo de vida de assets subidos antes de guardar se documenta sin eliminacion automatica;
+- los mensajes de contacto quedaron con refresco manual y borrado confirmado cuando el backend lo permite.
+
+Riesgos corregidos:
+
+- doble envio en formularios y eliminaciones;
+- perdida de estado local al fallar un modulo aislado;
+- errores poco legibles en validacion;
+- confusion entre imagen, documento, PDF e icono;
+- posible eliminacion automatica de assets subidos antes de asociarlos.
+
+Verificaciones:
+
+- `npm run lint` paso correctamente.
+- `npm run build` paso correctamente.
+- no se ejecuto `reset_db.py`.
+- no se implemento limpieza automatica de assets.
+
+Pendientes para Fase 4:
+
+- responsividad movil, tablet y escritorio;
+- ajustes finos de layout en pantallas pequenas;
+- revisiones visuales puntuales donde la informacion se comprima demasiado.
+
 ## 2026-07-06 - Tarea 3.9: refresco manual y borrado de mensajes de contacto
 
 Se mejoro el panel administrativo de mensajes de contacto sin tocar backend, base de datos ni autenticacion.
