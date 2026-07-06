@@ -1,24 +1,58 @@
 import "./ExperienceSection.css";
 
+function formatDateValue(value) {
+  if (!value) {
+    return "";
+  }
+
+  if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    const [year, month, day] = value.split("-").map(Number);
+    const date = new Date(Date.UTC(year, month - 1, day));
+
+    return new Intl.DateTimeFormat("es-CO", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    }).format(date);
+  }
+
+  return String(value);
+}
+
+function formatExperiencePeriod(experience) {
+  if (experience?.is_current) {
+    const startLabel = formatDateValue(experience.start_date || experience.start);
+    return startLabel ? `${startLabel} - Actualidad` : "Actualidad";
+  }
+
+  const startLabel = formatDateValue(
+    experience?.start_date || experience?.start
+  );
+  const endLabel = formatDateValue(
+    experience?.end_date || experience?.end || experience?.finish_date
+  );
+
+  if (startLabel && endLabel) {
+    return `${startLabel} - ${endLabel}`;
+  }
+
+  return startLabel || endLabel || "";
+}
+
+function formatLocation(experience) {
+  const city = experience?.city || "";
+  const country = experience?.country || "";
+  const locationParts = [city, country].filter(Boolean);
+
+  if (locationParts.length > 0) {
+    return locationParts.join(", ");
+  }
+
+  return experience?.location || "";
+}
+
 export default function ExperienceSection({ experiences = [] }) {
-  /*
-    Este componente recibe la experiencia profesional desde HomePage.jsx.
-
-    Datos esperados desde el JSON:
-    - experiences: lista de experiencias laborales/profesionales.
-
-    Cada experiencia podría traer campos como:
-    - company
-    - role / position / title
-    - start_date
-    - end_date
-    - location
-    - description
-    - bullets / experience_bullets / responsibilities
-  */
-
-  const hasExperiences =
-    Array.isArray(experiences) && experiences.length > 0;
+  const hasExperiences = Array.isArray(experiences) && experiences.length > 0;
 
   if (!hasExperiences) {
     return (
@@ -26,10 +60,7 @@ export default function ExperienceSection({ experiences = [] }) {
         <div className="container">
           <div className="experience-heading">
             <span className="badge">Experiencia</span>
-
-            {/* Aquí aparece un mensaje controlado si el backend todavía no envía experiencia. */}
             <h2>Experiencia profesional</h2>
-
             <p>
               Aún no hay experiencias registradas para mostrar en el portafolio.
             </p>
@@ -43,21 +74,15 @@ export default function ExperienceSection({ experiences = [] }) {
     <section id="experience" className="experience-section">
       <div className="container">
         <div className="experience-heading">
-          {/* Etiqueta visual de la sección. */}
           <span className="badge">Experiencia</span>
-
-          {/* Título principal de la sección. */}
-          <h2>Experiencia profesional</h2>
-
-          {/* Descripción corta de la sección. */}
-          <p>
-            Recorrido práctico en desarrollo de soluciones, automatización,
-            backend, bases de datos e integración de sistemas.
-          </p>
+            <h2>Experiencia profesional</h2>
+            <p>
+              Recorrido práctico en desarrollo de soluciones, automatización,
+              backend, bases de datos e integración de sistemas.
+            </p>
         </div>
 
         <div className="experience-timeline">
-          {/* Aquí se recorre la lista de experiencias recibidas desde el JSON del backend. */}
           {experiences.map((experience) => {
             const role =
               experience.role ||
@@ -69,23 +94,10 @@ export default function ExperienceSection({ experiences = [] }) {
               experience.company ||
               experience.company_name ||
               experience.organization ||
-              "Empresa / Organización";
+              "Empresa / Organizacion";
 
-            const location =
-              experience.location ||
-              experience.city ||
-              "";
-
-            const startDate =
-              experience.start_date ||
-              experience.start ||
-              "";
-
-            const endDate =
-              experience.end_date ||
-              experience.end ||
-              experience.finish_date ||
-              "Actualidad";
+            const location = formatLocation(experience);
+            const period = formatExperiencePeriod(experience);
 
             const description =
               experience.description ||
@@ -109,32 +121,23 @@ export default function ExperienceSection({ experiences = [] }) {
                 <div className="experience-content">
                   <div className="experience-top">
                     <div>
-                      {/* Aquí debe aparecer el cargo o rol profesional. */}
                       <h3>{role}</h3>
-
-                      {/* Aquí debe aparecer la empresa u organización. */}
                       <strong>{company}</strong>
                     </div>
 
-                    {/* Aquí debe aparecer el rango de fechas de la experiencia. */}
-                    {(startDate || endDate) && (
-                      <span className="experience-date">
-                        {startDate} {startDate && endDate ? "—" : ""} {endDate}
-                      </span>
-                    )}
+                    {period && <span className="experience-date">{period}</span>}
                   </div>
 
-                  {/* Aquí debe aparecer la ubicación si el JSON la trae. */}
-                  {location && <p className="experience-location">📍 {location}</p>}
+                  {location && (
+                    <p className="experience-location">📍 {location}</p>
+                  )}
 
-                  {/* Aquí debe aparecer una descripción general de la experiencia. */}
                   {description && (
                     <p className="experience-description">{description}</p>
                   )}
 
                   {Array.isArray(bullets) && bullets.length > 0 && (
                     <ul className="experience-list">
-                      {/* Aquí deben aparecer responsabilidades, funciones o logros asociados. */}
                       {bullets.map((item, index) => {
                         const text =
                           item.text ||

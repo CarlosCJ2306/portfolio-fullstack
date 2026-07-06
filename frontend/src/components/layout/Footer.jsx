@@ -1,18 +1,15 @@
 import "./Footer.css";
 
-export default function Footer() {
+export default function Footer({ profile }) {
   const currentYear = new Date().getFullYear();
+  const ownerName = profile?.full_name || profile?.name || "";
+  const footerLabel = ownerName || "Portfolio CJ";
 
   return (
     <footer className="site-footer">
       <div className="container footer-container">
-        {/* 
-          Aquí debe aparecer el cierre visual del portafolio.
-          El año se calcula automáticamente con JavaScript.
-        */}
         <p>
-          © {currentYear} Carlos Andrés Jiménez Sarmiento. Todos los derechos
-          reservados.
+          © {currentYear} {footerLabel}. Todos los derechos reservados.
         </p>
       </div>
     </footer>

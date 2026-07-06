@@ -20,12 +20,12 @@ function getContactErrorMessage(error) {
   if (error?.isNetworkError) {
     return (
       error.userMessage ||
-      "No fue posible conectar con el servidor. Verifica tu conexion e intenta nuevamente."
+      "No fue posible conectar con el servidor. Verifica tu conexión e intenta nuevamente."
     );
   }
 
   if (typeof error?.status === "number" && error.status >= 500) {
-    return "El mensaje no pudo enviarse en este momento. Intenta nuevamente mas tarde.";
+    return "El mensaje no pudo enviarse en este momento. Intenta nuevamente más tarde.";
   }
 
   return (
@@ -41,9 +41,13 @@ export default function ContactSection({ profile }) {
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const submitControllerRef = useRef(null);
-  const contactEmail = profile?.email || "correo@example.com";
-  const contactLocation = profile?.location || "Colombia";
+  const contactEmail = profile?.email || "";
+  const contactLocation =
+    [profile?.city, profile?.country].filter(Boolean).join(", ") ||
+    profile?.location ||
+    "";
   const cvUrl = profile?.cv_url || "";
+  const hasContactInfo = Boolean(contactEmail || contactLocation || cvUrl);
 
   useEffect(() => {
     return () => {
@@ -146,11 +150,11 @@ export default function ContactSection({ profile }) {
         <div className="contact-info">
           <span className="badge">Contacto</span>
 
-          <h2>Hablemos de tu proximo proyecto</h2>
+          <h2>Hablemos de tu próximo proyecto</h2>
 
           <p>
             Si tienes una idea, una oportunidad laboral o quieres conversar
-            sobre desarrollo web, backend, automatizacion o soluciones digitales,
+            sobre desarrollo web, backend, automatización o soluciones digitales,
             puedes escribirme desde este formulario.
           </p>
 
@@ -169,22 +173,33 @@ export default function ContactSection({ profile }) {
 
         <form className="contact-form" onSubmit={handleSubmit}>
           <div className="contact-highlights">
-            <article>
-              <strong>Correo directo</strong>
-              <span>{contactEmail}</span>
-            </article>
+            {contactEmail && (
+              <article>
+                <strong>Correo directo</strong>
+                <span>{contactEmail}</span>
+              </article>
+            )}
 
-            <article>
-              <strong>Ubicacion</strong>
-              <span>{contactLocation}</span>
-            </article>
+            {contactLocation && (
+              <article>
+                <strong>Ubicación</strong>
+                <span>{contactLocation}</span>
+              </article>
+            )}
 
             {cvUrl && (
               <article>
-                <strong>Curriculum</strong>
+                <strong>Currículum</strong>
                 <a href={cvUrl} target="_blank" rel="noreferrer">
                   Ver CV
                 </a>
+              </article>
+            )}
+
+            {!hasContactInfo && (
+              <article>
+                <strong>Contacto</strong>
+                <span>La información de contacto aún no está disponible.</span>
               </article>
             )}
           </div>
@@ -203,7 +218,7 @@ export default function ContactSection({ profile }) {
           </div>
 
           <div className="form-group">
-            <label htmlFor="email">Correo electronico</label>
+            <label htmlFor="email">Correo electrónico</label>
             <input
               id="email"
               name="email"
@@ -233,7 +248,7 @@ export default function ContactSection({ profile }) {
             <textarea
               id="message"
               name="message"
-              placeholder="Cuentame en que puedo ayudarte..."
+              placeholder="Cuéntame en qué puedo ayudarte..."
               rows="6"
               value={formData.message}
               onChange={handleChange}

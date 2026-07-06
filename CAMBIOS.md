@@ -1,5 +1,28 @@
 # Cambios realizados
 
+## 2026-07-06 - Tareas 2.3 y 2.4: datos publicos honestos y fechas legibles
+
+Se retiraron fallbacks que aparentaban ser datos reales cuando el perfil no está disponible o cuando faltan campos de contacto. El hero, el footer y la sección de contacto ahora muestran información real si existe en el backend y, si no, usan textos honestos o simplemente ocultan el dato en lugar de inventarlo.
+
+También se corrigió la presentación de fechas y periodos en las secciones públicas:
+
+- `is_current` decide cuando una experiencia muestra `Actualidad`.
+- `country` y `city` se combinan cuando existen.
+- `start_date` y `end_date` de experiencia se muestran en formato legible en español sin depender del parseo UTC del navegador.
+- `start_year` y `end_year` de educación se presentan de forma clara.
+- `issue_date` de certificaciones se formatea en español de forma legible.
+
+Archivos tocados:
+
+- `frontend/src/components/sections/HeroSection.jsx`
+- `frontend/src/components/layout/Footer.jsx`
+- `frontend/src/components/sections/ContactSection.jsx`
+- `frontend/src/components/sections/ExperienceSection.jsx`
+- `frontend/src/components/sections/EducationSection.jsx`
+- `frontend/src/components/sections/CertificationsSection.jsx`
+- `frontend/src/pages/HomePage.jsx`
+- `CAMBIOS.md`
+
 ## 2026-07-06 - Tareas 2.1, 2.2 y 2.7: resiliencia del frontend publico y formulario de contacto
 
 Se desacoplo la carga de `/api/public/home` y `/api/public/projects` para que la vista publica no dependa de una sola solicitud. La pagina principal ahora conserva perfil, skills, experiencia, educacion y certificaciones si falla la carga de proyectos, y la seccion de proyectos muestra su propio estado de error con reintento independiente.

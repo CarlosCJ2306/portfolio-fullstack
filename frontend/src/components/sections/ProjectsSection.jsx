@@ -43,7 +43,7 @@ function buildProjectImages(project) {
               project?.title ||
               project?.name ||
               `Imagen ${index + 1} del proyecto`,
-            label: `Galeria ${index + 1}`,
+            label: `Galería ${index + 1}`,
           };
         })
         .filter(Boolean)
@@ -452,7 +452,7 @@ export default function ProjectsSection({
                 <p className="project-modal__description">
                   {selectedProject.description ||
                     selectedProject.short_description ||
-                    "Sin descripcion adicional para este proyecto."}
+                    "Sin descripción adicional para este proyecto."}
                 </p>
 
                 {Array.isArray(selectedProject.skills) && selectedProject.skills.length > 0 && (

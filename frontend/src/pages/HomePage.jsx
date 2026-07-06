@@ -46,11 +46,11 @@ export default function HomePage() {
           return;
         }
 
-        console.error("Error cargando informacion principal del portafolio:", error);
+        console.error("Error cargando información principal del portafolio:", error);
         setHomeErrorMessage(
           getReadableErrorMessage(
             error,
-            "No se pudo cargar la informacion principal del portafolio."
+            "No se pudo cargar la información principal del portafolio."
           )
         );
       } finally {
@@ -84,7 +84,7 @@ export default function HomePage() {
         setProjectsErrorMessage(
           getReadableErrorMessage(
             error,
-            "No se pudo cargar la seccion de proyectos."
+            "No se pudo cargar la sección de proyectos."
           )
         );
       } finally {
@@ -122,7 +122,7 @@ export default function HomePage() {
           </section>
         </main>
 
-        <Footer />
+        <Footer profile={profile} />
       </>
     );
   }
@@ -134,8 +134,8 @@ export default function HomePage() {
 
         <main className="page">
           <section className="container">
-            <span className="badge">Error de conexion</span>
-            <h1>No se pudo cargar la informacion principal del portafolio</h1>
+            <span className="badge">Error de conexión</span>
+            <h1>No se pudo cargar la información principal del portafolio</h1>
             <p className="description">{homeErrorMessage}</p>
 
             <button
@@ -149,7 +149,7 @@ export default function HomePage() {
           </section>
         </main>
 
-        <Footer />
+        <Footer profile={profile} />
       </>
     );
   }
@@ -179,7 +179,7 @@ export default function HomePage() {
         <ContactSection profile={profile} />
       </main>
 
-      <Footer />
+      <Footer profile={profile} />
     </>
   );
 }
