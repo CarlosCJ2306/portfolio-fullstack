@@ -1,5 +1,33 @@
 # Cambios realizados
 
+## Cierre de Fase 2
+
+La Fase 2 quedo cerrada con la resiliencia de la vista publica, la correccion de datos visibles y la alineacion de proyectos, PDF y modales con una experiencia mas segura y utilizable. La carga de `home` y `projects` ahora es independiente, el formulario de contacto muestra errores reales y la portada deja de inventar informacion cuando faltan datos.
+
+Riesgos corregidos:
+
+- fallos parciales de API que antes ocultaban contenido completo;
+- fallbacks publicos que aparentaban datos reales;
+- fechas, pais, ciudad y anos mostrados de forma inconsistente;
+- SVG y PDF sin fallback claro o sin comportamiento accesible;
+- modales publicos sin soporte funcional completo de teclado.
+
+Verificaciones realizadas o pendientes:
+
+- `npm run lint` paso correctamente.
+- `npm run build` paso correctamente.
+- La vista publica conserva contenido aun si falla solo una parte de la carga.
+- No se presentaron datos personales falsos en los componentes publicos tocados.
+- Galeria, PDF y modales quedaron alineados con seguridad y accesibilidad.
+- No se ejecuto `reset_db.py`.
+
+Pendientes para Fase 3:
+
+- refinamientos del panel administrativo;
+- validaciones y estados de formulario del admin;
+- mejoras de carga, errores y sincronizacion interna del dashboard;
+- ajustes adicionales de CRUD y uploads cuando correspondan.
+
 ## 2026-07-06 - Tarea 2.8: accesibilidad funcional en modales publicos
 
 Se completo la accesibilidad funcional de los modales publicos de proyectos y certificaciones sin cambiar su flujo principal. Ambos dialogos ahora:
