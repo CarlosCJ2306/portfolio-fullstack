@@ -1,55 +1,59 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-const ADMIN_STORAGE_KEY = "portfolio-admin-auth";
+const LEGACY_ADMIN_STORAGE_KEY = "portfolio-admin-auth";
+
+export const ADMIN_AUTH_INVALID_EVENT = "portfolio-admin-auth-invalid";
+
+let adminCredentials = null;
 
 function encodeBasicAuth(username, password) {
   return `Basic ${btoa(`${username}:${password}`)}`;
 }
 
-function parseJsonMaybe(value) {
+function clearLegacyAdminCredentials() {
+  if (typeof window === "undefined") {
+    return;
+  }
+
   try {
-    return JSON.parse(value);
+    window.localStorage.removeItem(LEGACY_ADMIN_STORAGE_KEY);
   } catch {
-    return null;
+    // El acceso al storage puede estar bloqueado por la configuracion del navegador.
+  }
+
+  try {
+    window.sessionStorage.removeItem(LEGACY_ADMIN_STORAGE_KEY);
+  } catch {
+    // Mantiene operativo el login en memoria aunque storage no este disponible.
   }
 }
 
-export function getStoredAdminCredentials() {
-  if (typeof window === "undefined") {
-    return null;
+function notifyInvalidAdminAuth() {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event(ADMIN_AUTH_INVALID_EVENT));
   }
-
-  const rawValue = window.localStorage.getItem(ADMIN_STORAGE_KEY);
-
-  if (!rawValue) {
-    return null;
-  }
-
-  const parsed = parseJsonMaybe(rawValue);
-
-  if (!parsed?.username || !parsed?.password) {
-    return null;
-  }
-
-  return parsed;
 }
 
-export function setStoredAdminCredentials(credentials) {
-  if (typeof window === "undefined") {
+clearLegacyAdminCredentials();
+
+function getAdminCredentials() {
+  return adminCredentials;
+}
+
+export function setAdminCredentials(credentials) {
+  if (!credentials?.username || !credentials?.password) {
+    adminCredentials = null;
     return;
   }
 
-  window.localStorage.setItem(
-    ADMIN_STORAGE_KEY,
-    JSON.stringify(credentials)
-  );
+  adminCredentials = {
+    username: credentials.username,
+    password: credentials.password,
+  };
 }
 
-export function clearStoredAdminCredentials() {
-  if (typeof window === "undefined") {
-    return;
-  }
-
-  window.localStorage.removeItem(ADMIN_STORAGE_KEY);
+export function clearAdminCredentials() {
+  adminCredentials = null;
+  clearLegacyAdminCredentials();
 }
 
 async function request(endpoint, options = {}, credentials) {
@@ -57,10 +61,10 @@ async function request(endpoint, options = {}, credentials) {
     throw new Error("No estÃ¡ configurada la variable VITE_API_BASE_URL.");
   }
 
-  const authCredentials = credentials || getStoredAdminCredentials();
+  const authCredentials = credentials || getAdminCredentials();
 
   if (!authCredentials?.username || !authCredentials?.password) {
-    throw new Error("No hay credenciales administrativas guardadas.");
+    throw new Error("No hay una sesion administrativa activa.");
   }
 
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
@@ -97,7 +101,14 @@ async function request(endpoint, options = {}, credentials) {
       // Conserva el mensaje por defecto si no se puede interpretar la respuesta.
     }
 
-    throw new Error(errorMessage);
+    if (response.status === 401 || response.status === 403) {
+      clearAdminCredentials();
+      notifyInvalidAdminAuth();
+    }
+
+    const requestError = new Error(errorMessage);
+    requestError.status = response.status;
+    throw requestError;
   }
 
   if (response.status === 204) {

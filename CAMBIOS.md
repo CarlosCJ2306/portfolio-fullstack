@@ -1,5 +1,23 @@
 # Cambios realizados
 
+## 2026-07-06 - Tarea 1.7: credenciales administrativas solo en memoria
+
+Se retiro la persistencia del usuario y la contrasena administrativa en `localStorage`. HTTP Basic se mantiene sin cambios en las rutas admin, pero las credenciales ahora viven unicamente en memoria dentro del modulo de API mientras la pagina permanece abierta.
+
+Comportamiento aplicado:
+
+- Una recarga de `/admin` descarta la sesion en memoria y vuelve a mostrar el login.
+- Al cargar la aplicacion se elimina la antigua clave `portfolio-admin-auth` tanto de `localStorage` como de `sessionStorage`.
+- Logout limpia credenciales, datos y formularios administrativos mantenidos en memoria.
+- Una respuesta `401 Unauthorized` o `403 Forbidden` limpia la sesion y devuelve al login.
+- Errores de red y respuestas no autenticativas no eliminan las credenciales en memoria.
+
+Archivos tocados:
+
+- `frontend/src/services/adminApi.js`
+- `frontend/src/pages/AdminPage.jsx`
+- `CAMBIOS.md`
+
 ## 2026-07-05 - Tarea 1.6: eliminacion del vector XSS en SVG
 
 Se elimino la insercion de `svg_content` como HTML crudo en la vista publica y el panel administrativo. Los SVG seguros ahora se muestran como imagen mediante una data URL codificada; si un asset historico no supera la politica de seguridad, se usa el fallback visual existente y nunca se inserta su contenido en el DOM como HTML.

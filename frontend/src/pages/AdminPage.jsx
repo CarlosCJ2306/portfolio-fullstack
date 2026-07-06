@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
-  clearStoredAdminCredentials,
+  ADMIN_AUTH_INVALID_EVENT,
+  clearAdminCredentials,
   createAdminProject,
   createAdminCertification,
   createAdminEducation,
@@ -19,13 +20,12 @@ import {
   getAdminProjects,
   getAdminSocialLinks,
   getAdminSkills,
-  getStoredAdminCredentials,
   loginAdmin,
   deleteAdminProject,
   deleteAdminSkill,
   deleteAdminSocialLink,
   markAdminContactMessageAsRead,
-  setStoredAdminCredentials,
+  setAdminCredentials,
   updateAdminCertification,
   updateAdminEducation,
   updateAdminExperience,
@@ -244,14 +244,6 @@ function formatDate(value) {
   }
 }
 
-function hasSavedAdminCredentials() {
-  const storedCredentials = getStoredAdminCredentials();
-
-  return Boolean(
-    storedCredentials?.username && storedCredentials?.password
-  );
-}
-
 export default function AdminPage() {
   const [loginForm, setLoginForm] = useState(initialLoginForm);
   const [profileForm, setProfileForm] = useState(initialProfileForm);
@@ -276,7 +268,7 @@ export default function AdminPage() {
   const [editingExperienceId, setEditingExperienceId] = useState(null);
   const [editingEducationId, setEditingEducationId] = useState(null);
   const [editingCertificationId, setEditingCertificationId] = useState(null);
-  const [loading, setLoading] = useState(() => hasSavedAdminCredentials());
+  const [loading, setLoading] = useState(false);
   const [authenticating, setAuthenticating] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
   const [savingSocialLink, setSavingSocialLink] = useState(false);
@@ -290,7 +282,31 @@ export default function AdminPage() {
   const [successMessage, setSuccessMessage] = useState("");
   const [notice, setNotice] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [shouldAutoLoadAdmin] = useState(() => hasSavedAdminCredentials());
+
+  const resetAdminPanelState = useCallback(() => {
+    setDashboard(null);
+    setContactMessages([]);
+    setSocialLinks([]);
+    setSkills([]);
+    setProjects([]);
+    setExperiences([]);
+    setEducationList([]);
+    setCertifications([]);
+    setMediaAssets([]);
+    setProfileForm(initialProfileForm);
+    setSocialLinkForm(initialSocialLinkForm);
+    setSkillForm(initialSkillForm);
+    setProjectForm(initialProjectForm);
+    setExperienceForm(initialExperienceForm);
+    setEducationForm(initialEducationForm);
+    setCertificationForm(initialCertificationForm);
+    setEditingSocialLinkId(null);
+    setEditingSkillId(null);
+    setEditingProjectId(null);
+    setEditingExperienceId(null);
+    setEditingEducationId(null);
+    setEditingCertificationId(null);
+  }, []);
 
   function showNotice(type, title, message = "") {
     setNotice({
@@ -312,6 +328,27 @@ export default function AdminPage() {
 
     return () => window.clearTimeout(timeoutId);
   }, [notice]);
+
+  useEffect(() => {
+    function handleInvalidAdminAuth() {
+      clearAdminCredentials();
+      resetAdminPanelState();
+      setLoginForm(initialLoginForm);
+      setIsAuthenticated(false);
+      setLoading(false);
+      setSuccessMessage("");
+      setErrorMessage(
+        "La sesion administrativa ya no es valida. Inicia sesion nuevamente."
+      );
+      setNotice(null);
+    }
+
+    window.addEventListener(ADMIN_AUTH_INVALID_EVENT, handleInvalidAdminAuth);
+
+    return () => {
+      window.removeEventListener(ADMIN_AUTH_INVALID_EVENT, handleInvalidAdminAuth);
+    };
+  }, [resetAdminPanelState]);
 
   function updateDashboardCounts(patch) {
     setDashboard((currentDashboard) => {
@@ -372,24 +409,10 @@ export default function AdminPage() {
     } catch (error) {
       console.error("Error cargando datos del admin:", error);
       setErrorMessage(error.message || "No se pudo cargar el panel admin.");
-      clearStoredAdminCredentials();
-      setIsAuthenticated(false);
     } finally {
       setLoading(false);
     }
   }
-
-  useEffect(() => {
-    if (!shouldAutoLoadAdmin) {
-      return undefined;
-    }
-
-    const timeoutId = window.setTimeout(() => {
-      void loadAdminData({ showLoading: false });
-    }, 0);
-
-    return () => window.clearTimeout(timeoutId);
-  }, [shouldAutoLoadAdmin]);
 
   function handleLoginChange(event) {
     const { name, value } = event.target;
@@ -603,7 +626,9 @@ export default function AdminPage() {
     try {
       const response = await loginAdmin(credentials);
 
-      setStoredAdminCredentials(credentials);
+      setAdminCredentials(credentials);
+      setLoginForm(initialLoginForm);
+      setIsAuthenticated(true);
       setSuccessMessage(response?.message || "Acceso administrativo autorizado.");
       showNotice("success", "Sesión iniciada", response?.message || "Acceso administrativo autorizado.");
       await loadAdminData();
@@ -1126,23 +1151,9 @@ export default function AdminPage() {
   }
 
   function handleLogout() {
-    clearStoredAdminCredentials();
+    clearAdminCredentials();
     setLoginForm(initialLoginForm);
-    setDashboard(null);
-    setContactMessages([]);
-    setSocialLinks([]);
-    setSkills([]);
-    setProjects([]);
-    setExperiences([]);
-    setEducationList([]);
-    setCertifications([]);
-    setSocialLinkForm(initialSocialLinkForm);
-    setSkillForm(initialSkillForm);
-    setProjectForm(initialProjectForm);
-    setExperienceForm(initialExperienceForm);
-    setEducationForm(initialEducationForm);
-    setCertificationForm(initialCertificationForm);
-    setProfileForm(initialProfileForm);
+    resetAdminPanelState();
     setIsAuthenticated(false);
     setSuccessMessage("Sesión cerrada correctamente.");
     setNotice(null);
