@@ -8,6 +8,7 @@ import {
   createAdminExperience,
   createAdminSkill,
   createAdminSocialLink,
+  deleteAdminContactMessage,
   deleteAdminCertification,
   deleteAdminEducation,
   deleteAdminExperience,
@@ -753,6 +754,7 @@ export default function AdminPage() {
   const [deletingEducationIds, setDeletingEducationIds] = useState([]);
   const [deletingCertificationIds, setDeletingCertificationIds] = useState([]);
   const [markingMessageIds, setMarkingMessageIds] = useState([]);
+  const [deletingMessageIds, setDeletingMessageIds] = useState([]);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [notice, setNotice] = useState(null);
@@ -768,6 +770,7 @@ export default function AdminPage() {
   const deletingEducationIdsRef = useRef(new Set());
   const deletingCertificationIdsRef = useRef(new Set());
   const markingMessageIdsRef = useRef(new Set());
+  const deletingMessageIdsRef = useRef(new Set());
 
   const resetAdminPanelState = useCallback(() => {
     setDashboard(null);
@@ -800,6 +803,7 @@ export default function AdminPage() {
     deletingEducationIdsRef.current = new Set();
     deletingCertificationIdsRef.current = new Set();
     markingMessageIdsRef.current = new Set();
+    deletingMessageIdsRef.current = new Set();
     setDeletingSocialLinkIds([]);
     setDeletingSkillIds([]);
     setDeletingProjectIds([]);
@@ -807,6 +811,7 @@ export default function AdminPage() {
     setDeletingEducationIds([]);
     setDeletingCertificationIds([]);
     setMarkingMessageIds([]);
+    setDeletingMessageIds([]);
     setModuleStatus(createInitialModuleStatus());
     setFormValidationErrors(createInitialFormValidationErrors());
   }, []);
@@ -1109,6 +1114,28 @@ export default function AdminPage() {
     setErrorMessage("");
     setSuccessMessage("");
     loadAdminData({ showLoading: false, moduleKeys });
+  }
+
+  async function handleRefreshMessages() {
+    if (
+      refreshingMessages
+      || messagesLoading
+      || markingMessageIds.length > 0
+      || deletingMessageIds.length > 0
+    ) {
+      return;
+    }
+
+    setRefreshingMessages(true);
+    setErrorMessage("");
+    setSuccessMessage("");
+    clearModuleError("messages");
+
+    try {
+      await loadAdminData({ showLoading: false, moduleKeys: ["messages"] });
+    } finally {
+      setRefreshingMessages(false);
+    }
   }
 
   function handleLoginChange(event) {
@@ -2271,6 +2298,70 @@ export default function AdminPage() {
     }
   }
 
+  async function handleDeleteContactMessage(contactMessageId) {
+    if (
+      !beginPendingItem(
+        contactMessageId,
+        deletingMessageIdsRef,
+        setDeletingMessageIds
+      )
+    ) {
+      return;
+    }
+
+    const messageToDelete = contactMessages.find((message) => message.id === contactMessageId);
+
+    if (
+      !window.confirm(
+        "Eliminar este mensaje de contacto? Esta accion es irreversible."
+      )
+    ) {
+      endPendingItem(
+        contactMessageId,
+        deletingMessageIdsRef,
+        setDeletingMessageIds
+      );
+      return;
+    }
+
+    try {
+      setErrorMessage("");
+      setSuccessMessage("");
+      await deleteAdminContactMessage(contactMessageId);
+      clearModuleError("messages");
+      setContactMessages((currentItems) =>
+        currentItems.filter((item) => item.id !== contactMessageId)
+      );
+      updateDashboardCounts({
+        total_contact_messages: Math.max((dashboard?.total_contact_messages || 1) - 1, 0),
+        unread_contact_messages: messageToDelete && !messageToDelete.is_read
+          ? Math.max((dashboard?.unread_contact_messages || 1) - 1, 0)
+          : dashboard?.unread_contact_messages || 0,
+      });
+      setSuccessMessage("Mensaje eliminado correctamente.");
+      showNotice(
+        "success",
+        "Mensaje eliminado",
+        "El mensaje desaparecio sin recargar el panel."
+      );
+    } catch (error) {
+      const message = getAdminUiErrorMessage(
+        error,
+        "No se pudo eliminar el mensaje de contacto."
+      );
+      console.error("Error eliminando mensaje de contacto:", error);
+      setModuleError("messages", message);
+      setErrorMessage(message);
+      showNotice("error", "Error al eliminar mensaje", message);
+    } finally {
+      endPendingItem(
+        contactMessageId,
+        deletingMessageIdsRef,
+        setDeletingMessageIds
+      );
+    }
+  }
+
   function handleLogout() {
     clearAdminCredentials();
     setLoginForm(initialLoginForm);
@@ -2387,11 +2478,14 @@ export default function AdminPage() {
           contactMessages={contactMessages}
           refreshingMessages={refreshingMessages}
           markingMessageIds={markingMessageIds}
+          deletingMessageIds={deletingMessageIds}
           onMarkAsRead={handleMarkAsRead}
+          onDeleteMessage={handleDeleteContactMessage}
           formatDate={formatDate}
           panelError={messagesError}
           panelLoading={messagesLoading}
-          onRetry={() => retryAdminModules(["messages"])}
+          onRefresh={handleRefreshMessages}
+          onRetry={handleRefreshMessages}
         />
       </section>
 

@@ -454,6 +454,12 @@ export function markAdminContactMessageAsRead(contactMessageId) {
   });
 }
 
+export function deleteAdminContactMessage(contactMessageId) {
+  return request(`/api/admin/contact-messages/${contactMessageId}`, {
+    method: "DELETE",
+  });
+}
+
 export function getAdminSkills() {
   return request("/api/admin/skills");
 }

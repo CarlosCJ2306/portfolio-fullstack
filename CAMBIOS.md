@@ -1,5 +1,37 @@
 # Cambios realizados
 
+## 2026-07-06 - Tarea 3.9: refresco manual y borrado de mensajes de contacto
+
+Se mejoro el panel administrativo de mensajes de contacto sin tocar backend, base de datos ni autenticacion.
+
+Cambios aplicados:
+
+- se agrego un boton de refresco manual para volver a consultar solo el modulo de mensajes;
+- el refresco reutiliza la carga independiente ya existente y muestra estado visual mientras actualiza;
+- se expuso en la interfaz la eliminacion de mensajes que ya existia en el backend, con confirmacion explicita e irreversible;
+- cada mensaje tiene estado por ID para evitar doble marca como leido o doble eliminacion;
+- al eliminar un mensaje, se actualiza la lista local y los contadores del dashboard sin recargar todo el panel;
+- el boton de reintento sigue funcionando cuando hay error del modulo.
+
+Decision tomada:
+
+- como el endpoint de eliminacion ya existia, se reutilizo y se expuso en la UI;
+- no se creo ningun endpoint nuevo;
+- no se modifico el contrato de autenticacion ni se agrego almacenamiento de credenciales.
+
+Verificaciones:
+
+- `npm run lint` paso correctamente.
+- `npm run build` paso correctamente.
+
+Archivos tocados:
+
+- `frontend/src/pages/AdminPage.jsx`
+- `frontend/src/components/admin/AdminMessagesPanel.jsx`
+- `frontend/src/components/admin/AdminMessagesPanel.css`
+- `frontend/src/services/adminApi.js`
+- `CAMBIOS.md`
+
 ## 2026-07-06 - Tarea 3.8: ciclo de vida seguro de assets previos al guardado
 
 Se definio un ciclo de vida informativo para los assets subidos desde formularios administrativos. No se agrego ninguna eliminacion automatica ni se modifico backend o base de datos.

@@ -1,3 +1,10 @@
+.admin-messages-panel .section-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
 .admin-messages-panel .messages-list {
   display: grid;
   gap: 14px;
@@ -48,12 +55,28 @@
 
 .admin-messages-panel .message-actions {
   margin-top: 14px;
+  flex-wrap: wrap;
+}
+
+.admin-messages-panel .message-actions__buttons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 @media (max-width: 768px) {
+  .admin-messages-panel .section-header {
+    flex-direction: column;
+  }
+
   .admin-messages-panel .message-top,
   .admin-messages-panel .message-actions {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .admin-messages-panel .message-actions__buttons {
+    width: 100%;
   }
 }
