@@ -1,5 +1,40 @@
 # Cambios realizados
 
+## 2026-07-06 - Tarea 3.4: estado de upload administrativo mas claro y resistente
+
+Se mejoro el flujo de subida en `AdminImagePicker` y `AdminProjectGalleryPicker` sin tocar backend. Ambos componentes ahora muestran estado por archivo y mantienen la validacion previa de tamano, MIME, extension y SVG seguro antes de leer cualquier archivo.
+
+Mejoras aplicadas:
+
+- estados por archivo: `pendiente`, `leyendo`, `subiendo`, `completado`, `fallido` y `cancelado`;
+- barra de progreso visual por archivo basada en las etapas reales del flujo;
+- validacion previa a `FileReader`, de modo que un archivo invalido falla sin leerse ni enviarse;
+- cancelacion viable de cargas activas con `AbortController` para la peticion y `FileReader.abort()` para la lectura local;
+- aviso claro cuando el usuario intenta cerrar el modal con uploads en curso;
+- bloqueo de acciones que podrian generar cambios confusos mientras hay una subida activa;
+- prevencion de doble envio accidental mientras un upload sigue en progreso.
+
+Comportamiento conservado:
+
+- un fallo parcial ya no elimina archivos que si terminaron bien;
+- en galeria, las imagenes ya asociadas no se pierden si otra subida falla;
+- drag and drop respeta las mismas reglas que la seleccion manual;
+- `uploadMediaAsset` ahora acepta `signal` opcional, sin cambiar el contrato de backend.
+
+Verificaciones:
+
+- `npm run lint` paso correctamente.
+- `npm run build` paso correctamente.
+
+Archivos tocados:
+
+- `frontend/src/components/admin/AdminImagePicker.jsx`
+- `frontend/src/components/admin/AdminImagePicker.css`
+- `frontend/src/components/admin/AdminProjectGalleryPicker.jsx`
+- `frontend/src/components/admin/AdminProjectGalleryPicker.css`
+- `frontend/src/services/adminApi.js`
+- `CAMBIOS.md`
+
 ## 2026-07-06 - Tarea 3.3: validacion cliente alineada con schemas admin
 
 Se agrego validacion cliente en los formularios administrativos tomando como referencia las reglas principales de `backend/app/schemas/admin_schema.py`, sin tocar backend, rutas ni contratos. La validacion se ejecuta antes de enviar y evita peticiones innecesarias cuando el dato ya es invalido desde el navegador.

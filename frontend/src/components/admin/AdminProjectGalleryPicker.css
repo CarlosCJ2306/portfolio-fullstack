@@ -239,6 +239,81 @@
   font-size: 13px;
 }
 
+.project-gallery-picker__upload-warning {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  color: #bae6fd;
+  font-size: 13px;
+}
+
+.project-gallery-picker__upload-list {
+  display: grid;
+  gap: 10px;
+}
+
+.project-gallery-picker__upload-item {
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(2, 6, 23, 0.45);
+}
+
+.project-gallery-picker__upload-item--completado {
+  border-color: rgba(34, 197, 94, 0.4);
+}
+
+.project-gallery-picker__upload-item--fallido,
+.project-gallery-picker__upload-item--cancelado {
+  border-color: rgba(248, 113, 113, 0.35);
+}
+
+.project-gallery-picker__upload-top,
+.project-gallery-picker__upload-meta,
+.project-gallery-picker__upload-meta-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.project-gallery-picker__upload-top strong {
+  color: #f8fafc;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.project-gallery-picker__upload-top span,
+.project-gallery-picker__upload-meta span {
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+.project-gallery-picker__upload-progress {
+  width: 100%;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(30, 41, 59, 0.85);
+}
+
+.project-gallery-picker__upload-progress-bar {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #38bdf8 0%, #22c55e 100%);
+  transition: width 0.2s ease;
+}
+
 .project-gallery-picker__asset-summary {
   color: #94a3b8;
   font-size: 13px;
@@ -268,6 +343,11 @@
 .project-gallery-picker__grid-item--selected {
   border-color: rgba(56, 189, 248, 0.65);
   background: rgba(14, 165, 233, 0.1);
+}
+
+.project-gallery-picker__grid-item:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
 }
 
 .project-gallery-picker__grid-img {
@@ -335,6 +415,14 @@
   .project-gallery-picker__actions {
     margin-left: 0;
     justify-content: flex-start;
+  }
+
+  .project-gallery-picker__upload-warning,
+  .project-gallery-picker__upload-top,
+  .project-gallery-picker__upload-meta,
+  .project-gallery-picker__upload-meta-actions {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .project-gallery-picker__thumb {

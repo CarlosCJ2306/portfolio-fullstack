@@ -603,8 +603,9 @@ export function listMediaAssets(assetType = null) {
   return request(`/api/admin/media-assets${query}`);
 }
 
-export function uploadMediaAsset(payload) {
+export function uploadMediaAsset(payload, options = {}) {
   return request("/api/admin/media-assets", {
+    ...options,
     method: "POST",
     body: JSON.stringify(payload),
   });
