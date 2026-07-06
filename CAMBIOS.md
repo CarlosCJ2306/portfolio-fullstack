@@ -1,5 +1,45 @@
 # Cambios realizados
 
+## 2026-07-06 - Tarea 3.3: validacion cliente alineada con schemas admin
+
+Se agrego validacion cliente en los formularios administrativos tomando como referencia las reglas principales de `backend/app/schemas/admin_schema.py`, sin tocar backend, rutas ni contratos. La validacion se ejecuta antes de enviar y evita peticiones innecesarias cuando el dato ya es invalido desde el navegador.
+
+Cobertura aplicada:
+
+- login admin: usuario y contrasena obligatorios;
+- perfil: maximos de longitud y validacion de `cv_url` si se informa;
+- redes: `platform` requerida, `url` valida, `icon_name` y `display_order`;
+- skills: `name`, `category`, `level`, `color` hexadecimal y `display_order`;
+- proyectos: `title`, `slug`, `short_description`, `description`, URLs opcionales, `display_order` y duplicados en `gallery_image_ids`;
+- experiencia: `position`, `company`, `start_date`, cronologia `start_date/end_date`, `display_order` y bullets minimos;
+- educacion: `institution`, `degree`, anos razonables y orden cronologico;
+- certificaciones: `name`, `credential_url` opcional valida y `display_order`.
+
+Comportamiento aplicado:
+
+- si el formulario es invalido, no se envia al backend;
+- cada formulario muestra un resumen legible de errores dentro del propio panel;
+- al editar un campo, su error local se limpia sin depender del backend;
+- se mantiene el fallback de errores `422` del backend implementado en la tarea 3.2 por si algo no fue detectado en frontend.
+
+Verificaciones:
+
+- `npm run lint` paso correctamente.
+- `npm run build` paso correctamente.
+
+Archivos tocados:
+
+- `frontend/src/pages/AdminPage.jsx`
+- `frontend/src/components/admin/AdminAuthCard.jsx`
+- `frontend/src/components/admin/AdminProfilePanel.jsx`
+- `frontend/src/components/admin/AdminSocialLinksPanel.jsx`
+- `frontend/src/components/admin/AdminSkillsPanel.jsx`
+- `frontend/src/components/admin/AdminProjectsPanel.jsx`
+- `frontend/src/components/admin/AdminExperiencePanel.jsx`
+- `frontend/src/components/admin/AdminEducationPanel.jsx`
+- `frontend/src/components/admin/AdminCertificationsPanel.jsx`
+- `CAMBIOS.md`
+
 ## 2026-07-06 - Tareas 3.1 y 3.2: resiliencia del panel admin y errores 422 legibles
 
 Se mejoro la resiliencia del panel administrativo para que los modulos carguen de forma independiente. La carga inicial ya no depende de una sola `Promise.all`: si falla proyectos, media assets, skills, mensajes u otro modulo, el resto del dashboard sigue disponible y cada panel muestra su propio error con opcion de reintento.

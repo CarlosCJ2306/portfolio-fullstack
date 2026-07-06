@@ -5,6 +5,7 @@ export default function AdminSocialLinksPanel({
   socialLinkForm,
   savingSocialLink,
   editingSocialLinkId,
+  validationErrors,
   onSocialLinkChange,
   onSocialLinkSubmit,
   onEditSocialLink,
@@ -14,6 +15,8 @@ export default function AdminSocialLinksPanel({
   panelLoading,
   onRetry,
 }) {
+  const validationMessages = Object.values(validationErrors || {});
+
   return (
     <article className="admin-card admin-social-links-panel">
       <div className="section-header">
@@ -33,6 +36,16 @@ export default function AdminSocialLinksPanel({
       )}
 
       {!panelError && panelLoading && <p className="muted">Actualizando enlaces...</p>}
+
+      {validationMessages.length > 0 && (
+        <div className="admin-message error">
+          <ul>
+            {validationMessages.map((message) => (
+              <li key={message}>{message}</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <form className="admin-form" onSubmit={onSocialLinkSubmit}>
         <div className="form-row">

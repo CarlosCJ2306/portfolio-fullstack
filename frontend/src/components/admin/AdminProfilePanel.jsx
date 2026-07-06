@@ -5,6 +5,7 @@ export default function AdminProfilePanel({
   profileForm,
   savingProfile,
   mediaAssets,
+  validationErrors,
   onProfileChange,
   onProfileSubmit,
   onAssetUploaded,
@@ -13,6 +14,8 @@ export default function AdminProfilePanel({
   panelLoading,
   onRetry,
 }) {
+  const validationMessages = Object.values(validationErrors || {});
+
   return (
     <article className="admin-card admin-profile-panel">
       <div className="section-header">
@@ -32,6 +35,16 @@ export default function AdminProfilePanel({
       )}
 
       {!panelError && panelLoading && <p className="muted">Actualizando perfil...</p>}
+
+      {validationMessages.length > 0 && (
+        <div className="admin-message error">
+          <ul>
+            {validationMessages.map((message) => (
+              <li key={message}>{message}</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <form className="admin-form" onSubmit={onProfileSubmit}>
         <label>

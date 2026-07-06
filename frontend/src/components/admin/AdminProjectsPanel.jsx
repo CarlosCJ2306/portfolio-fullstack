@@ -9,6 +9,7 @@ export default function AdminProjectsPanel({
   savingProject,
   editingProjectId,
   mediaAssets,
+  validationErrors,
   onProjectChange,
   onProjectSkillToggle,
   onProjectSubmit,
@@ -22,6 +23,8 @@ export default function AdminProjectsPanel({
   panelLoading,
   onRetry,
 }) {
+  const validationMessages = Object.values(validationErrors || {});
+
   return (
     <article className="admin-card admin-projects-panel">
       <div className="section-header">
@@ -41,6 +44,16 @@ export default function AdminProjectsPanel({
       )}
 
       {!panelError && panelLoading && <p className="muted">Actualizando proyectos...</p>}
+
+      {validationMessages.length > 0 && (
+        <div className="admin-message error">
+          <ul>
+            {validationMessages.map((message) => (
+              <li key={message}>{message}</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <form className="admin-form" onSubmit={onProjectSubmit}>
         <label>

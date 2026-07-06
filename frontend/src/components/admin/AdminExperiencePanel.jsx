@@ -5,6 +5,7 @@ export default function AdminExperiencePanel({
   experienceForm,
   savingExperience,
   editingExperienceId,
+  validationErrors,
   onExperienceChange,
   onExperienceSubmit,
   onEditExperience,
@@ -14,6 +15,8 @@ export default function AdminExperiencePanel({
   panelLoading,
   onRetry,
 }) {
+  const validationMessages = Object.values(validationErrors || {});
+
   return (
     <article className="admin-card admin-experience-panel">
       <div className="section-header">
@@ -33,6 +36,16 @@ export default function AdminExperiencePanel({
       )}
 
       {!panelError && panelLoading && <p className="muted">Actualizando experiencia...</p>}
+
+      {validationMessages.length > 0 && (
+        <div className="admin-message error">
+          <ul>
+            {validationMessages.map((message) => (
+              <li key={message}>{message}</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <form className="admin-form" onSubmit={onExperienceSubmit}>
         <div className="form-row">

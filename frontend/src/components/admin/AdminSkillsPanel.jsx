@@ -8,6 +8,7 @@ export default function AdminSkillsPanel({
   savingSkill,
   editingSkillId,
   mediaAssets,
+  validationErrors,
   onSkillChange,
   onSkillSubmit,
   onEditSkill,
@@ -19,6 +20,8 @@ export default function AdminSkillsPanel({
   panelLoading,
   onRetry,
 }) {
+  const validationMessages = Object.values(validationErrors || {});
+
   return (
     <article className="admin-card admin-skills-panel">
       <div className="section-header">
@@ -38,6 +41,16 @@ export default function AdminSkillsPanel({
       )}
 
       {!panelError && panelLoading && <p className="muted">Actualizando skills...</p>}
+
+      {validationMessages.length > 0 && (
+        <div className="admin-message error">
+          <ul>
+            {validationMessages.map((message) => (
+              <li key={message}>{message}</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <form className="admin-form" onSubmit={onSkillSubmit}>
         <div className="form-row">

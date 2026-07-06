@@ -7,6 +7,7 @@ export default function AdminCertificationsPanel({
   savingCertification,
   editingCertificationId,
   mediaAssets,
+  validationErrors,
   onCertificationChange,
   onCertificationSubmit,
   onEditCertification,
@@ -18,6 +19,8 @@ export default function AdminCertificationsPanel({
   panelLoading,
   onRetry,
 }) {
+  const validationMessages = Object.values(validationErrors || {});
+
   return (
     <article className="admin-card admin-certifications-panel">
       <div className="section-header">
@@ -37,6 +40,16 @@ export default function AdminCertificationsPanel({
       )}
 
       {!panelError && panelLoading && <p className="muted">Actualizando certificaciones...</p>}
+
+      {validationMessages.length > 0 && (
+        <div className="admin-message error">
+          <ul>
+            {validationMessages.map((message) => (
+              <li key={message}>{message}</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <form className="admin-form" onSubmit={onCertificationSubmit}>
         <label>

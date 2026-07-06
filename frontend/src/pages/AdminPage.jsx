@@ -157,6 +157,411 @@ function createInitialModuleStatus() {
   );
 }
 
+function createInitialFormValidationErrors() {
+  return {
+    login: {},
+    profile: {},
+    socialLink: {},
+    skill: {},
+    project: {},
+    experience: {},
+    education: {},
+    certification: {},
+  };
+}
+
+const SLUG_PATTERN = /^[A-Za-z0-9]+(?:[-_][A-Za-z0-9]+)*$/;
+const HEX_COLOR_PATTERN = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/;
+const MIN_REASONABLE_YEAR = 1900;
+const MAX_REASONABLE_YEAR = new Date().getFullYear() + 10;
+
+function getTrimmedString(value) {
+  return String(value ?? "").trim();
+}
+
+function addValidationError(errors, field, message) {
+  if (!errors[field]) {
+    errors[field] = message;
+  }
+}
+
+function isValidHttpUrl(value) {
+  try {
+    const parsedUrl = new URL(value);
+    return parsedUrl.protocol === "http:" || parsedUrl.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+function validateRequiredTextField(
+  errors,
+  field,
+  label,
+  value,
+  minLength,
+  maxLength
+) {
+  const normalizedValue = getTrimmedString(value);
+
+  if (!normalizedValue) {
+    addValidationError(errors, field, `El campo ${label} es obligatorio.`);
+    return;
+  }
+
+  if (normalizedValue.length < minLength) {
+    addValidationError(
+      errors,
+      field,
+      `El campo ${label} debe tener al menos ${minLength} caracteres.`
+    );
+    return;
+  }
+
+  if (normalizedValue.length > maxLength) {
+    addValidationError(
+      errors,
+      field,
+      `El campo ${label} no puede superar ${maxLength} caracteres.`
+    );
+  }
+}
+
+function validateOptionalTextField(errors, field, label, value, maxLength) {
+  const normalizedValue = getTrimmedString(value);
+
+  if (!normalizedValue) {
+    return;
+  }
+
+  if (normalizedValue.length > maxLength) {
+    addValidationError(
+      errors,
+      field,
+      `El campo ${label} no puede superar ${maxLength} caracteres.`
+    );
+  }
+}
+
+function validateUrlField(
+  errors,
+  field,
+  label,
+  value,
+  { required = false, minLength = 1, maxLength = 255 } = {}
+) {
+  const normalizedValue = getTrimmedString(value);
+
+  if (!normalizedValue) {
+    if (required) {
+      addValidationError(errors, field, `El campo ${label} es obligatorio.`);
+    }
+    return;
+  }
+
+  if (normalizedValue.length < minLength) {
+    addValidationError(
+      errors,
+      field,
+      `El campo ${label} debe tener al menos ${minLength} caracteres.`
+    );
+    return;
+  }
+
+  if (normalizedValue.length > maxLength) {
+    addValidationError(
+      errors,
+      field,
+      `El campo ${label} no puede superar ${maxLength} caracteres.`
+    );
+    return;
+  }
+
+  if (!isValidHttpUrl(normalizedValue)) {
+    addValidationError(
+      errors,
+      field,
+      `El campo ${label} debe contener una URL válida con http:// o https://.`
+    );
+  }
+}
+
+function validateDisplayOrderField(errors, field, label, value) {
+  const normalizedValue = String(value ?? "").trim();
+
+  if (!normalizedValue) {
+    return;
+  }
+
+  const parsedValue = Number(normalizedValue);
+
+  if (!Number.isInteger(parsedValue)) {
+    addValidationError(errors, field, `El campo ${label} debe ser un número entero.`);
+  }
+}
+
+function validateYearField(errors, field, label, value) {
+  const normalizedValue = String(value ?? "").trim();
+
+  if (!normalizedValue) {
+    return null;
+  }
+
+  const parsedValue = Number(normalizedValue);
+
+  if (!Number.isInteger(parsedValue)) {
+    addValidationError(errors, field, `El campo ${label} debe ser un año válido.`);
+    return null;
+  }
+
+  if (parsedValue < MIN_REASONABLE_YEAR || parsedValue > MAX_REASONABLE_YEAR) {
+    addValidationError(
+      errors,
+      field,
+      `El campo ${label} debe estar entre ${MIN_REASONABLE_YEAR} y ${MAX_REASONABLE_YEAR}.`
+    );
+    return null;
+  }
+
+  return parsedValue;
+}
+
+function validateProjectSlug(errors, value) {
+  const normalizedValue = getTrimmedString(value);
+
+  if (!normalizedValue) {
+    addValidationError(errors, "slug", "El campo slug es obligatorio.");
+    return;
+  }
+
+  if (normalizedValue.length < 2) {
+    addValidationError(errors, "slug", "El campo slug debe tener al menos 2 caracteres.");
+    return;
+  }
+
+  if (normalizedValue.length > 180) {
+    addValidationError(errors, "slug", "El campo slug no puede superar 180 caracteres.");
+    return;
+  }
+
+  if (!SLUG_PATTERN.test(normalizedValue)) {
+    addValidationError(
+      errors,
+      "slug",
+      "El slug solo puede usar letras, números, guiones y guiones bajos."
+    );
+  }
+}
+
+function validateHexColorField(errors, field, label, value) {
+  const normalizedValue = getTrimmedString(value);
+
+  if (!normalizedValue) {
+    return;
+  }
+
+  if (normalizedValue.length > 50) {
+    addValidationError(
+      errors,
+      field,
+      `El campo ${label} no puede superar 50 caracteres.`
+    );
+    return;
+  }
+
+  if (!HEX_COLOR_PATTERN.test(normalizedValue)) {
+    addValidationError(
+      errors,
+      field,
+      `El campo ${label} debe ser un color hexadecimal válido, por ejemplo #3776AB.`
+    );
+  }
+}
+
+function validateLoginForm(values) {
+  const errors = {};
+
+  if (!getTrimmedString(values.username)) {
+    addValidationError(errors, "username", "El usuario es obligatorio.");
+  }
+
+  if (!String(values.password ?? "").trim()) {
+    addValidationError(errors, "password", "La contraseña es obligatoria.");
+  }
+
+  return errors;
+}
+
+function validateProfileForm(values) {
+  const errors = {};
+
+  validateOptionalTextField(errors, "full_name", "nombre completo", values.full_name, 150);
+  validateOptionalTextField(
+    errors,
+    "professional_title",
+    "título profesional",
+    values.professional_title,
+    150
+  );
+  validateOptionalTextField(errors, "location", "ubicación", values.location, 150);
+  validateOptionalTextField(errors, "email", "correo", values.email, 150);
+  validateOptionalTextField(errors, "phone", "teléfono", values.phone, 50);
+  validateUrlField(errors, "cv_url", "URL del CV", values.cv_url, {
+    required: false,
+    maxLength: 255,
+  });
+
+  return errors;
+}
+
+function validateSocialLinkForm(values) {
+  const errors = {};
+
+  validateRequiredTextField(errors, "platform", "plataforma", values.platform, 2, 80);
+  validateUrlField(errors, "url", "URL", values.url, {
+    required: true,
+    minLength: 3,
+    maxLength: 255,
+  });
+  validateOptionalTextField(errors, "icon_name", "nombre del icono", values.icon_name, 80);
+  validateDisplayOrderField(errors, "display_order", "orden", values.display_order);
+
+  return errors;
+}
+
+function validateSkillForm(values) {
+  const errors = {};
+
+  validateRequiredTextField(errors, "name", "nombre", values.name, 2, 100);
+  validateRequiredTextField(errors, "category", "categoría", values.category, 2, 100);
+  validateRequiredTextField(errors, "level", "nivel", values.level, 2, 50);
+  validateHexColorField(errors, "color", "color", values.color);
+  validateDisplayOrderField(errors, "display_order", "orden de visualización", values.display_order);
+
+  return errors;
+}
+
+function validateProjectForm(values) {
+  const errors = {};
+
+  validateRequiredTextField(errors, "title", "título", values.title, 2, 150);
+  validateProjectSlug(errors, values.slug);
+  validateRequiredTextField(
+    errors,
+    "short_description",
+    "descripción corta",
+    values.short_description,
+    2,
+    255
+  );
+
+  if (!getTrimmedString(values.description)) {
+    addValidationError(errors, "description", "La descripción larga es obligatoria.");
+  }
+
+  validateUrlField(errors, "repository_url", "URL del repositorio", values.repository_url, {
+    required: false,
+    maxLength: 255,
+  });
+  validateUrlField(errors, "demo_url", "URL de demo", values.demo_url, {
+    required: false,
+    maxLength: 255,
+  });
+  validateDisplayOrderField(errors, "display_order", "orden", values.display_order);
+
+  const galleryImageIds = Array.isArray(values.gallery_image_ids)
+    ? values.gallery_image_ids.filter((assetId) => assetId !== null && assetId !== undefined && assetId !== "")
+    : [];
+
+  if (galleryImageIds.length !== new Set(galleryImageIds.map((assetId) => Number(assetId))).size) {
+    addValidationError(
+      errors,
+      "gallery_image_ids",
+      "La galería no puede contener imágenes duplicadas."
+    );
+  }
+
+  return errors;
+}
+
+function validateExperienceForm(values) {
+  const errors = {};
+
+  validateRequiredTextField(errors, "position", "cargo", values.position, 2, 150);
+  validateRequiredTextField(errors, "company", "empresa", values.company, 2, 150);
+  validateOptionalTextField(errors, "country", "país", values.country, 100);
+  validateOptionalTextField(errors, "city", "ciudad", values.city, 100);
+  validateDisplayOrderField(errors, "display_order", "orden", values.display_order);
+
+  if (!getTrimmedString(values.start_date)) {
+    addValidationError(errors, "start_date", "La fecha de inicio es obligatoria.");
+  }
+
+  if (
+    getTrimmedString(values.start_date)
+    && getTrimmedString(values.end_date)
+    && !values.is_current
+    && values.end_date < values.start_date
+  ) {
+    addValidationError(
+      errors,
+      "end_date",
+      "La fecha de fin no puede ser anterior a la fecha de inicio."
+    );
+  }
+
+  const bulletLines = String(values.bullets_text || "")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  if (bulletLines.some((line) => line.length < 2)) {
+    addValidationError(
+      errors,
+      "bullets_text",
+      "Cada bullet debe tener al menos 2 caracteres."
+    );
+  }
+
+  return errors;
+}
+
+function validateEducationForm(values) {
+  const errors = {};
+
+  validateRequiredTextField(errors, "institution", "institución", values.institution, 2, 180);
+  validateRequiredTextField(errors, "degree", "título", values.degree, 2, 180);
+  validateOptionalTextField(errors, "field_of_study", "área", values.field_of_study, 180);
+  validateDisplayOrderField(errors, "display_order", "orden", values.display_order);
+
+  const startYear = validateYearField(errors, "start_year", "año de inicio", values.start_year);
+  const endYear = validateYearField(errors, "end_year", "año de fin", values.end_year);
+
+  if (startYear !== null && endYear !== null && endYear < startYear) {
+    addValidationError(
+      errors,
+      "end_year",
+      "El año de fin no puede ser menor que el año de inicio."
+    );
+  }
+
+  return errors;
+}
+
+function validateCertificationForm(values) {
+  const errors = {};
+
+  validateRequiredTextField(errors, "name", "nombre", values.name, 2, 180);
+  validateOptionalTextField(errors, "issuer", "emisor", values.issuer, 180);
+  validateUrlField(errors, "credential_url", "URL de credencial", values.credential_url, {
+    required: false,
+    maxLength: 255,
+  });
+  validateDisplayOrderField(errors, "display_order", "orden", values.display_order);
+
+  return errors;
+}
+
 function getAdminUiErrorMessage(error, fallbackMessage) {
   return error?.userMessage || error?.message || fallbackMessage;
 }
@@ -309,6 +714,9 @@ export default function AdminPage() {
   const [notice, setNotice] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [moduleStatus, setModuleStatus] = useState(createInitialModuleStatus);
+  const [formValidationErrors, setFormValidationErrors] = useState(
+    createInitialFormValidationErrors
+  );
 
   const resetAdminPanelState = useCallback(() => {
     setDashboard(null);
@@ -334,6 +742,7 @@ export default function AdminPage() {
     setEditingEducationId(null);
     setEditingCertificationId(null);
     setModuleStatus(createInitialModuleStatus());
+    setFormValidationErrors(createInitialFormValidationErrors());
   }, []);
 
   function showNotice(type, title, message = "") {
@@ -449,6 +858,36 @@ export default function AdminPage() {
 
   function isAnyModuleLoading(moduleKeys) {
     return moduleKeys.some((moduleKey) => Boolean(moduleStatus[moduleKey]?.loading));
+  }
+
+  function setValidationErrors(formKey, errors) {
+    setFormValidationErrors((currentErrors) => ({
+      ...currentErrors,
+      [formKey]: errors,
+    }));
+  }
+
+  function clearValidationErrors(formKey) {
+    setFormValidationErrors((currentErrors) => ({
+      ...currentErrors,
+      [formKey]: {},
+    }));
+  }
+
+  function clearValidationField(formKey, fieldName) {
+    setFormValidationErrors((currentErrors) => {
+      if (!currentErrors[formKey]?.[fieldName]) {
+        return currentErrors;
+      }
+
+      const nextErrors = { ...currentErrors[formKey] };
+      delete nextErrors[fieldName];
+
+      return {
+        ...currentErrors,
+        [formKey]: nextErrors,
+      };
+    });
   }
 
   async function loadAdminModule(moduleKey) {
@@ -589,6 +1028,7 @@ export default function AdminPage() {
 
   function handleLoginChange(event) {
     const { name, value } = event.target;
+    clearValidationField("login", name);
 
     setLoginForm((currentData) => ({
       ...currentData,
@@ -598,6 +1038,7 @@ export default function AdminPage() {
 
   function handleProfileChange(event) {
     const { name, value } = event.target;
+    clearValidationField("profile", name);
 
     setProfileForm((currentData) => ({
       ...currentData,
@@ -607,6 +1048,7 @@ export default function AdminPage() {
 
   function handleSocialLinkChange(event) {
     const { name, value, type, checked } = event.target;
+    clearValidationField("socialLink", name);
 
     setSocialLinkForm((currentData) => ({
       ...currentData,
@@ -616,6 +1058,7 @@ export default function AdminPage() {
 
   function handleSkillChange(event) {
     const { name, value, type, checked } = event.target;
+    clearValidationField("skill", name);
 
     setSkillForm((currentData) => ({
       ...currentData,
@@ -625,6 +1068,7 @@ export default function AdminPage() {
 
   function handleProjectChange(event) {
     const { name, value, type, checked } = event.target;
+    clearValidationField("project", name);
 
     setProjectForm((currentData) => ({
       ...currentData,
@@ -633,6 +1077,7 @@ export default function AdminPage() {
   }
 
   function handleProjectSkillToggle(skillId) {
+    clearValidationField("project", "skill_ids");
     setProjectForm((currentData) => {
       const currentSkillIds = new Set(currentData.skill_ids);
 
@@ -655,6 +1100,7 @@ export default function AdminPage() {
   }
 
   function handleAvatarAssetChange(assetId) {
+    clearValidationField("profile", "avatar_asset_id");
     setProfileForm((currentData) => ({
       ...currentData,
       avatar_asset_id: assetId,
@@ -662,6 +1108,7 @@ export default function AdminPage() {
   }
 
   function handleIconAssetChange(assetId) {
+    clearValidationField("skill", "icon_asset_id");
     setSkillForm((currentData) => ({
       ...currentData,
       icon_asset_id: assetId,
@@ -669,6 +1116,7 @@ export default function AdminPage() {
   }
 
   function handleImageAssetChange(assetId) {
+    clearValidationField("project", "image_asset_id");
     setProjectForm((currentData) => ({
       ...currentData,
       image_asset_id: assetId,
@@ -676,6 +1124,7 @@ export default function AdminPage() {
   }
 
   function handleProjectGalleryChange(galleryImageIds) {
+    clearValidationField("project", "gallery_image_ids");
     setProjectForm((currentData) => ({
       ...currentData,
       gallery_image_ids: Array.isArray(galleryImageIds) ? galleryImageIds : [],
@@ -683,6 +1132,7 @@ export default function AdminPage() {
   }
 
   function handlePdfAssetChange(assetId) {
+    clearValidationField("certification", "certificate_file_id");
     setCertificationForm((currentData) => ({
       ...currentData,
       certificate_file_id: assetId,
@@ -692,31 +1142,37 @@ export default function AdminPage() {
   function resetSkillForm() {
     setSkillForm(initialSkillForm);
     setEditingSkillId(null);
+    clearValidationErrors("skill");
   }
 
   function resetProjectForm() {
     setProjectForm(initialProjectForm);
     setEditingProjectId(null);
+    clearValidationErrors("project");
   }
 
   function resetExperienceForm() {
     setExperienceForm(initialExperienceForm);
     setEditingExperienceId(null);
+    clearValidationErrors("experience");
   }
 
   function resetEducationForm() {
     setEducationForm(initialEducationForm);
     setEditingEducationId(null);
+    clearValidationErrors("education");
   }
 
   function resetCertificationForm() {
     setCertificationForm(initialCertificationForm);
     setEditingCertificationId(null);
+    clearValidationErrors("certification");
   }
 
   function resetSocialLinkForm() {
     setSocialLinkForm(initialSocialLinkForm);
     setEditingSocialLinkId(null);
+    clearValidationErrors("socialLink");
   }
 
   function toNumberOrNull(value) {
@@ -731,6 +1187,7 @@ export default function AdminPage() {
 
   function openSkillEditor(skill) {
     setEditingSkillId(skill.id);
+    clearValidationErrors("skill");
     setSkillForm({
       name: skill.name || "",
       category: skill.category || "",
@@ -744,11 +1201,13 @@ export default function AdminPage() {
 
   function openSocialLinkEditor(socialLink) {
     setEditingSocialLinkId(socialLink.id);
+    clearValidationErrors("socialLink");
     setSocialLinkForm(normalizeSocialLinkForm(socialLink));
   }
 
   function openProjectEditor(project) {
     setEditingProjectId(project.id);
+    clearValidationErrors("project");
     setProjectForm({
       title: project.title || "",
       slug: project.slug || "",
@@ -772,25 +1231,37 @@ export default function AdminPage() {
 
   function openExperienceEditor(experience) {
     setEditingExperienceId(experience.id);
+    clearValidationErrors("experience");
     setExperienceForm(normalizeExperienceForm(experience));
   }
 
   function openEducationEditor(education) {
     setEditingEducationId(education.id);
+    clearValidationErrors("education");
     setEducationForm(normalizeEducationForm(education));
   }
 
   function openCertificationEditor(certification) {
     setEditingCertificationId(certification.id);
+    clearValidationErrors("certification");
     setCertificationForm(normalizeCertificationForm(certification));
   }
 
   async function handleLoginSubmit(event) {
     event.preventDefault();
 
-    setAuthenticating(true);
     setErrorMessage("");
     setSuccessMessage("");
+
+    const validationErrors = validateLoginForm(loginForm);
+
+    if (Object.keys(validationErrors).length > 0) {
+      setValidationErrors("login", validationErrors);
+      return;
+    }
+
+    clearValidationErrors("login");
+    setAuthenticating(true);
 
     const credentials = {
       username: loginForm.username.trim(),
@@ -819,9 +1290,18 @@ export default function AdminPage() {
   async function handleSocialLinkSubmit(event) {
     event.preventDefault();
 
-    setSavingSocialLink(true);
     setErrorMessage("");
     setSuccessMessage("");
+
+    const validationErrors = validateSocialLinkForm(socialLinkForm);
+
+    if (Object.keys(validationErrors).length > 0) {
+      setValidationErrors("socialLink", validationErrors);
+      return;
+    }
+
+    clearValidationErrors("socialLink");
+    setSavingSocialLink(true);
 
     const payload = {
       platform: socialLinkForm.platform.trim(),
@@ -888,9 +1368,18 @@ export default function AdminPage() {
   async function handleSkillSubmit(event) {
     event.preventDefault();
 
-    setSavingSkill(true);
     setErrorMessage("");
     setSuccessMessage("");
+
+    const validationErrors = validateSkillForm(skillForm);
+
+    if (Object.keys(validationErrors).length > 0) {
+      setValidationErrors("skill", validationErrors);
+      return;
+    }
+
+    clearValidationErrors("skill");
+    setSavingSkill(true);
 
     const payload = {
       name: skillForm.name.trim(),
@@ -959,9 +1448,18 @@ export default function AdminPage() {
   async function handleProjectSubmit(event) {
     event.preventDefault();
 
-    setSavingProject(true);
     setErrorMessage("");
     setSuccessMessage("");
+
+    const validationErrors = validateProjectForm(projectForm);
+
+    if (Object.keys(validationErrors).length > 0) {
+      setValidationErrors("project", validationErrors);
+      return;
+    }
+
+    clearValidationErrors("project");
+    setSavingProject(true);
 
     const payload = {
       title: projectForm.title.trim(),
@@ -1025,6 +1523,14 @@ export default function AdminPage() {
 
   function handleExperienceChange(event) {
     const { name, value, type, checked } = event.target;
+    clearValidationField("experience", name);
+    if (name === "start_date" || name === "end_date" || name === "is_current") {
+      clearValidationField("experience", "start_date");
+      clearValidationField("experience", "end_date");
+    }
+    if (name === "bullets_text") {
+      clearValidationField("experience", "bullets_text");
+    }
 
     setExperienceForm((currentData) => ({
       ...currentData,
@@ -1034,6 +1540,11 @@ export default function AdminPage() {
 
   function handleEducationChange(event) {
     const { name, value, type, checked } = event.target;
+    clearValidationField("education", name);
+    if (name === "start_year" || name === "end_year") {
+      clearValidationField("education", "start_year");
+      clearValidationField("education", "end_year");
+    }
 
     setEducationForm((currentData) => ({
       ...currentData,
@@ -1043,6 +1554,7 @@ export default function AdminPage() {
 
   function handleCertificationChange(event) {
     const { name, value, type, checked } = event.target;
+    clearValidationField("certification", name);
 
     setCertificationForm((currentData) => ({
       ...currentData,
@@ -1061,9 +1573,18 @@ export default function AdminPage() {
   async function handleExperienceSubmit(event) {
     event.preventDefault();
 
-    setSavingExperience(true);
     setErrorMessage("");
     setSuccessMessage("");
+
+    const validationErrors = validateExperienceForm(experienceForm);
+
+    if (Object.keys(validationErrors).length > 0) {
+      setValidationErrors("experience", validationErrors);
+      return;
+    }
+
+    clearValidationErrors("experience");
+    setSavingExperience(true);
 
     const payload = {
       position: experienceForm.position.trim(),
@@ -1135,9 +1656,18 @@ export default function AdminPage() {
   async function handleEducationSubmit(event) {
     event.preventDefault();
 
-    setSavingEducation(true);
     setErrorMessage("");
     setSuccessMessage("");
+
+    const validationErrors = validateEducationForm(educationForm);
+
+    if (Object.keys(validationErrors).length > 0) {
+      setValidationErrors("education", validationErrors);
+      return;
+    }
+
+    clearValidationErrors("education");
+    setSavingEducation(true);
 
     const payload = {
       institution: educationForm.institution.trim(),
@@ -1206,9 +1736,18 @@ export default function AdminPage() {
   async function handleCertificationSubmit(event) {
     event.preventDefault();
 
-    setSavingCertification(true);
     setErrorMessage("");
     setSuccessMessage("");
+
+    const validationErrors = validateCertificationForm(certificationForm);
+
+    if (Object.keys(validationErrors).length > 0) {
+      setValidationErrors("certification", validationErrors);
+      return;
+    }
+
+    clearValidationErrors("certification");
+    setSavingCertification(true);
 
     const payload = {
       name: certificationForm.name.trim(),
@@ -1310,9 +1849,18 @@ export default function AdminPage() {
   async function handleProfileSubmit(event) {
     event.preventDefault();
 
-    setSavingProfile(true);
     setErrorMessage("");
     setSuccessMessage("");
+
+    const validationErrors = validateProfileForm(profileForm);
+
+    if (Object.keys(validationErrors).length > 0) {
+      setValidationErrors("profile", validationErrors);
+      return;
+    }
+
+    clearValidationErrors("profile");
+    setSavingProfile(true);
 
     const payload = {
       full_name: profileForm.full_name.trim(),
@@ -1422,6 +1970,7 @@ export default function AdminPage() {
           authenticating={authenticating}
           errorMessage={errorMessage}
           successMessage={successMessage}
+          validationErrors={formValidationErrors.login}
           onLoginChange={handleLoginChange}
           onLoginSubmit={handleLoginSubmit}
         />
@@ -1458,6 +2007,7 @@ export default function AdminPage() {
           socialLinkForm={socialLinkForm}
           savingSocialLink={savingSocialLink}
           editingSocialLinkId={editingSocialLinkId}
+          validationErrors={formValidationErrors.socialLink}
           onSocialLinkChange={handleSocialLinkChange}
           onSocialLinkSubmit={handleSocialLinkSubmit}
           onEditSocialLink={openSocialLinkEditor}
@@ -1472,6 +2022,7 @@ export default function AdminPage() {
           profileForm={profileForm}
           savingProfile={savingProfile}
           mediaAssets={mediaAssets}
+          validationErrors={formValidationErrors.profile}
           onProfileChange={handleProfileChange}
           onProfileSubmit={handleProfileSubmit}
           onAssetUploaded={handleAssetUploaded}
@@ -1499,6 +2050,7 @@ export default function AdminPage() {
           savingSkill={savingSkill}
           editingSkillId={editingSkillId}
           mediaAssets={mediaAssets}
+          validationErrors={formValidationErrors.skill}
           onSkillChange={handleSkillChange}
           onSkillSubmit={handleSkillSubmit}
           onEditSkill={openSkillEditor}
@@ -1518,6 +2070,7 @@ export default function AdminPage() {
           savingProject={savingProject}
           editingProjectId={editingProjectId}
           mediaAssets={mediaAssets}
+          validationErrors={formValidationErrors.project}
           onProjectChange={handleProjectChange}
           onProjectSkillToggle={handleProjectSkillToggle}
           onProjectSubmit={handleProjectSubmit}
@@ -1539,6 +2092,7 @@ export default function AdminPage() {
           experienceForm={experienceForm}
           savingExperience={savingExperience}
           editingExperienceId={editingExperienceId}
+          validationErrors={formValidationErrors.experience}
           onExperienceChange={handleExperienceChange}
           onExperienceSubmit={handleExperienceSubmit}
           onEditExperience={openExperienceEditor}
@@ -1554,6 +2108,7 @@ export default function AdminPage() {
           educationForm={educationForm}
           savingEducation={savingEducation}
           editingEducationId={editingEducationId}
+          validationErrors={formValidationErrors.education}
           onEducationChange={handleEducationChange}
           onEducationSubmit={handleEducationSubmit}
           onEditEducation={openEducationEditor}
@@ -1569,6 +2124,7 @@ export default function AdminPage() {
           certificationForm={certificationForm}
           savingCertification={savingCertification}
           editingCertificationId={editingCertificationId}
+          validationErrors={formValidationErrors.certification}
           onCertificationChange={handleCertificationChange}
           onCertificationSubmit={handleCertificationSubmit}
           onEditCertification={openCertificationEditor}

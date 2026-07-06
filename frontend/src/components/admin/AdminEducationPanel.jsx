@@ -5,6 +5,7 @@ export default function AdminEducationPanel({
   educationForm,
   savingEducation,
   editingEducationId,
+  validationErrors,
   onEducationChange,
   onEducationSubmit,
   onEditEducation,
@@ -14,6 +15,8 @@ export default function AdminEducationPanel({
   panelLoading,
   onRetry,
 }) {
+  const validationMessages = Object.values(validationErrors || {});
+
   return (
     <article className="admin-card admin-education-panel">
       <div className="section-header">
@@ -33,6 +36,16 @@ export default function AdminEducationPanel({
       )}
 
       {!panelError && panelLoading && <p className="muted">Actualizando educación...</p>}
+
+      {validationMessages.length > 0 && (
+        <div className="admin-message error">
+          <ul>
+            {validationMessages.map((message) => (
+              <li key={message}>{message}</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <form className="admin-form" onSubmit={onEducationSubmit}>
         <div className="form-row">

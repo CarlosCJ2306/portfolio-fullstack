@@ -5,9 +5,12 @@ export default function AdminAuthCard({
   authenticating,
   errorMessage,
   successMessage,
+  validationErrors,
   onLoginChange,
   onLoginSubmit,
 }) {
+  const validationMessages = Object.values(validationErrors || {});
+
   return (
     <section className="admin-card auth-card admin-auth-card">
       <span className="badge">Acceso administrativo</span>
@@ -40,6 +43,16 @@ export default function AdminAuthCard({
             disabled={authenticating}
           />
         </label>
+
+        {validationMessages.length > 0 && (
+          <div className="admin-message error">
+            <ul>
+              {validationMessages.map((message) => (
+                <li key={message}>{message}</li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         {errorMessage && <p className="admin-message error">{errorMessage}</p>}
         {successMessage && <p className="admin-message success">{successMessage}</p>}
