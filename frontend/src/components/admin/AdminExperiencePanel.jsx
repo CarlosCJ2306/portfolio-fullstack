@@ -4,6 +4,7 @@ export default function AdminExperiencePanel({
   experiences,
   experienceForm,
   savingExperience,
+  deletingExperienceIds,
   editingExperienceId,
   validationErrors,
   onExperienceChange,
@@ -135,49 +136,63 @@ export default function AdminExperiencePanel({
         {experiences.length === 0 ? (
           <p className="muted">No hay experiencias registradas.</p>
         ) : (
-          experiences.map((experience) => (
-            <article className="experience-admin-card" key={experience.id}>
-              <div className="experience-admin-marker" />
-              <div className="experience-admin-content">
-                <div className="experience-admin-top">
-                  <div>
-                    <strong>{experience.position}</strong>
-                    <p>{experience.company}</p>
+          experiences.map((experience) => {
+            const isDeleting = deletingExperienceIds?.includes(experience.id);
+
+            return (
+              <article className="experience-admin-card" key={experience.id}>
+                <div className="experience-admin-marker" />
+                <div className="experience-admin-content">
+                  <div className="experience-admin-top">
+                    <div>
+                      <strong>{experience.position}</strong>
+                      <p>{experience.company}</p>
+                    </div>
+                    <span className="experience-admin-date">
+                      {experience.start_date} {experience.end_date ? `— ${experience.end_date}` : experience.is_current ? "— Actualidad" : ""}
+                    </span>
                   </div>
-                  <span className="experience-admin-date">
-                    {experience.start_date} {experience.end_date ? `— ${experience.end_date}` : experience.is_current ? "— Actualidad" : ""}
-                  </span>
+
+                  {(experience.country || experience.city) && (
+                    <span className="experience-admin-location">📍 {[experience.city, experience.country].filter(Boolean).join(", ")}</span>
+                  )}
+
+                  {experience.description && <p className="experience-admin-description">{experience.description}</p>}
+
+                  {Array.isArray(experience.bullets) && experience.bullets.length > 0 && (
+                    <ul className="experience-admin-list">
+                      {experience.bullets.map((bullet) => (
+                        <li key={bullet.id || bullet.description}>{bullet.description}</li>
+                      ))}
+                    </ul>
+                  )}
+
+                  <div className="entity-meta">
+                    Orden {experience.display_order} · {experience.is_active ? "Activa" : "Inactiva"}
+                  </div>
+
+                  <div className="entity-actions">
+                    <button
+                      type="button"
+                      className="admin-button secondary"
+                      onClick={() => onEditExperience(experience)}
+                      disabled={savingExperience || isDeleting}
+                    >
+                      Editar
+                    </button>
+                    <button
+                      type="button"
+                      className="admin-button ghost"
+                      onClick={() => onDeleteExperience(experience.id)}
+                      disabled={isDeleting}
+                    >
+                      {isDeleting ? "Eliminando..." : "Eliminar"}
+                    </button>
+                  </div>
                 </div>
-
-                {(experience.country || experience.city) && (
-                  <span className="experience-admin-location">📍 {[experience.city, experience.country].filter(Boolean).join(", ")}</span>
-                )}
-
-                {experience.description && <p className="experience-admin-description">{experience.description}</p>}
-
-                {Array.isArray(experience.bullets) && experience.bullets.length > 0 && (
-                  <ul className="experience-admin-list">
-                    {experience.bullets.map((bullet) => (
-                      <li key={bullet.id || bullet.description}>{bullet.description}</li>
-                    ))}
-                  </ul>
-                )}
-
-                <div className="entity-meta">
-                  Orden {experience.display_order} · {experience.is_active ? "Activa" : "Inactiva"}
-                </div>
-
-                <div className="entity-actions">
-                  <button type="button" className="admin-button secondary" onClick={() => onEditExperience(experience)}>
-                    Editar
-                  </button>
-                  <button type="button" className="admin-button ghost" onClick={() => onDeleteExperience(experience.id)}>
-                    Eliminar
-                  </button>
-                </div>
-              </div>
-            </article>
-          ))
+              </article>
+            );
+          })
         )}
       </div>
     </article>

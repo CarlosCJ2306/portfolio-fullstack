@@ -1,5 +1,36 @@
 # Cambios realizados
 
+## 2026-07-06 - Tarea 3.6: estados por elemento, orden local y conteos en panel admin
+
+Se reforzo el comportamiento del panel administrativo sin tocar backend, rutas ni contratos. El objetivo fue que cada modulo reaccione mejor a operaciones individuales de crear, editar y eliminar, sin bloquear innecesariamente el resto del panel.
+
+Mejoras aplicadas:
+
+- se agregaron estados de eliminacion por ID para redes, skills, proyectos, experiencia, educacion y certificaciones;
+- cada tarjeta deshabilita solo sus propias acciones mientras se elimina, en lugar de congelar todo el modulo;
+- los formularios principales ya no permiten doble envio accidental en crear o editar;
+- marcar mensajes como leidos ahora usa estado por mensaje para evitar acciones duplicadas;
+- despues de crear o editar, las listas locales quedan reordenadas por `display_order`;
+- el orden mantiene desempate estable usando el orden previo cuando dos elementos comparten el mismo `display_order`;
+- los conteos del dashboard se siguen actualizando localmente cuando cambian redes, skills, proyectos, experiencia, educacion, certificaciones o mensajes.
+
+Verificaciones:
+
+- `npm run lint` paso correctamente.
+- `npm run build` paso correctamente.
+
+Archivos tocados:
+
+- `frontend/src/pages/AdminPage.jsx`
+- `frontend/src/components/admin/AdminSocialLinksPanel.jsx`
+- `frontend/src/components/admin/AdminSkillsPanel.jsx`
+- `frontend/src/components/admin/AdminProjectsPanel.jsx`
+- `frontend/src/components/admin/AdminExperiencePanel.jsx`
+- `frontend/src/components/admin/AdminEducationPanel.jsx`
+- `frontend/src/components/admin/AdminCertificationsPanel.jsx`
+- `frontend/src/components/admin/AdminMessagesPanel.jsx`
+- `CAMBIOS.md`
+
 ## 2026-07-06 - Tareas 3.5 y 3.7: mejor UX para documentos PDF y compatibilidad icon/icon_svg
 
 Se ajusto `AdminImagePicker` para que cuando se use con `assetType="document"` hable de documento/PDF en lugar de imagen. El picker ahora muestra informacion util del asset asociado sin mezclarlo con `credential_url`:

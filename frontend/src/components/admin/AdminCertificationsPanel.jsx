@@ -5,6 +5,7 @@ export default function AdminCertificationsPanel({
   certifications,
   certificationForm,
   savingCertification,
+  deletingCertificationIds,
   editingCertificationId,
   mediaAssets,
   validationErrors,
@@ -74,12 +75,11 @@ export default function AdminCertificationsPanel({
           <input name="credential_url" value={certificationForm.credential_url} onChange={onCertificationChange} disabled={savingCertification} />
         </label>
 
-        {/* Selector de PDF del certificado */}
         <AdminImagePicker
           value={certificationForm.certificate_file_id || null}
           currentAsset={
             certificationForm.certificate_file_id
-              ? mediaAssets?.find((a) => a.id === Number(certificationForm.certificate_file_id)) ?? null
+              ? mediaAssets?.find((asset) => asset.id === Number(certificationForm.certificate_file_id)) ?? null
               : null
           }
           assetType="document"
@@ -124,40 +124,54 @@ export default function AdminCertificationsPanel({
         {certifications.length === 0 ? (
           <p className="muted">No hay certificaciones registradas.</p>
         ) : (
-          certifications.map((certification) => (
-            <article className="certification-admin-card" key={certification.id}>
-              <div className="certification-admin-icon">✓</div>
-              <div className="certification-admin-content">
-                <strong>{certification.name}</strong>
-                <p>{certification.issuer}</p>
+          certifications.map((certification) => {
+            const isDeleting = deletingCertificationIds?.includes(certification.id);
 
-                {certification.issue_date && (
-                  <span className="certification-admin-date">{certification.issue_date}</span>
-                )}
+            return (
+              <article className="certification-admin-card" key={certification.id}>
+                <div className="certification-admin-icon">✓</div>
+                <div className="certification-admin-content">
+                  <strong>{certification.name}</strong>
+                  <p>{certification.issuer}</p>
 
-                {certification.description && (
-                  <p className="certification-admin-description">{certification.description}</p>
-                )}
+                  {certification.issue_date && (
+                    <span className="certification-admin-date">{certification.issue_date}</span>
+                  )}
 
-                {certification.credential_url && (
-                  <a href={certification.credential_url} target="_blank" rel="noreferrer" className="certification-admin-link">
-                    Ver credencial
-                  </a>
-                )}
+                  {certification.description && (
+                    <p className="certification-admin-description">{certification.description}</p>
+                  )}
 
-                <div className="entity-meta">Orden {certification.display_order}</div>
+                  {certification.credential_url && (
+                    <a href={certification.credential_url} target="_blank" rel="noreferrer" className="certification-admin-link">
+                      Ver credencial
+                    </a>
+                  )}
 
-                <div className="entity-actions">
-                  <button type="button" className="admin-button secondary" onClick={() => onEditCertification(certification)}>
-                    Editar
-                  </button>
-                  <button type="button" className="admin-button ghost" onClick={() => onDeleteCertification(certification.id)}>
-                    Eliminar
-                  </button>
+                  <div className="entity-meta">Orden {certification.display_order}</div>
+
+                  <div className="entity-actions">
+                    <button
+                      type="button"
+                      className="admin-button secondary"
+                      onClick={() => onEditCertification(certification)}
+                      disabled={savingCertification || isDeleting}
+                    >
+                      Editar
+                    </button>
+                    <button
+                      type="button"
+                      className="admin-button ghost"
+                      onClick={() => onDeleteCertification(certification.id)}
+                      disabled={isDeleting}
+                    >
+                      {isDeleting ? "Eliminando..." : "Eliminar"}
+                    </button>
+                  </div>
                 </div>
-              </div>
-            </article>
-          ))
+              </article>
+            );
+          })
         )}
       </div>
     </article>

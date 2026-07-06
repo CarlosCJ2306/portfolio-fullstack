@@ -4,6 +4,7 @@ export default function AdminEducationPanel({
   education,
   educationForm,
   savingEducation,
+  deletingEducationIds,
   editingEducationId,
   validationErrors,
   onEducationChange,
@@ -111,36 +112,50 @@ export default function AdminEducationPanel({
         {education.length === 0 ? (
           <p className="muted">No hay formación académica registrada.</p>
         ) : (
-          education.map((item) => (
-            <article className="education-admin-card" key={item.id}>
-              <div className="education-admin-icon">🎓</div>
-              <div className="education-admin-content">
-                <strong>{item.degree}</strong>
-                <p>{item.institution}</p>
+          education.map((item) => {
+            const isDeleting = deletingEducationIds?.includes(item.id);
 
-                {item.field_of_study && <span className="education-admin-field">{item.field_of_study}</span>}
+            return (
+              <article className="education-admin-card" key={item.id}>
+                <div className="education-admin-icon">🎓</div>
+                <div className="education-admin-content">
+                  <strong>{item.degree}</strong>
+                  <p>{item.institution}</p>
 
-                {(item.start_year || item.end_year) && (
-                  <span className="education-admin-date">
-                    {item.start_year || ""} {item.start_year && item.end_year ? "—" : ""} {item.end_year || ""}
-                  </span>
-                )}
+                  {item.field_of_study && <span className="education-admin-field">{item.field_of_study}</span>}
 
-                {item.description && <p className="education-admin-description">{item.description}</p>}
+                  {(item.start_year || item.end_year) && (
+                    <span className="education-admin-date">
+                      {item.start_year || ""} {item.start_year && item.end_year ? "—" : ""} {item.end_year || ""}
+                    </span>
+                  )}
 
-                <div className="entity-meta">Orden {item.display_order}</div>
+                  {item.description && <p className="education-admin-description">{item.description}</p>}
 
-                <div className="entity-actions">
-                  <button type="button" className="admin-button secondary" onClick={() => onEditEducation(item)}>
-                    Editar
-                  </button>
-                  <button type="button" className="admin-button ghost" onClick={() => onDeleteEducation(item.id)}>
-                    Eliminar
-                  </button>
+                  <div className="entity-meta">Orden {item.display_order}</div>
+
+                  <div className="entity-actions">
+                    <button
+                      type="button"
+                      className="admin-button secondary"
+                      onClick={() => onEditEducation(item)}
+                      disabled={savingEducation || isDeleting}
+                    >
+                      Editar
+                    </button>
+                    <button
+                      type="button"
+                      className="admin-button ghost"
+                      onClick={() => onDeleteEducation(item.id)}
+                      disabled={isDeleting}
+                    >
+                      {isDeleting ? "Eliminando..." : "Eliminar"}
+                    </button>
+                  </div>
                 </div>
-              </div>
-            </article>
-          ))
+              </article>
+            );
+          })
         )}
       </div>
     </article>

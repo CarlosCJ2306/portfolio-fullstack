@@ -7,6 +7,7 @@ export default function AdminProjectsPanel({
   skills,
   projectForm,
   savingProject,
+  deletingProjectIds,
   editingProjectId,
   mediaAssets,
   validationErrors,
@@ -95,12 +96,11 @@ export default function AdminProjectsPanel({
           </label>
         </div>
 
-        {/* Selector visual de imagen del proyecto */}
         <AdminImagePicker
           value={projectForm.image_asset_id || null}
           currentAsset={
             projectForm.image_asset_id
-              ? mediaAssets?.find((a) => a.id === Number(projectForm.image_asset_id)) ?? null
+              ? mediaAssets?.find((asset) => asset.id === Number(projectForm.image_asset_id)) ?? null
               : null
           }
           assetType="image"
@@ -182,14 +182,15 @@ export default function AdminProjectsPanel({
           <p className="muted">No hay proyectos registrados.</p>
         ) : (
           projects.map((project) => {
-            const imgSrc = project.image?.data_base64 && project.image?.mime_type
-              ? `data:${project.image.mime_type};base64,${project.image.data_base64}`
-              : null;
+            const isDeleting = deletingProjectIds?.includes(project.id);
+            const imgSrc =
+              project.image?.data_base64 && project.image?.mime_type
+                ? `data:${project.image.mime_type};base64,${project.image.data_base64}`
+                : null;
 
             return (
               <article className="entity-card" key={project.id}>
                 <div className="entity-card__content">
-                  {/* Preview de imagen en la lista */}
                   <div className="entity-card__image-container">
                     {imgSrc ? (
                       <img src={imgSrc} alt={project.title} className="entity-card__image" />
@@ -208,11 +209,11 @@ export default function AdminProjectsPanel({
                     </span>
 
                     <span className="entity-meta entity-meta--secondary">
-                      Galeria: {Array.isArray(project.gallery_images) ? project.gallery_images.length : 0} imagen(es)
+                      Galería: {Array.isArray(project.gallery_images) ? project.gallery_images.length : 0} imagen(es)
                     </span>
 
                     {Array.isArray(project.skills) && project.skills.length > 0 && (
-                      <div className="chip-grid compact" style={{ marginTop: '8px' }}>
+                      <div className="chip-grid compact" style={{ marginTop: "8px" }}>
                         {project.skills.map((skill) => (
                           <span className="chip readonly" key={`${project.id}-${skill.id}`}>
                             {skill.name}
@@ -224,11 +225,21 @@ export default function AdminProjectsPanel({
                 </div>
 
                 <div className="entity-actions">
-                  <button type="button" className="admin-button secondary" onClick={() => onEditProject(project)}>
+                  <button
+                    type="button"
+                    className="admin-button secondary"
+                    onClick={() => onEditProject(project)}
+                    disabled={savingProject || isDeleting}
+                  >
                     Editar
                   </button>
-                  <button type="button" className="admin-button ghost" onClick={() => onDeleteProject(project.id)}>
-                    Eliminar
+                  <button
+                    type="button"
+                    className="admin-button ghost"
+                    onClick={() => onDeleteProject(project.id)}
+                    disabled={isDeleting}
+                  >
+                    {isDeleting ? "Eliminando..." : "Eliminar"}
                   </button>
                 </div>
               </article>

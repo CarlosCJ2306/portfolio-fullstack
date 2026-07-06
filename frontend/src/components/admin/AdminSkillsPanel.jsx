@@ -6,6 +6,7 @@ export default function AdminSkillsPanel({
   skills,
   skillForm,
   savingSkill,
+  deletingSkillIds,
   editingSkillId,
   mediaAssets,
   validationErrors,
@@ -77,12 +78,11 @@ export default function AdminSkillsPanel({
           </label>
         </div>
 
-        {/* Selector visual de ícono SVG */}
         <AdminImagePicker
           value={skillForm.icon_asset_id || null}
           currentAsset={
             skillForm.icon_asset_id
-              ? mediaAssets?.find((a) => a.id === Number(skillForm.icon_asset_id)) ?? null
+              ? mediaAssets?.find((asset) => asset.id === Number(skillForm.icon_asset_id)) ?? null
               : null
           }
           assetType="icon_svg"
@@ -127,15 +127,16 @@ export default function AdminSkillsPanel({
           <p className="muted">No hay skills registradas.</p>
         ) : (
           skills.map((skill) => {
-            const iconSrc = skill.icon?.data_base64 && skill.icon?.mime_type
-              ? `data:${skill.icon.mime_type};base64,${skill.icon.data_base64}`
-              : null;
+            const isDeleting = deletingSkillIds?.includes(skill.id);
+            const iconSrc =
+              skill.icon?.data_base64 && skill.icon?.mime_type
+                ? `data:${skill.icon.mime_type};base64,${skill.icon.data_base64}`
+                : null;
             const safeSvgSrc = getSafeSvgDataUrl(skill.icon?.svg_content);
 
             return (
               <article className="entity-card" key={skill.id}>
                 <div className="entity-card__content">
-                  {/* Preview del ícono en la lista */}
                   <div className="entity-card__icon">
                     {iconSrc ? (
                       <img src={iconSrc} alt={skill.name} className="entity-card__icon-img" />
@@ -162,11 +163,21 @@ export default function AdminSkillsPanel({
                 </div>
 
                 <div className="entity-actions">
-                  <button type="button" className="admin-button secondary" onClick={() => onEditSkill(skill)}>
+                  <button
+                    type="button"
+                    className="admin-button secondary"
+                    onClick={() => onEditSkill(skill)}
+                    disabled={savingSkill || isDeleting}
+                  >
                     Editar
                   </button>
-                  <button type="button" className="admin-button ghost" onClick={() => onDeleteSkill(skill.id)}>
-                    Eliminar
+                  <button
+                    type="button"
+                    className="admin-button ghost"
+                    onClick={() => onDeleteSkill(skill.id)}
+                    disabled={isDeleting}
+                  >
+                    {isDeleting ? "Eliminando..." : "Eliminar"}
                   </button>
                 </div>
               </article>

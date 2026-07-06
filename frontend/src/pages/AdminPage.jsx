@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ADMIN_AUTH_INVALID_EVENT,
   clearAdminCredentials,
@@ -675,6 +675,31 @@ function formatDate(value) {
   }
 }
 
+function getDisplayOrderValue(item) {
+  const rawValue = item?.display_order;
+  const numericValue =
+    typeof rawValue === "number" ? rawValue : Number(rawValue ?? 0);
+
+  return Number.isFinite(numericValue) ? numericValue : 0;
+}
+
+function sortItemsByDisplayOrder(items) {
+  return [...(items || [])]
+    .map((item, index) => ({
+      item,
+      index,
+      displayOrder: getDisplayOrderValue(item),
+    }))
+    .sort((leftItem, rightItem) => {
+      if (leftItem.displayOrder !== rightItem.displayOrder) {
+        return leftItem.displayOrder - rightItem.displayOrder;
+      }
+
+      return leftItem.index - rightItem.index;
+    })
+    .map(({ item }) => item);
+}
+
 export default function AdminPage() {
   const [loginForm, setLoginForm] = useState(initialLoginForm);
   const [profileForm, setProfileForm] = useState(initialProfileForm);
@@ -709,6 +734,13 @@ export default function AdminPage() {
   const [savingEducation, setSavingEducation] = useState(false);
   const [savingCertification, setSavingCertification] = useState(false);
   const [refreshingMessages, setRefreshingMessages] = useState(false);
+  const [deletingSocialLinkIds, setDeletingSocialLinkIds] = useState([]);
+  const [deletingSkillIds, setDeletingSkillIds] = useState([]);
+  const [deletingProjectIds, setDeletingProjectIds] = useState([]);
+  const [deletingExperienceIds, setDeletingExperienceIds] = useState([]);
+  const [deletingEducationIds, setDeletingEducationIds] = useState([]);
+  const [deletingCertificationIds, setDeletingCertificationIds] = useState([]);
+  const [markingMessageIds, setMarkingMessageIds] = useState([]);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [notice, setNotice] = useState(null);
@@ -717,6 +749,13 @@ export default function AdminPage() {
   const [formValidationErrors, setFormValidationErrors] = useState(
     createInitialFormValidationErrors
   );
+  const deletingSocialLinkIdsRef = useRef(new Set());
+  const deletingSkillIdsRef = useRef(new Set());
+  const deletingProjectIdsRef = useRef(new Set());
+  const deletingExperienceIdsRef = useRef(new Set());
+  const deletingEducationIdsRef = useRef(new Set());
+  const deletingCertificationIdsRef = useRef(new Set());
+  const markingMessageIdsRef = useRef(new Set());
 
   const resetAdminPanelState = useCallback(() => {
     setDashboard(null);
@@ -741,6 +780,20 @@ export default function AdminPage() {
     setEditingExperienceId(null);
     setEditingEducationId(null);
     setEditingCertificationId(null);
+    deletingSocialLinkIdsRef.current = new Set();
+    deletingSkillIdsRef.current = new Set();
+    deletingProjectIdsRef.current = new Set();
+    deletingExperienceIdsRef.current = new Set();
+    deletingEducationIdsRef.current = new Set();
+    deletingCertificationIdsRef.current = new Set();
+    markingMessageIdsRef.current = new Set();
+    setDeletingSocialLinkIds([]);
+    setDeletingSkillIds([]);
+    setDeletingProjectIds([]);
+    setDeletingExperienceIds([]);
+    setDeletingEducationIds([]);
+    setDeletingCertificationIds([]);
+    setMarkingMessageIds([]);
     setModuleStatus(createInitialModuleStatus());
     setFormValidationErrors(createInitialFormValidationErrors());
   }, []);
@@ -860,6 +913,25 @@ export default function AdminPage() {
     return moduleKeys.some((moduleKey) => Boolean(moduleStatus[moduleKey]?.loading));
   }
 
+  function beginPendingItem(itemId, pendingIdsRef, setPendingIds) {
+    if (pendingIdsRef.current.has(itemId)) {
+      return false;
+    }
+
+    pendingIdsRef.current.add(itemId);
+    setPendingIds(Array.from(pendingIdsRef.current));
+    return true;
+  }
+
+  function endPendingItem(itemId, pendingIdsRef, setPendingIds) {
+    if (!pendingIdsRef.current.has(itemId)) {
+      return;
+    }
+
+    pendingIdsRef.current.delete(itemId);
+    setPendingIds(Array.from(pendingIdsRef.current));
+  }
+
   function setValidationErrors(formKey, errors) {
     setFormValidationErrors((currentErrors) => ({
       ...currentErrors,
@@ -909,32 +981,32 @@ export default function AdminPage() {
       },
       socialLinks: {
         loader: getAdminSocialLinks,
-        onSuccess: (data) => setSocialLinks(data || []),
+        onSuccess: (data) => setSocialLinks(sortItemsByDisplayOrder(data || [])),
         fallbackMessage: "No se pudieron cargar los enlaces sociales.",
       },
       skills: {
         loader: getAdminSkills,
-        onSuccess: (data) => setSkills(data || []),
+        onSuccess: (data) => setSkills(sortItemsByDisplayOrder(data || [])),
         fallbackMessage: "No se pudieron cargar las skills.",
       },
       projects: {
         loader: getAdminProjects,
-        onSuccess: (data) => setProjects(data || []),
+        onSuccess: (data) => setProjects(sortItemsByDisplayOrder(data || [])),
         fallbackMessage: "No se pudieron cargar los proyectos.",
       },
       experience: {
         loader: getAdminExperience,
-        onSuccess: (data) => setExperiences(data || []),
+        onSuccess: (data) => setExperiences(sortItemsByDisplayOrder(data || [])),
         fallbackMessage: "No se pudo cargar la experiencia.",
       },
       education: {
         loader: getAdminEducation,
-        onSuccess: (data) => setEducationList(data || []),
+        onSuccess: (data) => setEducationList(sortItemsByDisplayOrder(data || [])),
         fallbackMessage: "No se pudo cargar la educacion.",
       },
       certifications: {
         loader: getAdminCertifications,
-        onSuccess: (data) => setCertifications(data || []),
+        onSuccess: (data) => setCertifications(sortItemsByDisplayOrder(data || [])),
         fallbackMessage: "No se pudieron cargar las certificaciones.",
       },
       mediaAssets: {
@@ -1250,6 +1322,10 @@ export default function AdminPage() {
   async function handleLoginSubmit(event) {
     event.preventDefault();
 
+    if (authenticating) {
+      return;
+    }
+
     setErrorMessage("");
     setSuccessMessage("");
 
@@ -1290,6 +1366,10 @@ export default function AdminPage() {
   async function handleSocialLinkSubmit(event) {
     event.preventDefault();
 
+    if (savingSocialLink) {
+      return;
+    }
+
     setErrorMessage("");
     setSuccessMessage("");
 
@@ -1314,13 +1394,19 @@ export default function AdminPage() {
     try {
       if (editingSocialLinkId) {
         const updatedSocialLink = await updateAdminSocialLink(editingSocialLinkId, payload);
-        setSocialLinks((currentItems) => replaceItemById(currentItems, editingSocialLinkId, updatedSocialLink));
+        setSocialLinks((currentItems) =>
+          sortItemsByDisplayOrder(
+            replaceItemById(currentItems, editingSocialLinkId, updatedSocialLink)
+          )
+        );
         clearModuleError("socialLinks");
         setSuccessMessage("Enlace social actualizado correctamente.");
         showNotice("success", "Enlace social guardado", "La tarjeta se actualizó sin recargar la vista.");
       } else {
         const createdSocialLink = await createAdminSocialLink(payload);
-        setSocialLinks((currentItems) => [createdSocialLink, ...currentItems]);
+        setSocialLinks((currentItems) =>
+          sortItemsByDisplayOrder([createdSocialLink, ...currentItems])
+        );
         clearModuleError("socialLinks");
         updateDashboardCounts({ total_social_links: (dashboard?.total_social_links || 0) + 1 });
         setSuccessMessage("Enlace social creado correctamente.");
@@ -1340,7 +1426,22 @@ export default function AdminPage() {
   }
 
   async function handleDeleteSocialLink(socialLinkId) {
+    if (
+      !beginPendingItem(
+        socialLinkId,
+        deletingSocialLinkIdsRef,
+        setDeletingSocialLinkIds
+      )
+    ) {
+      return;
+    }
+
     if (!window.confirm("¿Eliminar este enlace social?")) {
+      endPendingItem(
+        socialLinkId,
+        deletingSocialLinkIdsRef,
+        setDeletingSocialLinkIds
+      );
       return;
     }
 
@@ -1362,11 +1463,21 @@ export default function AdminPage() {
       setModuleError("socialLinks", message);
       setErrorMessage(message);
       showNotice("error", "Error al eliminar enlace social", message);
+    } finally {
+      endPendingItem(
+        socialLinkId,
+        deletingSocialLinkIdsRef,
+        setDeletingSocialLinkIds
+      );
     }
   }
 
   async function handleSkillSubmit(event) {
     event.preventDefault();
+
+    if (savingSkill) {
+      return;
+    }
 
     setErrorMessage("");
     setSuccessMessage("");
@@ -1394,13 +1505,19 @@ export default function AdminPage() {
     try {
       if (editingSkillId) {
         const updatedSkill = await updateAdminSkill(editingSkillId, payload);
-        setSkills((currentItems) => replaceItemById(currentItems, editingSkillId, updatedSkill));
+        setSkills((currentItems) =>
+          sortItemsByDisplayOrder(
+            replaceItemById(currentItems, editingSkillId, updatedSkill)
+          )
+        );
         clearModuleError("skills");
         setSuccessMessage("Skill actualizada correctamente.");
         showNotice("success", "Skill guardada", "La tarjeta se actualizó al instante.");
       } else {
         const createdSkill = await createAdminSkill(payload);
-        setSkills((currentItems) => [createdSkill, ...currentItems]);
+        setSkills((currentItems) =>
+          sortItemsByDisplayOrder([createdSkill, ...currentItems])
+        );
         clearModuleError("skills");
         updateDashboardCounts({ total_skills: (dashboard?.total_skills || 0) + 1 });
         setSuccessMessage("Skill creada correctamente.");
@@ -1420,7 +1537,12 @@ export default function AdminPage() {
   }
 
   async function handleDeleteSkill(skillId) {
+    if (!beginPendingItem(skillId, deletingSkillIdsRef, setDeletingSkillIds)) {
+      return;
+    }
+
     if (!window.confirm("¿Eliminar esta skill?")) {
+      endPendingItem(skillId, deletingSkillIdsRef, setDeletingSkillIds);
       return;
     }
 
@@ -1442,11 +1564,17 @@ export default function AdminPage() {
       setModuleError("skills", message);
       setErrorMessage(message);
       showNotice("error", "Error al eliminar skill", message);
+    } finally {
+      endPendingItem(skillId, deletingSkillIdsRef, setDeletingSkillIds);
     }
   }
 
   async function handleProjectSubmit(event) {
     event.preventDefault();
+
+    if (savingProject) {
+      return;
+    }
 
     setErrorMessage("");
     setSuccessMessage("");
@@ -1482,7 +1610,11 @@ export default function AdminPage() {
       if (editingProjectId) {
         const previousProject = projects.find((project) => project.id === editingProjectId);
         const updatedProject = await updateAdminProject(editingProjectId, payload);
-        setProjects((currentItems) => replaceItemById(currentItems, editingProjectId, updatedProject));
+        setProjects((currentItems) =>
+          sortItemsByDisplayOrder(
+            replaceItemById(currentItems, editingProjectId, updatedProject)
+          )
+        );
         clearModuleError("projects");
         setSuccessMessage("Proyecto actualizado correctamente.");
         updateDashboardCounts({
@@ -1497,7 +1629,9 @@ export default function AdminPage() {
         showNotice("success", "Proyecto guardado", "La tarjeta se actualizó al instante.");
       } else {
         const createdProject = await createAdminProject(payload);
-        setProjects((currentItems) => [createdProject, ...currentItems]);
+        setProjects((currentItems) =>
+          sortItemsByDisplayOrder([createdProject, ...currentItems])
+        );
         clearModuleError("projects");
         updateDashboardCounts({
           total_projects: (dashboard?.total_projects || 0) + 1,
@@ -1573,6 +1707,10 @@ export default function AdminPage() {
   async function handleExperienceSubmit(event) {
     event.preventDefault();
 
+    if (savingExperience) {
+      return;
+    }
+
     setErrorMessage("");
     setSuccessMessage("");
 
@@ -1603,13 +1741,19 @@ export default function AdminPage() {
     try {
       if (editingExperienceId) {
         const updatedExperience = await updateAdminExperience(editingExperienceId, payload);
-        setExperiences((currentItems) => replaceItemById(currentItems, editingExperienceId, updatedExperience));
+        setExperiences((currentItems) =>
+          sortItemsByDisplayOrder(
+            replaceItemById(currentItems, editingExperienceId, updatedExperience)
+          )
+        );
         clearModuleError("experience");
         showNotice("success", "Experiencia guardada", "Los cambios se aplicaron sin recargar la página.");
         setSuccessMessage("Experiencia actualizada correctamente.");
       } else {
         const createdExperience = await createAdminExperience(payload);
-        setExperiences((currentItems) => [createdExperience, ...currentItems]);
+        setExperiences((currentItems) =>
+          sortItemsByDisplayOrder([createdExperience, ...currentItems])
+        );
         clearModuleError("experience");
         updateDashboardCounts({ total_experience: (dashboard?.total_experience || 0) + 1 });
         showNotice("success", "Experiencia creada", "Se agregó al listado al instante.");
@@ -1633,6 +1777,16 @@ export default function AdminPage() {
       return;
     }
 
+    if (
+      !beginPendingItem(
+        experienceId,
+        deletingExperienceIdsRef,
+        setDeletingExperienceIds
+      )
+    ) {
+      return;
+    }
+
     try {
       setErrorMessage("");
       setSuccessMessage("");
@@ -1650,11 +1804,21 @@ export default function AdminPage() {
       setModuleError("experience", message);
       setErrorMessage(message);
       showNotice("error", "Error al eliminar experiencia", message);
+    } finally {
+      endPendingItem(
+        experienceId,
+        deletingExperienceIdsRef,
+        setDeletingExperienceIds
+      );
     }
   }
 
   async function handleEducationSubmit(event) {
     event.preventDefault();
+
+    if (savingEducation) {
+      return;
+    }
 
     setErrorMessage("");
     setSuccessMessage("");
@@ -1683,13 +1847,19 @@ export default function AdminPage() {
     try {
       if (editingEducationId) {
         const updatedEducation = await updateAdminEducation(editingEducationId, payload);
-        setEducationList((currentItems) => replaceItemById(currentItems, editingEducationId, updatedEducation));
+        setEducationList((currentItems) =>
+          sortItemsByDisplayOrder(
+            replaceItemById(currentItems, editingEducationId, updatedEducation)
+          )
+        );
         clearModuleError("education");
         showNotice("success", "Educación guardada", "Los cambios se aplicaron sin recargar la página.");
         setSuccessMessage("Educación actualizada correctamente.");
       } else {
         const createdEducation = await createAdminEducation(payload);
-        setEducationList((currentItems) => [createdEducation, ...currentItems]);
+        setEducationList((currentItems) =>
+          sortItemsByDisplayOrder([createdEducation, ...currentItems])
+        );
         clearModuleError("education");
         updateDashboardCounts({ total_education: (dashboard?.total_education || 0) + 1 });
         showNotice("success", "Educación creada", "Se agregó al listado al instante.");
@@ -1713,6 +1883,16 @@ export default function AdminPage() {
       return;
     }
 
+    if (
+      !beginPendingItem(
+        educationId,
+        deletingEducationIdsRef,
+        setDeletingEducationIds
+      )
+    ) {
+      return;
+    }
+
     try {
       setErrorMessage("");
       setSuccessMessage("");
@@ -1730,11 +1910,21 @@ export default function AdminPage() {
       setModuleError("education", message);
       setErrorMessage(message);
       showNotice("error", "Error al eliminar educación", message);
+    } finally {
+      endPendingItem(
+        educationId,
+        deletingEducationIdsRef,
+        setDeletingEducationIds
+      );
     }
   }
 
   async function handleCertificationSubmit(event) {
     event.preventDefault();
+
+    if (savingCertification) {
+      return;
+    }
 
     setErrorMessage("");
     setSuccessMessage("");
@@ -1763,13 +1953,19 @@ export default function AdminPage() {
     try {
       if (editingCertificationId) {
         const updatedCertification = await updateAdminCertification(editingCertificationId, payload);
-        setCertifications((currentItems) => replaceItemById(currentItems, editingCertificationId, updatedCertification));
+        setCertifications((currentItems) =>
+          sortItemsByDisplayOrder(
+            replaceItemById(currentItems, editingCertificationId, updatedCertification)
+          )
+        );
         clearModuleError("certifications");
         showNotice("success", "Certificación guardada", "Los cambios se aplicaron sin recargar la página.");
         setSuccessMessage("Certificación actualizada correctamente.");
       } else {
         const createdCertification = await createAdminCertification(payload);
-        setCertifications((currentItems) => [createdCertification, ...currentItems]);
+        setCertifications((currentItems) =>
+          sortItemsByDisplayOrder([createdCertification, ...currentItems])
+        );
         clearModuleError("certifications");
         updateDashboardCounts({ total_certifications: (dashboard?.total_certifications || 0) + 1 });
         showNotice("success", "Certificación creada", "Se agregó al listado al instante.");
@@ -1793,6 +1989,16 @@ export default function AdminPage() {
       return;
     }
 
+    if (
+      !beginPendingItem(
+        certificationId,
+        deletingCertificationIdsRef,
+        setDeletingCertificationIds
+      )
+    ) {
+      return;
+    }
+
     try {
       setErrorMessage("");
       setSuccessMessage("");
@@ -1810,11 +2016,27 @@ export default function AdminPage() {
       setModuleError("certifications", message);
       setErrorMessage(message);
       showNotice("error", "Error al eliminar certificación", message);
+    } finally {
+      endPendingItem(
+        certificationId,
+        deletingCertificationIdsRef,
+        setDeletingCertificationIds
+      );
     }
   }
 
   async function handleDeleteProject(projectId) {
     if (!window.confirm("¿Eliminar este proyecto?")) {
+      return;
+    }
+
+    if (
+      !beginPendingItem(
+        projectId,
+        deletingProjectIdsRef,
+        setDeletingProjectIds
+      )
+    ) {
       return;
     }
 
@@ -1843,11 +2065,17 @@ export default function AdminPage() {
       setModuleError("projects", message);
       setErrorMessage(message);
       showNotice("error", "Error al eliminar proyecto", message);
+    } finally {
+      endPendingItem(projectId, deletingProjectIdsRef, setDeletingProjectIds);
     }
   }
 
   async function handleProfileSubmit(event) {
     event.preventDefault();
+
+    if (savingProfile) {
+      return;
+    }
 
     setErrorMessage("");
     setSuccessMessage("");
@@ -1895,6 +2123,16 @@ export default function AdminPage() {
   }
 
   async function handleMarkAsRead(contactMessageId) {
+    if (
+      !beginPendingItem(
+        contactMessageId,
+        markingMessageIdsRef,
+        setMarkingMessageIds
+      )
+    ) {
+      return;
+    }
+
     setRefreshingMessages(true);
     setErrorMessage("");
     setSuccessMessage("");
@@ -1918,6 +2156,11 @@ export default function AdminPage() {
       setErrorMessage(message);
       showNotice("error", "Error al actualizar mensaje", message);
     } finally {
+      endPendingItem(
+        contactMessageId,
+        markingMessageIdsRef,
+        setMarkingMessageIds
+      );
       setRefreshingMessages(false);
     }
   }
@@ -2006,6 +2249,7 @@ export default function AdminPage() {
           socialLinks={socialLinks}
           socialLinkForm={socialLinkForm}
           savingSocialLink={savingSocialLink}
+          deletingSocialLinkIds={deletingSocialLinkIds}
           editingSocialLinkId={editingSocialLinkId}
           validationErrors={formValidationErrors.socialLink}
           onSocialLinkChange={handleSocialLinkChange}
@@ -2035,6 +2279,7 @@ export default function AdminPage() {
         <AdminMessagesPanel
           contactMessages={contactMessages}
           refreshingMessages={refreshingMessages}
+          markingMessageIds={markingMessageIds}
           onMarkAsRead={handleMarkAsRead}
           formatDate={formatDate}
           panelError={messagesError}
@@ -2048,6 +2293,7 @@ export default function AdminPage() {
           skills={skills}
           skillForm={skillForm}
           savingSkill={savingSkill}
+          deletingSkillIds={deletingSkillIds}
           editingSkillId={editingSkillId}
           mediaAssets={mediaAssets}
           validationErrors={formValidationErrors.skill}
@@ -2068,6 +2314,7 @@ export default function AdminPage() {
           skills={skills}
           projectForm={projectForm}
           savingProject={savingProject}
+          deletingProjectIds={deletingProjectIds}
           editingProjectId={editingProjectId}
           mediaAssets={mediaAssets}
           validationErrors={formValidationErrors.project}
@@ -2091,6 +2338,7 @@ export default function AdminPage() {
           experiences={experiences}
           experienceForm={experienceForm}
           savingExperience={savingExperience}
+          deletingExperienceIds={deletingExperienceIds}
           editingExperienceId={editingExperienceId}
           validationErrors={formValidationErrors.experience}
           onExperienceChange={handleExperienceChange}
@@ -2107,6 +2355,7 @@ export default function AdminPage() {
           education={educationList}
           educationForm={educationForm}
           savingEducation={savingEducation}
+          deletingEducationIds={deletingEducationIds}
           editingEducationId={editingEducationId}
           validationErrors={formValidationErrors.education}
           onEducationChange={handleEducationChange}
@@ -2123,6 +2372,7 @@ export default function AdminPage() {
           certifications={certifications}
           certificationForm={certificationForm}
           savingCertification={savingCertification}
+          deletingCertificationIds={deletingCertificationIds}
           editingCertificationId={editingCertificationId}
           validationErrors={formValidationErrors.certification}
           onCertificationChange={handleCertificationChange}

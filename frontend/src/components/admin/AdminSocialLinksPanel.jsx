@@ -4,6 +4,7 @@ export default function AdminSocialLinksPanel({
   socialLinks,
   socialLinkForm,
   savingSocialLink,
+  deletingSocialLinkIds,
   editingSocialLinkId,
   validationErrors,
   onSocialLinkChange,
@@ -98,24 +99,38 @@ export default function AdminSocialLinksPanel({
         {socialLinks.length === 0 ? (
           <p className="muted">No hay enlaces sociales registrados.</p>
         ) : (
-          socialLinks.map((socialLink) => (
-            <article className="entity-card" key={socialLink.id}>
-              <div>
-                <strong>{socialLink.platform}</strong>
-                <p>{socialLink.url}</p>
-                <span className="entity-meta">Orden {socialLink.display_order} · {socialLink.is_active ? "Activo" : "Inactivo"}</span>
-              </div>
+          socialLinks.map((socialLink) => {
+            const isDeleting = deletingSocialLinkIds?.includes(socialLink.id);
 
-              <div className="entity-actions">
-                <button type="button" className="admin-button secondary" onClick={() => onEditSocialLink(socialLink)}>
-                  Editar
-                </button>
-                <button type="button" className="admin-button ghost" onClick={() => onDeleteSocialLink(socialLink.id)}>
-                  Eliminar
-                </button>
-              </div>
-            </article>
-          ))
+            return (
+              <article className="entity-card" key={socialLink.id}>
+                <div>
+                  <strong>{socialLink.platform}</strong>
+                  <p>{socialLink.url}</p>
+                  <span className="entity-meta">Orden {socialLink.display_order} · {socialLink.is_active ? "Activo" : "Inactivo"}</span>
+                </div>
+
+                <div className="entity-actions">
+                  <button
+                    type="button"
+                    className="admin-button secondary"
+                    onClick={() => onEditSocialLink(socialLink)}
+                    disabled={savingSocialLink || isDeleting}
+                  >
+                    Editar
+                  </button>
+                  <button
+                    type="button"
+                    className="admin-button ghost"
+                    onClick={() => onDeleteSocialLink(socialLink.id)}
+                    disabled={isDeleting}
+                  >
+                    {isDeleting ? "Eliminando..." : "Eliminar"}
+                  </button>
+                </div>
+              </article>
+            );
+          })
         )}
       </div>
     </article>
