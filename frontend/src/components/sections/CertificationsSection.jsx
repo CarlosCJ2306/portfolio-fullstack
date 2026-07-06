@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
 import "./CertificationsSection.css";
 
-function createPdfObjectUrl(certificateFile) {
+function createPdfPreviewResource(certificateFile) {
   if (
     !certificateFile?.data_base64 ||
     certificateFile?.mime_type !== "application/pdf"
   ) {
-    return "";
+    return {
+      url: "",
+      error: "El archivo PDF no esta disponible para vista previa.",
+    };
   }
 
   try {
@@ -15,7 +18,10 @@ function createPdfObjectUrl(certificateFile) {
       : certificateFile.data_base64;
 
     if (!base64) {
-      return "";
+      return {
+        url: "",
+        error: "El archivo PDF no contiene datos validos para abrirse.",
+      };
     }
 
     const binary = window.atob(base64);
@@ -26,10 +32,32 @@ function createPdfObjectUrl(certificateFile) {
     }
 
     const blob = new Blob([bytes], { type: "application/pdf" });
-    return URL.createObjectURL(blob);
+
+    return {
+      url: URL.createObjectURL(blob),
+      error: "",
+    };
   } catch {
+    return {
+      url: "",
+      error: "No se pudo preparar el PDF para mostrarlo. Intenta abrirlo o descargarlo nuevamente.",
+    };
+  }
+}
+
+function buildPdfDataUrl(certificateFile) {
+  if (
+    !certificateFile?.data_base64 ||
+    certificateFile?.mime_type !== "application/pdf"
+  ) {
     return "";
   }
+
+  const base64 = certificateFile.data_base64.startsWith("data:")
+    ? certificateFile.data_base64
+    : `data:application/pdf;base64,${certificateFile.data_base64}`;
+
+  return base64;
 }
 
 function formatDateValue(value) {
@@ -53,6 +81,7 @@ function formatDateValue(value) {
 
 export default function CertificationsSection({ certifications = [] }) {
   const [selectedPdf, setSelectedPdf] = useState(null);
+  const [pdfErrorMessage, setPdfErrorMessage] = useState("");
 
   useEffect(() => {
     if (!selectedPdf) {
@@ -61,13 +90,7 @@ export default function CertificationsSection({ certifications = [] }) {
 
     function handleKeyDown(event) {
       if (event.key === "Escape") {
-        setSelectedPdf((currentPdf) => {
-          if (currentPdf?.url) {
-            URL.revokeObjectURL(currentPdf.url);
-          }
-
-          return null;
-        });
+        setSelectedPdf(null);
       }
     }
 
@@ -79,39 +102,41 @@ export default function CertificationsSection({ certifications = [] }) {
   }, [selectedPdf]);
 
   useEffect(() => {
+    const currentUrl = selectedPdf?.url;
+
     return () => {
-      if (selectedPdf?.url) {
-        URL.revokeObjectURL(selectedPdf.url);
+      if (currentUrl) {
+        URL.revokeObjectURL(currentUrl);
       }
     };
   }, [selectedPdf]);
 
   function closePdfModal() {
-    setSelectedPdf((currentPdf) => {
-      if (currentPdf?.url) {
-        URL.revokeObjectURL(currentPdf.url);
-      }
-
-      return null;
-    });
+    setSelectedPdf(null);
   }
 
-  function openPdfModal(certificationName, certificateFile) {
-    const pdfUrl = createPdfObjectUrl(certificateFile);
+  function openPdfModal(certification) {
+    const certificationName =
+      certification?.name ||
+      certification?.title ||
+      certification?.certification_name ||
+      "Certificacion";
 
-    if (!pdfUrl) {
+    const previewResource = createPdfPreviewResource(
+      certification?.certificate_file
+    );
+
+    if (!previewResource.url) {
+      setPdfErrorMessage(previewResource.error);
       return;
     }
 
-    setSelectedPdf((currentPdf) => {
-      if (currentPdf?.url) {
-        URL.revokeObjectURL(currentPdf.url);
-      }
-
-      return {
-        name: certificationName,
-        url: pdfUrl,
-      };
+    setPdfErrorMessage("");
+    setSelectedPdf({
+      name: certificationName,
+      url: previewResource.url,
+      downloadUrl: buildPdfDataUrl(certification?.certificate_file),
+      fileName: `${certificationName}.pdf`,
     });
   }
 
@@ -125,10 +150,10 @@ export default function CertificationsSection({ certifications = [] }) {
           <div className="certifications-heading">
             <span className="badge">Certificaciones</span>
 
-            <h2>Certificaciones y formación complementaria</h2>
+            <h2>Certificaciones y formacion complementaria</h2>
 
             <p>
-              Aún no hay certificaciones registradas para mostrar en el
+              Aun no hay certificaciones registradas para mostrar en el
               portafolio.
             </p>
           </div>
@@ -144,13 +169,19 @@ export default function CertificationsSection({ certifications = [] }) {
           <div className="certifications-heading">
             <span className="badge">Certificaciones</span>
 
-            <h2>Certificaciones y formación complementaria</h2>
+            <h2>Certificaciones y formacion complementaria</h2>
 
             <p>
               Cursos, credenciales y aprendizajes adicionales que fortalecen mi
-              perfil técnico y profesional.
+              perfil tecnico y profesional.
             </p>
           </div>
+
+          {pdfErrorMessage && (
+            <div className="certifications-alert" role="alert">
+              <p>{pdfErrorMessage}</p>
+            </div>
+          )}
 
           <div className="certifications-grid">
             {certifications.map((certification) => {
@@ -189,12 +220,16 @@ export default function CertificationsSection({ certifications = [] }) {
                   "application/pdf" &&
                 Boolean(certification.certificate_file?.data_base64);
 
+              const pdfDataUrl = hasPdf
+                ? buildPdfDataUrl(certification.certificate_file)
+                : "";
+
               return (
                 <article
                   className="certification-card"
                   key={certification.id || `${certificationName}-${issuer}`}
                 >
-                  <div className="certification-icon">✓</div>
+                  <div className="certification-icon">PDF</div>
 
                   <div className="certification-content">
                     <h3>{certificationName}</h3>
@@ -220,18 +255,26 @@ export default function CertificationsSection({ certifications = [] }) {
                       )}
 
                       {hasPdf && (
-                        <button
-                          type="button"
-                          className="certification-link certification-button"
-                          onClick={() =>
-                            openPdfModal(
-                              certificationName,
-                              certification.certificate_file
-                            )
-                          }
-                        >
-                          Abrir PDF
-                        </button>
+                        <>
+                          <button
+                            type="button"
+                            className="certification-link certification-button"
+                            onClick={() => openPdfModal(certification)}
+                          >
+                            Abrir PDF
+                          </button>
+
+                          {pdfDataUrl && (
+                            <a
+                              href={pdfDataUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="certification-link"
+                            >
+                              Abrir
+                            </a>
+                          )}
+                        </>
                       )}
                     </div>
                   </div>
@@ -256,7 +299,13 @@ export default function CertificationsSection({ certifications = [] }) {
             aria-label={`Vista previa de ${selectedPdf.name}`}
           >
             <div className="pdf-modal-header">
-              <h3>{selectedPdf.name}</h3>
+              <div className="pdf-modal-header__content">
+                <h3>{selectedPdf.name}</h3>
+                <p>
+                  Si tu navegador no muestra la vista previa, usa Abrir o
+                  Descargar.
+                </p>
+              </div>
 
               <button
                 type="button"
@@ -266,6 +315,27 @@ export default function CertificationsSection({ certifications = [] }) {
               >
                 Cerrar
               </button>
+            </div>
+
+            <div className="pdf-modal-actions">
+              <a
+                href={selectedPdf.url}
+                target="_blank"
+                rel="noreferrer"
+                className="certification-link"
+              >
+                Abrir en nueva pestana
+              </a>
+
+              {selectedPdf.downloadUrl && (
+                <a
+                  href={selectedPdf.downloadUrl}
+                  download={selectedPdf.fileName}
+                  className="certification-link"
+                >
+                  Descargar PDF
+                </a>
+              )}
             </div>
 
             <iframe

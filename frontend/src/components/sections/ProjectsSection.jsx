@@ -1,25 +1,97 @@
 import { useEffect, useMemo, useState } from "react";
+import { getSafeSvgDataUrl } from "../../utils/svgSecurity";
 import "./ProjectsSection.css";
 
-function getAssetSrc(asset) {
-  if (!asset?.data_base64 || !asset?.mime_type) {
-    return null;
+function decodeBase64ToText(base64Value) {
+  if (!base64Value) {
+    return "";
   }
 
-  return `data:${asset.mime_type};base64,${asset.data_base64}`;
+  try {
+    const normalizedBase64 = base64Value.startsWith("data:")
+      ? base64Value.split(",")[1] || ""
+      : base64Value;
+
+    if (!normalizedBase64) {
+      return "";
+    }
+
+    const binary = window.atob(normalizedBase64);
+    const bytes = Uint8Array.from(binary, (character) =>
+      character.charCodeAt(0)
+    );
+
+    return new TextDecoder("utf-8").decode(bytes);
+  } catch {
+    return "";
+  }
+}
+
+function getAssetDisplayInfo(asset, fallbackAltText) {
+  if (!asset) {
+    return {
+      src: null,
+      alt: fallbackAltText,
+      isBlocked: false,
+      hasAsset: false,
+    };
+  }
+
+  const alt = asset.alt_text || fallbackAltText;
+  const safeSvgSrc =
+    getSafeSvgDataUrl(asset.svg_content)
+    || getSafeSvgDataUrl(decodeBase64ToText(asset.data_base64));
+
+  if (safeSvgSrc) {
+    return {
+      src: safeSvgSrc,
+      alt,
+      isBlocked: false,
+      hasAsset: true,
+    };
+  }
+
+  const isSvgAsset =
+    asset.mime_type === "image/svg+xml" || Boolean(asset.svg_content);
+
+  if (isSvgAsset) {
+    return {
+      src: null,
+      alt,
+      isBlocked: true,
+      hasAsset: true,
+    };
+  }
+
+  if (asset.data_base64 && asset.mime_type) {
+    return {
+      src: `data:${asset.mime_type};base64,${asset.data_base64}`,
+      alt,
+      isBlocked: false,
+      hasAsset: true,
+    };
+  }
+
+  return {
+    src: null,
+    alt,
+    isBlocked: false,
+    hasAsset: true,
+  };
 }
 
 function buildProjectImages(project) {
-  const coverImage = project?.image
+  const coverDisplay = getAssetDisplayInfo(
+    project?.image,
+    project?.title || project?.name || "Portada del proyecto"
+  );
+
+  const coverImage = coverDisplay.src
     ? {
-        key: `cover-${project.image.id ?? "main"}`,
-        id: project.image.id ?? null,
-        src: getAssetSrc(project.image),
-        alt:
-          project.image.alt_text ||
-          project.title ||
-          project.name ||
-          "Portada del proyecto",
+        key: `cover-${project?.image?.id ?? "main"}`,
+        id: project?.image?.id ?? null,
+        src: coverDisplay.src,
+        alt: coverDisplay.alt,
         label: "Portada",
       }
     : null;
@@ -28,22 +100,21 @@ function buildProjectImages(project) {
     ? project.gallery_images
         .map((item, index) => {
           const image = item?.image;
-          const src = getAssetSrc(image);
+          const imageDisplay = getAssetDisplayInfo(
+            image,
+            project?.title || project?.name || `Imagen ${index + 1} del proyecto`
+          );
 
-          if (!src) {
+          if (!imageDisplay.src) {
             return null;
           }
 
           return {
             key: `gallery-${item.media_asset_id ?? index}`,
             id: item.media_asset_id ?? null,
-            src,
-            alt:
-              image?.alt_text ||
-              project?.title ||
-              project?.name ||
-              `Imagen ${index + 1} del proyecto`,
-            label: `Galería ${index + 1}`,
+            src: imageDisplay.src,
+            alt: imageDisplay.alt,
+            label: `Galeria ${index + 1}`,
           };
         })
         .filter(Boolean)
@@ -73,6 +144,14 @@ function buildProjectImages(project) {
   });
 
   return allImages;
+}
+
+function getProjectDescription(project) {
+  return (
+    project?.description
+    || project?.short_description
+    || "Sin descripcion adicional para este proyecto."
+  );
 }
 
 export default function ProjectsSection({
@@ -105,6 +184,7 @@ export default function ProjectsSection({
       if (event.key === "Escape") {
         setSelectedProject(null);
         setActiveImageIndex(0);
+        setIsZoomed(false);
       }
     }
 
@@ -280,17 +360,29 @@ export default function ProjectsSection({
                 project.project_skills ||
                 [];
 
-              const imgSrc = getAssetSrc(project.image);
+              const coverDisplay = getAssetDisplayInfo(
+                project.image,
+                project.image?.alt_text || projectTitle
+              );
+              const hasHiddenUnsafeImage = coverDisplay.hasAsset && !coverDisplay.src;
 
               return (
                 <article className="project-card" key={project.id || projectTitle}>
-                  {imgSrc && (
+                  {coverDisplay.src ? (
                     <div className="project-image-container">
                       <img
-                        src={imgSrc}
-                        alt={project.image?.alt_text || projectTitle}
+                        src={coverDisplay.src}
+                        alt={coverDisplay.alt}
                         className="project-image"
                       />
+                    </div>
+                  ) : (
+                    <div className="project-image-container project-image-container--fallback">
+                      <span className="project-image-fallback">
+                        {hasHiddenUnsafeImage
+                          ? "Imagen no disponible por seguridad."
+                          : "Sin imagen disponible"}
+                      </span>
                     </div>
                   )}
 
@@ -391,7 +483,9 @@ export default function ProjectsSection({
                     <div className="project-modal__toolbar">
                       <span className="project-modal__image-label">
                         {activeImage.label}
-                        {modalImages.length > 1 ? ` · ${activeImageIndex + 1}/${modalImages.length}` : ""}
+                        {modalImages.length > 1
+                          ? ` / ${activeImageIndex + 1} de ${modalImages.length}`
+                          : ""}
                       </span>
 
                       <button
@@ -426,7 +520,7 @@ export default function ProjectsSection({
                   </div>
                 ) : (
                   <div className="project-modal__viewer project-modal__viewer--empty">
-                    <span>Sin imagen disponible</span>
+                    <span>Sin imagen disponible para este proyecto.</span>
                   </div>
                 )}
 
@@ -450,9 +544,7 @@ export default function ProjectsSection({
 
               <div className="project-modal__content">
                 <p className="project-modal__description">
-                  {selectedProject.description ||
-                    selectedProject.short_description ||
-                    "Sin descripción adicional para este proyecto."}
+                  {getProjectDescription(selectedProject)}
                 </p>
 
                 {Array.isArray(selectedProject.skills) && selectedProject.skills.length > 0 && (

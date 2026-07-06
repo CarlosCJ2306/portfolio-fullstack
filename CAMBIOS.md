@@ -1,5 +1,24 @@
 # Cambios realizados
 
+## 2026-07-06 - Tareas 2.5 y 2.6: SVG seguro en proyectos y fallback usable para PDF
+
+Se alineo la visualizacion publica de proyectos con la politica segura de SVG definida en la Fase 1. `ProjectsSection` ahora reutiliza `frontend/src/utils/svgSecurity.js` para mostrar SVG solo cuando pueden convertirse en una data URL segura; no se usa `dangerouslySetInnerHTML` y un asset SVG que no pase la politica queda oculto con un fallback visual claro en lugar de renderizarse de forma insegura.
+
+Tambien se reforzo el visor PDF de certificaciones:
+
+- la creacion y revocacion del Blob URL ahora se concentra en un solo ciclo de vida del estado del modal;
+- si el PDF base64 no puede convertirse, se muestra un error visible en la seccion;
+- el modal mantiene la vista previa embebida y agrega acciones alternativas de `Abrir en nueva pestana` y `Descargar PDF`;
+- `credential_url` sigue funcionando como enlace externo independiente.
+
+Archivos tocados:
+
+- `frontend/src/components/sections/ProjectsSection.jsx`
+- `frontend/src/components/sections/ProjectsSection.css`
+- `frontend/src/components/sections/CertificationsSection.jsx`
+- `frontend/src/components/sections/CertificationsSection.css`
+- `CAMBIOS.md`
+
 ## 2026-07-06 - Tareas 2.3 y 2.4: datos publicos honestos y fechas legibles
 
 Se retiraron fallbacks que aparentaban ser datos reales cuando el perfil no está disponible o cuando faltan campos de contacto. El hero, el footer y la sección de contacto ahora muestran información real si existe en el backend y, si no, usan textos honestos o simplemente ocultan el dato en lugar de inventarlo.
