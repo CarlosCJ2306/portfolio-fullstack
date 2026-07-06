@@ -14,7 +14,7 @@
 
 .contact-container {
   display: grid;
-  grid-template-columns: 0.9fr 1.1fr;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
   gap: 48px;
   align-items: start;
 }
@@ -25,6 +25,8 @@
   font-size: clamp(34px, 5vw, 56px);
   line-height: 1;
   letter-spacing: -1.5px;
+  word-break: normal;
+  overflow-wrap: normal;
 }
 
 .contact-info p {
@@ -33,6 +35,8 @@
   color: #94a3b8;
   font-size: 18px;
   line-height: 1.7;
+  word-break: normal;
+  overflow-wrap: break-word;
 }
 
 .contact-highlights {
@@ -46,6 +50,7 @@
   border-radius: 22px;
   background: rgba(2, 6, 23, 0.65);
   border: 1px solid #1e293b;
+  min-width: 0;
 }
 
 .contact-highlights strong {
@@ -60,6 +65,13 @@
   color: #94a3b8;
   font-size: 14px;
   line-height: 1.6;
+  word-break: normal;
+  overflow-wrap: break-word;
+}
+
+.contact-highlights a {
+  word-break: normal;
+  overflow-wrap: break-word;
 }
 
 .contact-form {
@@ -71,6 +83,7 @@
     linear-gradient(145deg, rgba(2, 6, 23, 0.98), rgba(15, 23, 42, 0.98));
   border: 1px solid #1e293b;
   box-shadow: 0 30px 90px rgba(0, 0, 0, 0.36);
+  min-width: 0;
 }
 
 .contact-form::before {
@@ -204,5 +217,51 @@
   .contact-form {
     padding: 22px;
     border-radius: 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .contact-section {
+    padding: 70px 16px;
+  }
+
+  .contact-container {
+    gap: 28px;
+  }
+
+  .contact-info h2 {
+    font-size: clamp(28px, 9vw, 34px);
+    line-height: 1.06;
+  }
+
+  .contact-info p {
+    font-size: 15px;
+    line-height: 1.55;
+  }
+
+  .contact-highlights {
+    gap: 12px;
+    margin-top: 24px;
+  }
+
+  .contact-highlights article {
+    padding: 16px;
+    border-radius: 18px;
+  }
+
+  .contact-form {
+    padding: 18px;
+    border-radius: 20px;
+  }
+
+  .form-group input,
+  .form-group textarea {
+    padding: 12px 13px;
+    font-size: 14px;
+  }
+
+  .contact-submit {
+    min-height: 46px;
+    font-size: 14px;
   }
 }

@@ -20,6 +20,8 @@
   font-size: clamp(34px, 5vw, 56px);
   line-height: 1;
   letter-spacing: -1.5px;
+  word-break: normal;
+  overflow-wrap: normal;
 }
 
 .experience-heading p {
@@ -28,6 +30,8 @@
   color: #94a3b8;
   font-size: 18px;
   line-height: 1.7;
+  word-break: normal;
+  overflow-wrap: break-word;
 }
 
 .experience-timeline {
@@ -89,6 +93,7 @@
     transform 0.22s ease,
     border-color 0.22s ease,
     box-shadow 0.22s ease;
+  min-width: 0;
 }
 
 .experience-content::before {
@@ -127,6 +132,11 @@
   justify-content: space-between;
   gap: 24px;
   align-items: flex-start;
+  min-width: 0;
+}
+
+.experience-top > div {
+  min-width: 0;
 }
 
 .experience-top h3 {
@@ -135,6 +145,8 @@
   font-size: 26px;
   line-height: 1.2;
   letter-spacing: -0.5px;
+  word-break: normal;
+  overflow-wrap: break-word;
 }
 
 .experience-top strong {
@@ -142,6 +154,8 @@
   margin-top: 8px;
   color: #38bdf8;
   font-size: 16px;
+  word-break: normal;
+  overflow-wrap: break-word;
 }
 
 .experience-date {
@@ -160,6 +174,8 @@
   margin: 18px 0 0;
   color: #cbd5e1;
   font-size: 14px;
+  word-break: normal;
+  overflow-wrap: break-word;
 }
 
 .experience-description {
@@ -167,6 +183,8 @@
   color: #94a3b8;
   font-size: 16px;
   line-height: 1.7;
+  word-break: normal;
+  overflow-wrap: break-word;
 }
 
 .experience-list {
@@ -217,5 +235,44 @@
 
   .experience-top h3 {
     font-size: 23px;
+  }
+}
+
+@media (max-width: 480px) {
+  .experience-section {
+    padding: 70px 16px;
+  }
+
+  .experience-heading {
+    margin-bottom: 34px;
+  }
+
+  .experience-heading h2 {
+    font-size: clamp(28px, 9vw, 34px);
+    line-height: 1.06;
+  }
+
+  .experience-heading p {
+    font-size: 15px;
+    line-height: 1.55;
+  }
+
+  .experience-content {
+    padding: 18px;
+    border-radius: 20px;
+  }
+
+  .experience-top h3 {
+    font-size: 20px;
+  }
+
+  .experience-top strong {
+    font-size: 15px;
+  }
+
+  .experience-description,
+  .experience-list li {
+    font-size: 14px;
+    line-height: 1.55;
   }
 }

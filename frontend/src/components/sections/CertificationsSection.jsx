@@ -391,8 +391,7 @@ export default function CertificationsSection({ certifications = [] }) {
               <div className="pdf-modal-header__content">
                 <h3 id={certificationModalTitleId}>{selectedPdf.name}</h3>
                 <p>
-                  Si tu navegador no muestra la vista previa, usa Abrir o
-                  Descargar.
+                  Si tu navegador no muestra la vista previa, usa Abrir o Descargar.
                 </p>
               </div>
 
@@ -413,8 +412,9 @@ export default function CertificationsSection({ certifications = [] }) {
                 target="_blank"
                 rel="noreferrer"
                 className="certification-link"
+                aria-label={`Abrir PDF de ${selectedPdf.name} en nueva pestana`}
               >
-                Abrir en nueva pestana
+                Abrir
               </a>
 
               {selectedPdf.downloadUrl && (

@@ -176,14 +176,14 @@ export default function ContactSection({ profile }) {
             {contactEmail && (
               <article>
                 <strong>Correo directo</strong>
-                <span>{contactEmail}</span>
+                <span className="text-break-safe">{contactEmail}</span>
               </article>
             )}
 
             {contactLocation && (
               <article>
                 <strong>Ubicación</strong>
-                <span>{contactLocation}</span>
+                <span className="text-break-safe">{contactLocation}</span>
               </article>
             )}
 

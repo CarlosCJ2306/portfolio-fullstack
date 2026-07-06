@@ -585,36 +585,37 @@ export default function ProjectsSection({
                           : ""}
                       </span>
 
-                      <button
-                        type="button"
-                        className="project-modal__zoom"
-                        onClick={toggleZoom}
-                        aria-pressed={isZoomed}
-                      >
-                        {isZoomed ? "Ajustar" : "Zoom"}
-                      </button>
+                      <div className="project-modal__controls">
+                        {modalImages.length > 1 && (
+                          <>
+                            <button
+                              type="button"
+                              className="project-modal__control-button"
+                              onClick={showPreviousImage}
+                              aria-label="Mostrar imagen anterior"
+                            >
+                              Anterior
+                            </button>
+                            <button
+                              type="button"
+                              className="project-modal__control-button"
+                              onClick={showNextImage}
+                              aria-label="Mostrar imagen siguiente"
+                            >
+                              Siguiente
+                            </button>
+                          </>
+                        )}
+                        <button
+                          type="button"
+                          className="project-modal__control-button project-modal__zoom"
+                          onClick={toggleZoom}
+                          aria-pressed={isZoomed}
+                        >
+                          {isZoomed ? "Ajustar" : "Zoom"}
+                        </button>
+                      </div>
                     </div>
-
-                    {modalImages.length > 1 && (
-                      <>
-                        <button
-                          type="button"
-                          className="project-modal__nav project-modal__nav--prev"
-                          onClick={showPreviousImage}
-                          aria-label="Mostrar imagen anterior"
-                        >
-                          Anterior
-                        </button>
-                        <button
-                          type="button"
-                          className="project-modal__nav project-modal__nav--next"
-                          onClick={showNextImage}
-                          aria-label="Mostrar imagen siguiente"
-                        >
-                          Siguiente
-                        </button>
-                      </>
-                    )}
                   </div>
                 ) : (
                   <div className="project-modal__viewer project-modal__viewer--empty">

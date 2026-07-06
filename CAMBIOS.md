@@ -1,5 +1,85 @@
 # Cambios realizados
 
+## 2026-07-06 - Ajuste posterior al lote 4.1, 4.2 y 4.3: correccion de quiebres de texto y afinacion movil
+
+Se corrigieron problemas introducidos o no resueltos tras el lote de responsividad de Fase 4, con foco en textos que se partian letra por letra y en el ajuste fino de los modales publicos en `320 x 568`.
+
+Causa raiz confirmada:
+
+- algunos textos dinamicos y no dinamicos estaban usando quiebres demasiado agresivos;
+- `overflow-wrap:anywhere` sobre titulos, labels y textos de cards/modales permitia partir palabras normales letra por letra cuando un contenedor flex o grid se estrechaba;
+- varios contenedores de cards y columnas necesitaban `min-width: 0` o `minmax(0, 1fr)` para evitar compresiones innecesarias;
+- faltaban ajustes tipograficos finos en movil pequeno para evitar que encabezados y cards se vieran apretados.
+
+Cambios aplicados:
+
+- se retiro el uso agresivo de `overflow-wrap:anywhere` en headings, labels y textos donde no correspondia;
+- se limitaron los quiebres a reglas seguras por palabra (`word-break: normal` y `overflow-wrap: break-word`);
+- se agrego la utilidad `.text-break-safe` solo para valores dinamicos que realmente pueden llegar largos;
+- se reforzaron grids con `minmax(0, 1fr)` y se agrego `min-width: 0` en contenedores de cards donde hacia falta;
+- se ajustaron tipografias y paddings en `skills`, `experience`, `education`, `contact`, `projects` y `certifications` para mejorar legibilidad en movil;
+- se afino nuevamente el modal de proyectos para mantener imagen visible con controles compactos y sin empujar la galeria;
+- se afino el modal PDF para conservar botones visibles y mas altura util del `iframe` en pantallas muy pequenas.
+
+Verificaciones:
+
+- `npm run lint` paso correctamente.
+- `npm run build` paso correctamente.
+- no se ejecuto `reset_db.py`.
+
+Archivos tocados:
+
+- `frontend/src/styles/global.css`
+- `frontend/src/components/sections/SkillsSection.css`
+- `frontend/src/components/sections/ProjectsSection.css`
+- `frontend/src/components/sections/ExperienceSection.css`
+- `frontend/src/components/sections/EducationSection.css`
+- `frontend/src/components/sections/CertificationsSection.css`
+- `frontend/src/components/sections/ContactSection.jsx`
+- `frontend/src/components/sections/ContactSection.css`
+- `CAMBIOS.md`
+
+## 2026-07-06 - Tareas 4.1, 4.2 y 4.3: responsividad critica en movil y modales publicos
+
+Se reviso y corrigio la responsividad base del frontend publico con prioridad en `320 x 568`, sin tocar backend, rutas ni servicios.
+
+Diagnostico confirmado:
+
+- la vista normal estaba heredando padding global de `.page` ademas del padding propio de cada seccion;
+- el header movil seguia ocupando demasiado alto en pantallas pequenas;
+- el modal de proyectos perdia altura util por encabezado, controles y miniaturas demasiado grandes;
+- en movil, las miniaturas de proyectos empujaban la imagen principal hacia abajo;
+- el modal PDF de certificaciones dejaba poca area real para el `iframe`;
+- varios textos y enlaces largos podian forzar cortes u overflow horizontal por falta de `overflow-wrap` y `min-width: 0`.
+
+Cambios aplicados:
+
+- se mantuvo la separacion entre pagina normal y estados de carga/error, evitando doble padding horizontal;
+- se reforzo el offset de anclas con `scroll-padding-top` y `scroll-margin-top`;
+- se agregaron protecciones globales contra overflow horizontal para `img`, `svg`, `iframe`, contenedores y pagina publica;
+- el header movil quedo mas compacto, con logo menor, boton `Menu` mas corto y enlaces con menor altura;
+- el modal de proyectos se reorganizo para usar mejor la altura disponible: controles compactos en una sola fila, visor mas eficiente, miniaturas horizontales en movil y contenido textual desplazable cuando hace falta;
+- el modal de certificaciones/PDF se compacto para dar mas altura util al `iframe`, con header y acciones mas bajos en movil;
+- se ajustaron tipografias, paddings y gaps en breakpoints pequenos para mantener legibilidad sin agrandar demasiado los modales.
+
+Verificaciones:
+
+- `npm run lint` paso correctamente.
+- `npm run build` paso correctamente.
+- no se ejecuto `reset_db.py`.
+
+Archivos tocados:
+
+- `frontend/src/styles/global.css`
+- `frontend/src/pages/HomePage.jsx`
+- `frontend/src/components/layout/Header.jsx`
+- `frontend/src/components/layout/Header.css`
+- `frontend/src/components/sections/ProjectsSection.jsx`
+- `frontend/src/components/sections/ProjectsSection.css`
+- `frontend/src/components/sections/CertificationsSection.jsx`
+- `frontend/src/components/sections/CertificationsSection.css`
+- `CAMBIOS.md`
+
 ## 2026-07-06 - Tareas 4.1 y 4.2: base responsive del frontend publico
 
 Se ajusto la base responsive del portfolio publico sin tocar backend, rutas ni servicios.
