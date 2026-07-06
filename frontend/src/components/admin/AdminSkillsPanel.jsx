@@ -16,6 +16,7 @@ export default function AdminSkillsPanel({
   onDeleteSkill,
   onCancelSkillEdit,
   onAssetUploaded,
+  sessionUploadedAssets,
   onIconAssetChange,
   panelError,
   panelLoading,
@@ -91,6 +92,7 @@ export default function AdminSkillsPanel({
           mediaAssets={mediaAssets || []}
           onChange={onIconAssetChange}
           onAssetUploaded={onAssetUploaded}
+          sessionUploadedAssets={sessionUploadedAssets}
         />
 
         <label>

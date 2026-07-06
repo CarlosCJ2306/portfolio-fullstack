@@ -18,6 +18,7 @@ export default function AdminProjectsPanel({
   onDeleteProject,
   onCancelProjectEdit,
   onAssetUploaded,
+  sessionUploadedAssets,
   onImageAssetChange,
   onProjectGalleryChange,
   panelError,
@@ -109,6 +110,7 @@ export default function AdminProjectsPanel({
           mediaAssets={mediaAssets || []}
           onChange={onImageAssetChange}
           onAssetUploaded={onAssetUploaded}
+          sessionUploadedAssets={sessionUploadedAssets}
         />
 
         <AdminProjectGalleryPicker
@@ -117,6 +119,7 @@ export default function AdminProjectsPanel({
           disabled={savingProject}
           onChange={onProjectGalleryChange}
           onAssetUploaded={onAssetUploaded}
+          sessionUploadedAssets={sessionUploadedAssets}
         />
 
         <div className="form-row">

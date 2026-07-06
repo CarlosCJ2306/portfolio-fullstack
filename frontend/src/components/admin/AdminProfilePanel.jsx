@@ -9,6 +9,7 @@ export default function AdminProfilePanel({
   onProfileChange,
   onProfileSubmit,
   onAssetUploaded,
+  sessionUploadedAssets,
   onAvatarAssetChange,
   panelError,
   panelLoading,
@@ -99,6 +100,7 @@ export default function AdminProfilePanel({
           mediaAssets={mediaAssets || []}
           onChange={onAvatarAssetChange}
           onAssetUploaded={onAssetUploaded}
+          sessionUploadedAssets={sessionUploadedAssets}
         />
 
         <button type="submit" className="admin-button primary" disabled={savingProfile}>

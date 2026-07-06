@@ -700,6 +700,15 @@ function sortItemsByDisplayOrder(items) {
     .map(({ item }) => item);
 }
 
+function createInitialSessionUploadedAssets() {
+  return {
+    profile: [],
+    skill: [],
+    project: [],
+    certification: [],
+  };
+}
+
 export default function AdminPage() {
   const [loginForm, setLoginForm] = useState(initialLoginForm);
   const [profileForm, setProfileForm] = useState(initialProfileForm);
@@ -712,6 +721,9 @@ export default function AdminPage() {
   const [educationList, setEducationList] = useState([]);
   const [certifications, setCertifications] = useState([]);
   const [mediaAssets, setMediaAssets] = useState([]);
+  const [sessionUploadedAssets, setSessionUploadedAssets] = useState(
+    createInitialSessionUploadedAssets
+  );
   const [socialLinkForm, setSocialLinkForm] = useState(initialSocialLinkForm);
   const [skillForm, setSkillForm] = useState(initialSkillForm);
   const [projectForm, setProjectForm] = useState(initialProjectForm);
@@ -767,6 +779,7 @@ export default function AdminPage() {
     setEducationList([]);
     setCertifications([]);
     setMediaAssets([]);
+    setSessionUploadedAssets(createInitialSessionUploadedAssets());
     setProfileForm(initialProfileForm);
     setSocialLinkForm(initialSocialLinkForm);
     setSkillForm(initialSkillForm);
@@ -1166,9 +1179,71 @@ export default function AdminPage() {
     });
   }
 
-  function handleAssetUploaded(newAsset) {
+  function handleAssetUploaded(formKey, newAsset) {
     clearModuleError("mediaAssets");
-    setMediaAssets((currentAssets) => [newAsset, ...currentAssets]);
+    setMediaAssets((currentAssets) => {
+      const withoutDuplicate = currentAssets.filter(
+        (asset) => Number(asset.id) !== Number(newAsset.id)
+      );
+      return [newAsset, ...withoutDuplicate];
+    });
+    setSessionUploadedAssets((currentAssets) => {
+      const formAssets = currentAssets[formKey] || [];
+
+      if (formAssets.some((asset) => Number(asset.id) === Number(newAsset.id))) {
+        return currentAssets;
+      }
+
+      return {
+        ...currentAssets,
+        [formKey]: [...formAssets, newAsset],
+      };
+    });
+  }
+
+  function finishSessionUploadedAssets(formKey, associatedAssetIds, reason) {
+    const uploadedAssets = sessionUploadedAssets[formKey] || [];
+
+    if (uploadedAssets.length === 0) {
+      return;
+    }
+
+    const associatedIds = new Set(
+      (associatedAssetIds || [])
+        .filter((assetId) => assetId !== null && assetId !== undefined && assetId !== "")
+        .map((assetId) => Number(assetId))
+    );
+    const unassociatedAssets = uploadedAssets.filter(
+      (asset) => !associatedIds.has(Number(asset.id))
+    );
+
+    setSessionUploadedAssets((currentAssets) => ({
+      ...currentAssets,
+      [formKey]: [],
+    }));
+
+    if (reason === "cancel") {
+      const assetNames = uploadedAssets
+        .map((asset) => asset.file_name || `Asset #${asset.id}`)
+        .join(", ");
+      showNotice(
+        "warning",
+        "Assets conservados en la biblioteca",
+        `${assetNames}. El formulario se limpio, pero los assets no se eliminaron y pueden reutilizarse.`
+      );
+      return;
+    }
+
+    if (unassociatedAssets.length > 0) {
+      const assetNames = unassociatedAssets
+        .map((asset) => asset.file_name || `Asset #${asset.id}`)
+        .join(", ");
+      showNotice(
+        "warning",
+        "Assets sin asociar en este guardado",
+        `${assetNames}. Permanecen disponibles en la biblioteca para reutilizarlos o revisarlos despues.`
+      );
+    }
   }
 
   function handleAvatarAssetChange(assetId) {
@@ -1217,10 +1292,20 @@ export default function AdminPage() {
     clearValidationErrors("skill");
   }
 
+  function cancelSkillForm() {
+    finishSessionUploadedAssets("skill", [], "cancel");
+    resetSkillForm();
+  }
+
   function resetProjectForm() {
     setProjectForm(initialProjectForm);
     setEditingProjectId(null);
     clearValidationErrors("project");
+  }
+
+  function cancelProjectForm() {
+    finishSessionUploadedAssets("project", [], "cancel");
+    resetProjectForm();
   }
 
   function resetExperienceForm() {
@@ -1239,6 +1324,11 @@ export default function AdminPage() {
     setCertificationForm(initialCertificationForm);
     setEditingCertificationId(null);
     clearValidationErrors("certification");
+  }
+
+  function cancelCertificationForm() {
+    finishSessionUploadedAssets("certification", [], "cancel");
+    resetCertificationForm();
   }
 
   function resetSocialLinkForm() {
@@ -1524,6 +1614,7 @@ export default function AdminPage() {
         showNotice("success", "Skill creada", "Se agregó al listado sin recargar la página.");
       }
 
+      finishSessionUploadedAssets("skill", [payload.icon_asset_id], "save");
       resetSkillForm();
     } catch (error) {
       const message = getAdminUiErrorMessage(error, "No se pudo guardar la skill.");
@@ -1643,6 +1734,11 @@ export default function AdminPage() {
         showNotice("success", "Proyecto creado", "Se agregó al listado sin recargar la página.");
       }
 
+      finishSessionUploadedAssets(
+        "project",
+        [payload.image_asset_id, ...payload.gallery_image_ids],
+        "save"
+      );
       resetProjectForm();
     } catch (error) {
       const message = getAdminUiErrorMessage(error, "No se pudo guardar el proyecto.");
@@ -1972,6 +2068,11 @@ export default function AdminPage() {
         setSuccessMessage("Certificación creada correctamente.");
       }
 
+      finishSessionUploadedAssets(
+        "certification",
+        [payload.certificate_file_id],
+        "save"
+      );
       resetCertificationForm();
     } catch (error) {
       const message = getAdminUiErrorMessage(error, "No se pudo guardar la certificación.");
@@ -2111,6 +2212,11 @@ export default function AdminPage() {
       clearModuleError("profile");
       setSuccessMessage("Perfil actualizado correctamente.");
       showNotice("success", "Perfil guardado", "Los cambios se aplicaron sin recargar la interfaz.");
+      finishSessionUploadedAssets(
+        "profile",
+        [updatedProfile.avatar_asset_id ?? payload.avatar_asset_id],
+        "save"
+      );
     } catch (error) {
       const message = getAdminUiErrorMessage(error, "No se pudo actualizar el perfil.");
       console.error("Error actualizando perfil:", error);
@@ -2269,7 +2375,8 @@ export default function AdminPage() {
           validationErrors={formValidationErrors.profile}
           onProfileChange={handleProfileChange}
           onProfileSubmit={handleProfileSubmit}
-          onAssetUploaded={handleAssetUploaded}
+          onAssetUploaded={(asset) => handleAssetUploaded("profile", asset)}
+          sessionUploadedAssets={sessionUploadedAssets.profile}
           onAvatarAssetChange={handleAvatarAssetChange}
           panelError={profileError}
           panelLoading={profileLoading}
@@ -2301,8 +2408,9 @@ export default function AdminPage() {
           onSkillSubmit={handleSkillSubmit}
           onEditSkill={openSkillEditor}
           onDeleteSkill={handleDeleteSkill}
-          onCancelSkillEdit={resetSkillForm}
-          onAssetUploaded={handleAssetUploaded}
+          onCancelSkillEdit={cancelSkillForm}
+          onAssetUploaded={(asset) => handleAssetUploaded("skill", asset)}
+          sessionUploadedAssets={sessionUploadedAssets.skill}
           onIconAssetChange={handleIconAssetChange}
           panelError={skillsError}
           panelLoading={skillsLoading}
@@ -2323,8 +2431,9 @@ export default function AdminPage() {
           onProjectSubmit={handleProjectSubmit}
           onEditProject={openProjectEditor}
           onDeleteProject={handleDeleteProject}
-          onCancelProjectEdit={resetProjectForm}
-          onAssetUploaded={handleAssetUploaded}
+          onCancelProjectEdit={cancelProjectForm}
+          onAssetUploaded={(asset) => handleAssetUploaded("project", asset)}
+          sessionUploadedAssets={sessionUploadedAssets.project}
           onImageAssetChange={handleImageAssetChange}
           onProjectGalleryChange={handleProjectGalleryChange}
           panelError={projectsError}
@@ -2379,9 +2488,10 @@ export default function AdminPage() {
           onCertificationSubmit={handleCertificationSubmit}
           onEditCertification={openCertificationEditor}
           onDeleteCertification={handleDeleteCertification}
-          onCancelCertificationEdit={resetCertificationForm}
+          onCancelCertificationEdit={cancelCertificationForm}
           mediaAssets={mediaAssets}
-          onAssetUploaded={handleAssetUploaded}
+          onAssetUploaded={(asset) => handleAssetUploaded("certification", asset)}
+          sessionUploadedAssets={sessionUploadedAssets.certification}
           onPdfAssetChange={handlePdfAssetChange}
           panelError={certificationsError}
           panelLoading={certificationsLoading}

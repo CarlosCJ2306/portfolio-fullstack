@@ -72,3 +72,8 @@
     width: auto;
   }
 }
+
+.admin-toast-warning {
+  border-color: rgba(245, 158, 11, 0.38);
+  box-shadow: 0 28px 80px rgba(146, 64, 14, 0.28);
+}

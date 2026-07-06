@@ -288,6 +288,7 @@ export default function AdminImagePicker({
   mediaAssets = [],
   onChange,
   onAssetUploaded,
+  sessionUploadedAssets = [],
 }) {
   const [modalOpen, setModalOpen] = useState(false);
   const [uploadError, setUploadError] = useState("");
@@ -619,7 +620,8 @@ export default function AdminImagePicker({
       updateUploadItem(uploadItem.id, {
         status: "completado",
         progress: 100,
-        message: "Archivo subido correctamente.",
+        message:
+          "Asset guardado en la biblioteca. Guarda el formulario para asociarlo.",
       });
     } catch (error) {
       abortControllerRef.current = null;
@@ -827,6 +829,17 @@ export default function AdminImagePicker({
               )}
             </div>
           )}
+        </div>
+      )}
+
+      {sessionUploadedAssets.length > 0 && (
+        <div className="image-picker__lifecycle-note" role="status">
+          <strong>Assets subidos durante esta edición:</strong>{" "}
+          {sessionUploadedAssets
+            .map((asset) => asset.file_name || `Asset #${asset.id}`)
+            .join(", ")}
+          . Ya están guardados en la biblioteca; solo quedan asociados a este
+          registro al guardar el formulario. Cancelar o quitarlos no los elimina.
         </div>
       )}
 

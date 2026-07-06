@@ -15,6 +15,7 @@ export default function AdminCertificationsPanel({
   onDeleteCertification,
   onCancelCertificationEdit,
   onAssetUploaded,
+  sessionUploadedAssets,
   onPdfAssetChange,
   panelError,
   panelLoading,
@@ -88,6 +89,7 @@ export default function AdminCertificationsPanel({
           mediaAssets={mediaAssets || []}
           onChange={onPdfAssetChange}
           onAssetUploaded={onAssetUploaded}
+          sessionUploadedAssets={sessionUploadedAssets}
         />
 
         <label>

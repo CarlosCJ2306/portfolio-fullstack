@@ -135,6 +135,7 @@ export default function AdminProjectGalleryPicker({
   disabled = false,
   onChange,
   onAssetUploaded,
+  sessionUploadedAssets = [],
 }) {
   const [modalOpen, setModalOpen] = useState(false);
   const [uploadError, setUploadError] = useState("");
@@ -507,7 +508,8 @@ export default function AdminProjectGalleryPicker({
         updateUploadItem(uploadItem.id, {
           status: "completado",
           progress: 100,
-          message: "Archivo subido y agregado a la galeria.",
+          message:
+            "Asset guardado y agregado a la selección. Guarda el proyecto para asociarlo.",
         });
       } catch (error) {
         if (error?.name === "AbortError" || error?.isAbortError) {
@@ -676,6 +678,17 @@ export default function AdminProjectGalleryPicker({
               </article>
             );
           })}
+        </div>
+      )}
+
+      {sessionUploadedAssets.length > 0 && (
+        <div className="project-gallery-picker__lifecycle-note" role="status">
+          <strong>Assets subidos durante esta edición:</strong>{" "}
+          {sessionUploadedAssets
+            .map((asset) => asset.file_name || `Asset #${asset.id}`)
+            .join(", ")}
+          . Ya están en la biblioteca. La selección se asocia definitivamente al
+          guardar el proyecto; retirarla o cancelar no elimina los assets.
         </div>
       )}
 

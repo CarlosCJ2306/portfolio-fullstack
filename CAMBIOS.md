@@ -1,5 +1,46 @@
 # Cambios realizados
 
+## 2026-07-06 - Tarea 3.8: ciclo de vida seguro de assets previos al guardado
+
+Se definio un ciclo de vida informativo para los assets subidos desde formularios administrativos. No se agrego ninguna eliminacion automatica ni se modifico backend o base de datos.
+
+Mejoras aplicadas:
+
+- el panel registra en memoria, por formulario, los assets subidos durante la edicion actual;
+- el inventario temporal se deduplica por ID y se muestra junto a los selectores de avatar, icono, portada, galeria y PDF;
+- el estado de upload aclara que el asset ya quedo en la biblioteca, pero su asociacion al registro solo se confirma al guardar el formulario;
+- al cancelar una edicion con subidas nuevas, se informa por nombre que los assets se conservaron en la biblioteca;
+- despues de guardar, se comparan las subidas de la sesion con los IDs realmente enviados por el formulario y se avisa si alguna no quedo asociada en ese guardado;
+- los assets subidos siguen disponibles para reutilizarlos y las listas locales evitan IDs duplicados;
+- se agrego un estado visual de aviso al toast administrativo para distinguir estos mensajes de un error o un guardado normal.
+
+Decision de seguridad:
+
+- no se borra ningun `MediaAsset`, archivo, documento o Base64 automaticamente;
+- una subida no asociada en un formulario es solo una candidata a revision, no se declara huerfana global sin comprobar todas sus referencias;
+- cualquier mantenimiento o limpieza futura queda fuera de alcance y debera validar referencias reales, pedir confirmacion explicita y respetar la proteccion de borrado de la Fase 1.3.
+
+Verificaciones:
+
+- `npm run lint` paso correctamente.
+- `npm run build` paso correctamente.
+- no se ejecuto `reset_db.py` ni se modificaron datos.
+
+Archivos tocados:
+
+- `frontend/src/pages/AdminPage.jsx`
+- `frontend/src/components/admin/AdminProfilePanel.jsx`
+- `frontend/src/components/admin/AdminSkillsPanel.jsx`
+- `frontend/src/components/admin/AdminProjectsPanel.jsx`
+- `frontend/src/components/admin/AdminCertificationsPanel.jsx`
+- `frontend/src/components/admin/AdminImagePicker.jsx`
+- `frontend/src/components/admin/AdminImagePicker.css`
+- `frontend/src/components/admin/AdminProjectGalleryPicker.jsx`
+- `frontend/src/components/admin/AdminProjectGalleryPicker.css`
+- `frontend/src/components/admin/AdminToast.jsx`
+- `frontend/src/components/admin/AdminToast.css`
+- `CAMBIOS.md`
+
 ## 2026-07-06 - Tarea 3.6: estados por elemento, orden local y conteos en panel admin
 
 Se reforzo el comportamiento del panel administrativo sin tocar backend, rutas ni contratos. El objetivo fue que cada modulo reaccione mejor a operaciones individuales de crear, editar y eliminar, sin bloquear innecesariamente el resto del panel.
