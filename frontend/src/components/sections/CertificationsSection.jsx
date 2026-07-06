@@ -1,5 +1,27 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./CertificationsSection.css";
+
+const FOCUSABLE_SELECTOR = [
+  'a[href]',
+  'button:not([disabled])',
+  'iframe',
+  'input:not([disabled])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])',
+].join(", ");
+
+function getFocusableElements(container) {
+  if (!container) {
+    return [];
+  }
+
+  return Array.from(container.querySelectorAll(FOCUSABLE_SELECTOR)).filter(
+    (element) =>
+      !element.hasAttribute("disabled")
+      && element.getAttribute("aria-hidden") !== "true"
+  );
+}
 
 function createPdfPreviewResource(certificateFile) {
   if (
@@ -40,7 +62,8 @@ function createPdfPreviewResource(certificateFile) {
   } catch {
     return {
       url: "",
-      error: "No se pudo preparar el PDF para mostrarlo. Intenta abrirlo o descargarlo nuevamente.",
+      error:
+        "No se pudo preparar el PDF para mostrarlo. Intenta abrirlo o descargarlo nuevamente.",
     };
   }
 }
@@ -53,11 +76,9 @@ function buildPdfDataUrl(certificateFile) {
     return "";
   }
 
-  const base64 = certificateFile.data_base64.startsWith("data:")
+  return certificateFile.data_base64.startsWith("data:")
     ? certificateFile.data_base64
     : `data:application/pdf;base64,${certificateFile.data_base64}`;
-
-  return base64;
 }
 
 function formatDateValue(value) {
@@ -82,22 +103,34 @@ function formatDateValue(value) {
 export default function CertificationsSection({ certifications = [] }) {
   const [selectedPdf, setSelectedPdf] = useState(null);
   const [pdfErrorMessage, setPdfErrorMessage] = useState("");
+  const modalRef = useRef(null);
+  const closeButtonRef = useRef(null);
+  const lastTriggerRef = useRef(null);
+
+  const certificationModalTitleId = `certification-modal-title-${selectedPdf?.name || "active"}`;
 
   useEffect(() => {
     if (!selectedPdf) {
       return undefined;
     }
 
-    function handleKeyDown(event) {
-      if (event.key === "Escape") {
-        setSelectedPdf(null);
-      }
-    }
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousHtmlOverflow = document.documentElement.style.overflow;
 
-    window.addEventListener("keydown", handleKeyDown);
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+
+    const frameId = window.requestAnimationFrame(() => {
+      const firstFocusable =
+        closeButtonRef.current || getFocusableElements(modalRef.current)[0];
+
+      (firstFocusable || modalRef.current)?.focus();
+    });
 
     return () => {
-      window.removeEventListener("keydown", handleKeyDown);
+      window.cancelAnimationFrame(frameId);
+      document.body.style.overflow = previousBodyOverflow;
+      document.documentElement.style.overflow = previousHtmlOverflow;
     };
   }, [selectedPdf]);
 
@@ -111,11 +144,24 @@ export default function CertificationsSection({ certifications = [] }) {
     };
   }, [selectedPdf]);
 
-  function closePdfModal() {
-    setSelectedPdf(null);
+  function restoreTriggerFocus() {
+    const trigger = lastTriggerRef.current;
+
+    if (!trigger) {
+      return;
+    }
+
+    window.requestAnimationFrame(() => {
+      trigger.focus();
+    });
   }
 
-  function openPdfModal(certification) {
+  function closePdfModal() {
+    setSelectedPdf(null);
+    restoreTriggerFocus();
+  }
+
+  function openPdfModal(certification, triggerElement) {
     const certificationName =
       certification?.name ||
       certification?.title ||
@@ -131,6 +177,7 @@ export default function CertificationsSection({ certifications = [] }) {
       return;
     }
 
+    lastTriggerRef.current = triggerElement || null;
     setPdfErrorMessage("");
     setSelectedPdf({
       name: certificationName,
@@ -138,6 +185,40 @@ export default function CertificationsSection({ certifications = [] }) {
       downloadUrl: buildPdfDataUrl(certification?.certificate_file),
       fileName: `${certificationName}.pdf`,
     });
+  }
+
+  function handlePdfModalKeyDown(event) {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      closePdfModal();
+      return;
+    }
+
+    if (event.key !== "Tab") {
+      return;
+    }
+
+    const focusableElements = getFocusableElements(modalRef.current);
+
+    if (focusableElements.length === 0) {
+      event.preventDefault();
+      modalRef.current?.focus();
+      return;
+    }
+
+    const firstElement = focusableElements[0];
+    const lastElement = focusableElements[focusableElements.length - 1];
+
+    if (event.shiftKey && document.activeElement === firstElement) {
+      event.preventDefault();
+      lastElement.focus();
+      return;
+    }
+
+    if (!event.shiftKey && document.activeElement === lastElement) {
+      event.preventDefault();
+      firstElement.focus();
+    }
   }
 
   const hasCertifications =
@@ -259,7 +340,9 @@ export default function CertificationsSection({ certifications = [] }) {
                           <button
                             type="button"
                             className="certification-link certification-button"
-                            onClick={() => openPdfModal(certification)}
+                            onClick={(event) =>
+                              openPdfModal(certification, event.currentTarget)
+                            }
                           >
                             Abrir PDF
                           </button>
@@ -288,19 +371,25 @@ export default function CertificationsSection({ certifications = [] }) {
       {selectedPdf && (
         <div
           className="pdf-modal-overlay"
-          onClick={closePdfModal}
+          onClick={(event) => {
+            if (event.target === event.currentTarget) {
+              closePdfModal();
+            }
+          }}
           role="presentation"
         >
           <div
+            ref={modalRef}
             className="pdf-modal"
-            onClick={(event) => event.stopPropagation()}
             role="dialog"
             aria-modal="true"
-            aria-label={`Vista previa de ${selectedPdf.name}`}
+            aria-labelledby={certificationModalTitleId}
+            tabIndex={-1}
+            onKeyDown={handlePdfModalKeyDown}
           >
             <div className="pdf-modal-header">
               <div className="pdf-modal-header__content">
-                <h3>{selectedPdf.name}</h3>
+                <h3 id={certificationModalTitleId}>{selectedPdf.name}</h3>
                 <p>
                   Si tu navegador no muestra la vista previa, usa Abrir o
                   Descargar.
@@ -308,6 +397,7 @@ export default function CertificationsSection({ certifications = [] }) {
               </div>
 
               <button
+                ref={closeButtonRef}
                 type="button"
                 className="pdf-modal-close"
                 onClick={closePdfModal}
@@ -342,6 +432,7 @@ export default function CertificationsSection({ certifications = [] }) {
               title={`PDF de ${selectedPdf.name}`}
               src={selectedPdf.url}
               className="pdf-modal-frame"
+              tabIndex={0}
             />
           </div>
         </div>

@@ -183,6 +183,12 @@
   background: rgba(56, 189, 248, 0.08);
 }
 
+.certification-link:focus-visible,
+.pdf-modal-close:focus-visible {
+  outline: 3px solid rgba(125, 211, 252, 0.95);
+  outline-offset: 3px;
+}
+
 .pdf-modal-overlay {
   position: fixed;
   inset: 0;

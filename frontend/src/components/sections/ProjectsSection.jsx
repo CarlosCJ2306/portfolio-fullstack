@@ -1,6 +1,28 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { getSafeSvgDataUrl } from "../../utils/svgSecurity";
 import "./ProjectsSection.css";
+
+const FOCUSABLE_SELECTOR = [
+  'a[href]',
+  'button:not([disabled])',
+  'iframe',
+  'input:not([disabled])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])',
+].join(", ");
+
+function getFocusableElements(container) {
+  if (!container) {
+    return [];
+  }
+
+  return Array.from(container.querySelectorAll(FOCUSABLE_SELECTOR)).filter(
+    (element) =>
+      !element.hasAttribute("disabled")
+      && element.getAttribute("aria-hidden") !== "true"
+  );
+}
 
 function decodeBase64ToText(base64Value) {
   if (!base64Value) {
@@ -32,7 +54,6 @@ function getAssetDisplayInfo(asset, fallbackAltText) {
     return {
       src: null,
       alt: fallbackAltText,
-      isBlocked: false,
       hasAsset: false,
     };
   }
@@ -46,7 +67,6 @@ function getAssetDisplayInfo(asset, fallbackAltText) {
     return {
       src: safeSvgSrc,
       alt,
-      isBlocked: false,
       hasAsset: true,
     };
   }
@@ -58,7 +78,6 @@ function getAssetDisplayInfo(asset, fallbackAltText) {
     return {
       src: null,
       alt,
-      isBlocked: true,
       hasAsset: true,
     };
   }
@@ -67,7 +86,6 @@ function getAssetDisplayInfo(asset, fallbackAltText) {
     return {
       src: `data:${asset.mime_type};base64,${asset.data_base64}`,
       alt,
-      isBlocked: false,
       hasAsset: true,
     };
   }
@@ -75,7 +93,6 @@ function getAssetDisplayInfo(asset, fallbackAltText) {
   return {
     src: null,
     alt,
-    isBlocked: false,
     hasAsset: true,
   };
 }
@@ -163,6 +180,9 @@ export default function ProjectsSection({
   const [selectedProject, setSelectedProject] = useState(null);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [isZoomed, setIsZoomed] = useState(false);
+  const modalRef = useRef(null);
+  const closeButtonRef = useRef(null);
+  const lastTriggerRef = useRef(null);
 
   const hasProjects = Array.isArray(projects) && projects.length > 0;
   const showEmptyLoadingState = isLoading && !hasProjects;
@@ -174,26 +194,49 @@ export default function ProjectsSection({
   );
 
   const activeImage = modalImages[activeImageIndex] || null;
+  const projectTitle =
+    selectedProject?.title || selectedProject?.name || "Proyecto";
+  const projectModalTitleId = `project-modal-title-${selectedProject?.id ?? "active"}`;
 
   useEffect(() => {
     if (!selectedProject) {
       return undefined;
     }
 
-    function handleEscape(event) {
-      if (event.key === "Escape") {
-        setSelectedProject(null);
-        setActiveImageIndex(0);
-        setIsZoomed(false);
-      }
-    }
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousHtmlOverflow = document.documentElement.style.overflow;
 
-    window.addEventListener("keydown", handleEscape);
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
 
-    return () => window.removeEventListener("keydown", handleEscape);
+    const frameId = window.requestAnimationFrame(() => {
+      const firstFocusable =
+        closeButtonRef.current || getFocusableElements(modalRef.current)[0];
+
+      (firstFocusable || modalRef.current)?.focus();
+    });
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+      document.body.style.overflow = previousBodyOverflow;
+      document.documentElement.style.overflow = previousHtmlOverflow;
+    };
   }, [selectedProject]);
 
-  function openProjectModal(project) {
+  function restoreTriggerFocus() {
+    const trigger = lastTriggerRef.current;
+
+    if (!trigger) {
+      return;
+    }
+
+    window.requestAnimationFrame(() => {
+      trigger.focus();
+    });
+  }
+
+  function openProjectModal(project, triggerElement) {
+    lastTriggerRef.current = triggerElement || null;
     setSelectedProject(project);
     setActiveImageIndex(0);
     setIsZoomed(false);
@@ -203,6 +246,7 @@ export default function ProjectsSection({
     setSelectedProject(null);
     setActiveImageIndex(0);
     setIsZoomed(false);
+    restoreTriggerFocus();
   }
 
   function goToImage(nextIndex) {
@@ -242,6 +286,52 @@ export default function ProjectsSection({
     }
 
     setIsZoomed((currentValue) => !currentValue);
+  }
+
+  function handleProjectModalKeyDown(event) {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      closeProjectModal();
+      return;
+    }
+
+    if (event.key === "ArrowLeft" && modalImages.length > 1) {
+      event.preventDefault();
+      showPreviousImage();
+      return;
+    }
+
+    if (event.key === "ArrowRight" && modalImages.length > 1) {
+      event.preventDefault();
+      showNextImage();
+      return;
+    }
+
+    if (event.key !== "Tab") {
+      return;
+    }
+
+    const focusableElements = getFocusableElements(modalRef.current);
+
+    if (focusableElements.length === 0) {
+      event.preventDefault();
+      modalRef.current?.focus();
+      return;
+    }
+
+    const firstElement = focusableElements[0];
+    const lastElement = focusableElements[focusableElements.length - 1];
+
+    if (event.shiftKey && document.activeElement === firstElement) {
+      event.preventDefault();
+      lastElement.focus();
+      return;
+    }
+
+    if (!event.shiftKey && document.activeElement === lastElement) {
+      event.preventDefault();
+      firstElement.focus();
+    }
   }
 
   if (showEmptyLoadingState) {
@@ -333,7 +423,7 @@ export default function ProjectsSection({
 
           <div className="projects-grid">
             {projects.map((project) => {
-              const projectTitle = project.title || project.name || "Proyecto";
+              const currentProjectTitle = project.title || project.name || "Proyecto";
               const projectDescription =
                 project.short_description ||
                 project.summary ||
@@ -362,12 +452,12 @@ export default function ProjectsSection({
 
               const coverDisplay = getAssetDisplayInfo(
                 project.image,
-                project.image?.alt_text || projectTitle
+                project.image?.alt_text || currentProjectTitle
               );
               const hasHiddenUnsafeImage = coverDisplay.hasAsset && !coverDisplay.src;
 
               return (
-                <article className="project-card" key={project.id || projectTitle}>
+                <article className="project-card" key={project.id || currentProjectTitle}>
                   {coverDisplay.src ? (
                     <div className="project-image-container">
                       <img
@@ -388,7 +478,7 @@ export default function ProjectsSection({
 
                   <div className="project-card-top">
                     {isFeatured && <span className="project-featured">Destacado</span>}
-                    <h3>{projectTitle}</h3>
+                    <h3>{currentProjectTitle}</h3>
                     <p>{projectDescription}</p>
                   </div>
 
@@ -402,7 +492,7 @@ export default function ProjectsSection({
                           tech;
 
                         return (
-                          <span key={`${projectTitle}-${techName}`}>
+                          <span key={`${currentProjectTitle}-${techName}`}>
                             {techName}
                           </span>
                         );
@@ -414,7 +504,7 @@ export default function ProjectsSection({
                     <button
                       type="button"
                       className="project-action-button"
-                      onClick={() => openProjectModal(project)}
+                      onClick={(event) => openProjectModal(project, event.currentTarget)}
                     >
                       Ver detalle
                     </button>
@@ -446,18 +536,25 @@ export default function ProjectsSection({
               closeProjectModal();
             }
           }}
-          role="dialog"
-          aria-modal="true"
-          aria-label={`Detalle del proyecto ${selectedProject.title || selectedProject.name || ""}`}
+          role="presentation"
         >
-          <div className="project-modal">
+          <div
+            ref={modalRef}
+            className="project-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={projectModalTitleId}
+            tabIndex={-1}
+            onKeyDown={handleProjectModalKeyDown}
+          >
             <div className="project-modal__header">
               <div>
                 <span className="badge">Proyecto</span>
-                <h3>{selectedProject.title || selectedProject.name || "Proyecto"}</h3>
+                <h3 id={projectModalTitleId}>{projectTitle}</h3>
               </div>
 
               <button
+                ref={closeButtonRef}
                 type="button"
                 className="project-modal__close"
                 onClick={closeProjectModal}
@@ -481,7 +578,7 @@ export default function ProjectsSection({
                     </div>
 
                     <div className="project-modal__toolbar">
-                      <span className="project-modal__image-label">
+                      <span className="project-modal__image-label" aria-live="polite">
                         {activeImage.label}
                         {modalImages.length > 1
                           ? ` / ${activeImageIndex + 1} de ${modalImages.length}`
@@ -492,6 +589,7 @@ export default function ProjectsSection({
                         type="button"
                         className="project-modal__zoom"
                         onClick={toggleZoom}
+                        aria-pressed={isZoomed}
                       >
                         {isZoomed ? "Ajustar" : "Zoom"}
                       </button>
@@ -503,7 +601,7 @@ export default function ProjectsSection({
                           type="button"
                           className="project-modal__nav project-modal__nav--prev"
                           onClick={showPreviousImage}
-                          aria-label="Imagen anterior"
+                          aria-label="Mostrar imagen anterior"
                         >
                           Anterior
                         </button>
@@ -511,7 +609,7 @@ export default function ProjectsSection({
                           type="button"
                           className="project-modal__nav project-modal__nav--next"
                           onClick={showNextImage}
-                          aria-label="Imagen siguiente"
+                          aria-label="Mostrar imagen siguiente"
                         >
                           Siguiente
                         </button>
@@ -532,7 +630,9 @@ export default function ProjectsSection({
                         key={image.key}
                         className={`project-modal__thumb${index === activeImageIndex ? " project-modal__thumb--active" : ""}`}
                         onClick={() => goToImage(index)}
-                        aria-label={`Ver ${image.label.toLowerCase()}`}
+                        aria-label={`Ver ${image.label.toLowerCase()}${index === activeImageIndex ? " activa" : ""}`}
+                        aria-pressed={index === activeImageIndex}
+                        aria-current={index === activeImageIndex ? "true" : undefined}
                       >
                         <img src={image.src} alt={image.alt} />
                         <span>{image.label}</span>

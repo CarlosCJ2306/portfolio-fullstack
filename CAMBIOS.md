@@ -1,5 +1,31 @@
 # Cambios realizados
 
+## 2026-07-06 - Tarea 2.8: accesibilidad funcional en modales publicos
+
+Se completo la accesibilidad funcional de los modales publicos de proyectos y certificaciones sin cambiar su flujo principal. Ambos dialogos ahora:
+
+- mueven el foco inicial a un elemento seguro al abrirse;
+- bloquean el scroll del documento de fondo mientras estan abiertos;
+- encierran la tabulacion dentro del modal con focus trap;
+- cierran con `Escape`, boton y clic sobre el fondo;
+- devuelven el foco al elemento que abrio el modal cuando se cierran.
+
+En `ProjectsSection` se agrego tambien:
+
+- navegacion del carrusel con `ArrowLeft` y `ArrowRight`;
+- estado accesible para miniaturas activas mediante `aria-pressed` y `aria-current`;
+- labels mas claros para anterior/siguiente y foco visible en controles del modal.
+
+En `CertificationsSection` se mantuvo el ciclo de revocacion del Blob URL y el modal PDF ahora conserva accesibles las acciones de cerrar, abrir en nueva pestana y descargar.
+
+Archivos tocados:
+
+- `frontend/src/components/sections/ProjectsSection.jsx`
+- `frontend/src/components/sections/ProjectsSection.css`
+- `frontend/src/components/sections/CertificationsSection.jsx`
+- `frontend/src/components/sections/CertificationsSection.css`
+- `CAMBIOS.md`
+
 ## 2026-07-06 - Tareas 2.5 y 2.6: SVG seguro en proyectos y fallback usable para PDF
 
 Se alineo la visualizacion publica de proyectos con la politica segura de SVG definida en la Fase 1. `ProjectsSection` ahora reutiliza `frontend/src/utils/svgSecurity.js` para mostrar SVG solo cuando pueden convertirse en una data URL segura; no se usa `dangerouslySetInnerHTML` y un asset SVG que no pase la politica queda oculto con un fallback visual claro en lugar de renderizarse de forma insegura.

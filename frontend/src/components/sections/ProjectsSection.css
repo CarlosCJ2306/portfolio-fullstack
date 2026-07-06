@@ -261,6 +261,17 @@
   background: rgba(56, 189, 248, 0.08);
 }
 
+.project-action-button:focus-visible,
+.project-actions a:focus-visible,
+.project-modal__close:focus-visible,
+.project-modal__zoom:focus-visible,
+.project-modal__nav:focus-visible,
+.project-modal__thumb:focus-visible,
+.project-modal__links a:focus-visible {
+  outline: 3px solid rgba(125, 211, 252, 0.95);
+  outline-offset: 3px;
+}
+
 .project-modal-overlay {
   position: fixed;
   inset: 0;
