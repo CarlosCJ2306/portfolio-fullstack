@@ -1,5 +1,37 @@
 # Cambios realizados
 
+## 2026-07-06 - Tareas 3.5 y 3.7: mejor UX para documentos PDF y compatibilidad icon/icon_svg
+
+Se ajusto `AdminImagePicker` para que cuando se use con `assetType="document"` hable de documento/PDF en lugar de imagen. El picker ahora muestra informacion util del asset asociado sin mezclarlo con `credential_url`:
+
+- nombre del archivo;
+- tipo de asset;
+- MIME;
+- tamano aproximado derivado del Base64 cuando esta disponible;
+- accion `Abrir PDF` cuando el documento asociado puede prepararse correctamente.
+
+Si no hay PDF utilizable, el picker muestra un estado honesto en lugar de insinuar una previsualizacion inexistente. La accion de apertura usa una Blob URL temporal bajo demanda, sin duplicar el visor publico completo.
+
+Tambien se reforzo la compatibilidad historica del selector de iconos:
+
+- el picker muestra assets `icon` e `icon_svg` cuando se usa para skills;
+- la lista se deduplica por `id` para evitar entradas repetidas;
+- los SVG siguen renderizandose solo mediante `getSafeSvgDataUrl`, sin `dangerouslySetInnerHTML`;
+- si un SVG no pasa la politica segura, se mantiene el fallback visual existente;
+- skills existentes con iconos historicos siguen pudiendo editarse sin perder la relacion.
+
+Verificaciones:
+
+- `npm run lint` paso correctamente.
+- `npm run build` paso correctamente.
+
+Archivos tocados:
+
+- `frontend/src/components/admin/AdminImagePicker.jsx`
+- `frontend/src/components/admin/AdminImagePicker.css`
+- `frontend/src/services/adminApi.js`
+- `CAMBIOS.md`
+
 ## 2026-07-06 - Tarea 3.4: estado de upload administrativo mas claro y resistente
 
 Se mejoro el flujo de subida en `AdminImagePicker` y `AdminProjectGalleryPicker` sin tocar backend. Ambos componentes ahora muestran estado por archivo y mantienen la validacion previa de tamano, MIME, extension y SVG seguro antes de leer cualquier archivo.

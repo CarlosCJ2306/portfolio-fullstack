@@ -80,6 +80,14 @@ const MIME_TYPE_BY_EXTENSION = {
   ".pdf": "application/pdf",
 };
 
+const ASSET_TYPE_LABELS = {
+  avatar: "Avatar",
+  image: "Imagen",
+  icon: "Icono",
+  icon_svg: "Icono SVG",
+  document: "Documento",
+};
+
 function getFileExtension(fileName) {
   const lastDotIndex = fileName.lastIndexOf(".");
 
@@ -184,6 +192,93 @@ function createAbortLikeError() {
   return new DOMException("La carga fue cancelada.", "AbortError");
 }
 
+function getApproximateBase64Size(base64Value) {
+  if (!base64Value) {
+    return null;
+  }
+
+  const normalizedValue = String(base64Value).replace(/\s+/g, "");
+
+  if (!normalizedValue) {
+    return null;
+  }
+
+  const padding = normalizedValue.endsWith("==")
+    ? 2
+    : normalizedValue.endsWith("=")
+      ? 1
+      : 0;
+
+  return Math.max(0, Math.floor((normalizedValue.length * 3) / 4) - padding);
+}
+
+function formatBytes(byteCount) {
+  if (!Number.isFinite(byteCount) || byteCount <= 0) {
+    return null;
+  }
+
+  if (byteCount < 1024) {
+    return `${byteCount} B`;
+  }
+
+  const sizeInKb = byteCount / 1024;
+
+  if (sizeInKb < 1024) {
+    return `${sizeInKb.toFixed(sizeInKb >= 100 ? 0 : 1)} KB`;
+  }
+
+  const sizeInMb = sizeInKb / 1024;
+  return `${sizeInMb.toFixed(sizeInMb >= 100 ? 0 : 1)} MB`;
+}
+
+function getPickerCopy(assetType, hasValue) {
+  if (assetType === "document") {
+    return {
+      selectButton: hasValue ? "Cambiar documento" : "Seleccionar documento",
+      emptyText: "Sin documento",
+      modalTitle: "Seleccionar documento PDF",
+      dialogLabel: "Selector de documento PDF",
+      uploadIdleLabel: "Arrastra un PDF o haz clic para subir",
+      uploadBusyLabel: "Carga en curso. Espera o cancelala para iniciar otra.",
+      uploadHint: "Archivos PDF hasta 10 MB",
+      libraryCount: (count) =>
+        count > 0
+          ? `${count} documento${count !== 1 ? "s" : ""} disponible${count !== 1 ? "s" : ""}`
+          : "No hay documentos PDF subidos aún. Sube el primero usando la zona de arriba.",
+    };
+  }
+
+  if (assetType === "icon" || assetType === "icon_svg") {
+    return {
+      selectButton: hasValue ? "Cambiar icono" : "Seleccionar icono",
+      emptyText: "Sin icono",
+      modalTitle: "Seleccionar icono",
+      dialogLabel: "Selector de icono",
+      uploadIdleLabel: "Arrastra un archivo o haz clic para subir",
+      uploadBusyLabel: "Carga en curso. Espera o cancelala para iniciar otra.",
+      uploadHint: "PNG, JPG, WebP o SVG dentro del limite permitido",
+      libraryCount: (count) =>
+        count > 0
+          ? `${count} icono${count !== 1 ? "s" : ""} disponible${count !== 1 ? "s" : ""}`
+          : "No hay iconos subidos aún. Sube el primero usando la zona de arriba.",
+    };
+  }
+
+  return {
+    selectButton: hasValue ? "Cambiar imagen" : "Seleccionar imagen",
+    emptyText: "Sin imagen",
+    modalTitle: "Seleccionar imagen",
+    dialogLabel: "Selector de imagen",
+    uploadIdleLabel: "Arrastra un archivo o haz clic para subir",
+    uploadBusyLabel: "Carga en curso. Espera o cancelala para iniciar otra.",
+    uploadHint: "PNG, JPG, WebP o SVG dentro del limite permitido",
+    libraryCount: (count) =>
+      count > 0
+        ? `${count} imagen${count !== 1 ? "es" : ""} disponible${count !== 1 ? "s" : ""}`
+        : "No hay imágenes subidas aún. Sube la primera usando la zona de arriba.",
+  };
+}
+
 export default function AdminImagePicker({
   value,
   currentAsset,
@@ -248,12 +343,21 @@ export default function AdminImagePicker({
   }
 
   const compatibleAssetTypes = getCompatibleAssetTypes(assetType);
-  const filteredAssets = mediaAssets.filter((asset) =>
-    compatibleAssetTypes.includes(asset.asset_type)
+  const filteredAssets = Array.from(
+    mediaAssets
+      .filter((asset) => compatibleAssetTypes.includes(asset.asset_type))
+      .reduce((assetMap, asset) => {
+        if (!assetMap.has(asset.id)) {
+          assetMap.set(asset.id, asset);
+        }
+        return assetMap;
+      }, new Map())
+      .values()
   );
 
   const selectedAsset =
     currentAsset || mediaAssets.find((asset) => asset.id === value) || null;
+  const pickerCopy = getPickerCopy(assetType, Boolean(value));
 
   function updateUploadItem(itemId, patch) {
     setUploadItems((currentItems) =>
@@ -278,6 +382,39 @@ export default function AdminImagePicker({
   const previewSrc = getAssetPreviewSrc(selectedAsset);
   const previewSvgSrc = getSafeSvgDataUrl(selectedAsset?.svg_content);
   const isPdf = selectedAsset?.mime_type === "application/pdf";
+  const selectedAssetSize = formatBytes(
+    getApproximateBase64Size(selectedAsset?.data_base64)
+  );
+  const selectedAssetTypeLabel =
+    ASSET_TYPE_LABELS[selectedAsset?.asset_type] || selectedAsset?.asset_type || null;
+
+  function handleOpenPdf() {
+    if (
+      assetType !== "document"
+      || !isPdf
+      || !selectedAsset?.data_base64
+      || typeof Uint8Array === "undefined"
+    ) {
+      return;
+    }
+
+    try {
+      const binaryString = atob(selectedAsset.data_base64);
+      const bytes = Uint8Array.from(binaryString, (character) =>
+        character.charCodeAt(0)
+      );
+      const pdfBlob = new Blob([bytes], {
+        type: selectedAsset.mime_type || "application/pdf",
+      });
+      const objectUrl = URL.createObjectURL(pdfBlob);
+      window.open(objectUrl, "_blank", "noopener,noreferrer");
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
+    } catch {
+      setUploadError(
+        "No se pudo preparar el PDF para abrirlo. Verifica el archivo asociado."
+      );
+    }
+  }
 
   function readFileAsBase64(file, itemId) {
     return new Promise((resolve, reject) => {
@@ -621,7 +758,7 @@ export default function AdminImagePicker({
                 {assetType === "document" ? "📄" : "🖼️"}
               </span>
               <span className="image-picker__preview-text">
-                {assetType === "document" ? "Sin documento" : "Sin imagen"}
+                {pickerCopy.emptyText}
               </span>
             </div>
           )}
@@ -634,7 +771,7 @@ export default function AdminImagePicker({
             onClick={handleOpenModal}
             disabled={disabled}
           >
-            {value ? "Cambiar imagen" : "Seleccionar imagen"}
+            {pickerCopy.selectButton}
           </button>
 
           {value && (
@@ -652,17 +789,58 @@ export default function AdminImagePicker({
         </div>
       </div>
 
+      {selectedAsset && (
+        <div className="image-picker__asset-meta-card">
+          <div className="image-picker__asset-meta-grid">
+            <span>
+              <strong>Nombre:</strong>{" "}
+              {selectedAsset.file_name || "Sin nombre"}
+            </span>
+            <span>
+              <strong>Tipo:</strong>{" "}
+              {selectedAssetTypeLabel || "No disponible"}
+            </span>
+            <span>
+              <strong>MIME:</strong>{" "}
+              {selectedAsset.mime_type || "No disponible"}
+            </span>
+            <span>
+              <strong>Tamaño:</strong>{" "}
+              {selectedAssetSize || "No disponible"}
+            </span>
+          </div>
+
+          {assetType === "document" && (
+            <div className="image-picker__asset-meta-actions">
+              {isPdf && selectedAsset?.data_base64 ? (
+                <button
+                  type="button"
+                  className="admin-button ghost"
+                  onClick={handleOpenPdf}
+                >
+                  Abrir PDF
+                </button>
+              ) : (
+                <span className="image-picker__asset-meta-note">
+                  No hay PDF disponible para abrir o previsualizar.
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       {modalOpen && (
         <div
           className="image-picker__overlay"
           onClick={handleOverlayClick}
           role="dialog"
           aria-modal="true"
-          aria-label="Selector de imagen"
+          aria-label={pickerCopy.dialogLabel}
         >
           <div className="image-picker__modal">
             <div className="image-picker__modal-header">
-              <h3 className="image-picker__modal-title">Seleccionar imagen</h3>
+              <h3 className="image-picker__modal-title">{pickerCopy.modalTitle}</h3>
               <button
                 type="button"
                 className="image-picker__modal-close"
@@ -701,19 +879,17 @@ export default function AdminImagePicker({
                 <>
                   <span className="image-picker__upload-icon">⏳</span>
                   <p className="image-picker__upload-label">
-                    Carga en curso. Espera o cancelala para iniciar otra.
+                    {pickerCopy.uploadBusyLabel}
                   </p>
                 </>
               ) : (
                 <>
                   <span className="image-picker__upload-icon">⬆️</span>
                   <p className="image-picker__upload-label">
-                    Arrastra un archivo o haz clic para subir
+                    {pickerCopy.uploadIdleLabel}
                   </p>
                   <p className="image-picker__upload-hint">
-                    {assetType === "document"
-                      ? "Archivos PDF hasta 10 MB"
-                      : "PNG, JPG, WebP o SVG dentro del limite permitido"}
+                    {pickerCopy.uploadHint}
                   </p>
                 </>
               )}
@@ -762,9 +938,7 @@ export default function AdminImagePicker({
 
             <div className="image-picker__gallery-section">
               <p className="image-picker__gallery-label">
-                {filteredAssets.length > 0
-                  ? `${filteredAssets.length} imagen${filteredAssets.length !== 1 ? "es" : ""} disponible${filteredAssets.length !== 1 ? "s" : ""}`
-                  : "No hay imágenes subidas aún. Sube la primera usando la zona de arriba."}
+                {pickerCopy.libraryCount(filteredAssets.length)}
               </p>
 
               {filteredAssets.length > 0 && (
