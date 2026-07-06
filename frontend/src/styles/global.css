@@ -13,8 +13,13 @@
   box-sizing: border-box;
 }
 
+:root {
+  --site-header-offset: 88px;
+}
+
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: calc(var(--site-header-offset) + 16px);
 }
 
 body {
@@ -24,6 +29,7 @@ body {
     radial-gradient(circle at top, rgba(14, 165, 233, 0.08), transparent 28%),
     #0f172a;
   color: #e5e7eb;
+  overflow-x: hidden;
 }
 
 a {
@@ -44,7 +50,6 @@ textarea {
 
 .page {
   min-height: 100vh;
-  padding: 48px 20px;
 }
 
 .badge {
@@ -68,4 +73,46 @@ textarea {
 .page,
 .admin-shell {
   position: relative;
+}
+
+.page--state {
+  display: flex;
+  align-items: center;
+  padding: clamp(88px, 14vw, 136px) 0 56px;
+}
+
+.page-state-section {
+  padding-inline: 20px;
+}
+
+section[id] {
+  scroll-margin-top: calc(var(--site-header-offset) + 16px);
+}
+
+@media (max-width: 768px) {
+  :root {
+    --site-header-offset: 78px;
+  }
+
+  .page--state {
+    padding-top: 88px;
+    padding-bottom: 40px;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-state-section {
+    padding-inline: 16px;
+  }
+
+  .hero-section,
+  .skills-section,
+  .projects-section,
+  .experience-section,
+  .education-section,
+  .certifications-section,
+  .contact-section {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
 }

@@ -1,5 +1,32 @@
 # Cambios realizados
 
+## 2026-07-06 - Tareas 4.1 y 4.2: base responsive del frontend publico
+
+Se ajusto la base responsive del portfolio publico sin tocar backend, rutas ni servicios.
+
+Cambios aplicados:
+
+- se elimino el padding global de `.page` para que la vista normal no sume espacio horizontal extra encima del padding propio de cada seccion;
+- se separaron los estados de carga y error de `HomePage` usando una variante `page--state`, evitando que compartan el mismo layout de la pagina publica normal;
+- se agrego `scroll-padding-top` y `scroll-margin-top` para que las anclas no queden ocultas bajo el header sticky;
+- se redujo el padding horizontal en pantallas pequenas para mantener mejor ancho util en 320px;
+- el header paso a un modo compacto en movil con boton `Menu`, cierre por `Escape`, cierre al tocar un enlace y foco visible;
+- se reforzo el padding interno del header para evitar desbordes y mantener navegacion usable en movil, tablet y escritorio.
+
+Verificaciones:
+
+- `npm run lint` paso correctamente.
+- `npm run build` paso correctamente.
+- no se ejecuto `reset_db.py`.
+
+Archivos tocados:
+
+- `frontend/src/styles/global.css`
+- `frontend/src/pages/HomePage.jsx`
+- `frontend/src/components/layout/Header.jsx`
+- `frontend/src/components/layout/Header.css`
+- `CAMBIOS.md`
+
 ## Cierre de Fase 3
 
 La Fase 3 del panel administrativo quedo completada con mejoras de resiliencia, validacion y experiencia de uso, sin tocar backend, base de datos ni autenticacion.

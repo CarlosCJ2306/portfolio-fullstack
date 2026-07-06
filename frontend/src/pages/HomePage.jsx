@@ -112,8 +112,8 @@ export default function HomePage() {
       <>
         <Header />
 
-        <main className="page">
-          <section className="container">
+        <main className="page page--state">
+          <section className="container page-state-section">
             <span className="badge">Portfolio CJ</span>
             <h1>Cargando portafolio...</h1>
             <p className="description">
@@ -132,8 +132,8 @@ export default function HomePage() {
       <>
         <Header />
 
-        <main className="page">
-          <section className="container">
+        <main className="page page--state">
+          <section className="container page-state-section">
             <span className="badge">Error de conexión</span>
             <h1>No se pudo cargar la información principal del portafolio</h1>
             <p className="description">{homeErrorMessage}</p>
@@ -158,7 +158,7 @@ export default function HomePage() {
     <>
       <Header />
 
-      <main className="page">
+      <main className="page page--home">
         <HeroSection profile={profile} socialLinks={socialLinks} />
 
         <SkillsSection skills={skills} />
