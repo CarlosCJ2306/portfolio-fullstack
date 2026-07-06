@@ -10,43 +10,104 @@ import EducationSection from "../components/sections/EducationSection";
 import CertificationsSection from "../components/sections/CertificationsSection";
 import ContactSection from "../components/sections/ContactSection";
 
+function getReadableErrorMessage(error, fallbackMessage) {
+  return error?.userMessage || error?.message || fallbackMessage;
+}
+
 export default function HomePage() {
   const [homeData, setHomeData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState("");
+  const [homeLoading, setHomeLoading] = useState(true);
+  const [homeErrorMessage, setHomeErrorMessage] = useState("");
+  const [projects, setProjects] = useState([]);
+  const [projectsLoading, setProjectsLoading] = useState(true);
+  const [projectsErrorMessage, setProjectsErrorMessage] = useState("");
+  const [homeRetryKey, setHomeRetryKey] = useState(0);
+  const [projectsRetryKey, setProjectsRetryKey] = useState(0);
 
   const profile = homeData?.profile ?? null;
   const socialLinks = homeData?.social_links ?? [];
   const skills = homeData?.skills ?? [];
-  const projects = homeData?.projects ?? homeData?.featured_projects ?? [];
   const experiences = homeData?.experience ?? homeData?.experiences ?? [];
   const education = homeData?.education ?? [];
   const certifications = homeData?.certifications ?? [];
 
   useEffect(() => {
-    async function loadHomeData() {
-      try {
-        const [data, projectsData] = await Promise.all([
-          getHomeData(),
-          getProjects(),
-        ]);
+    const controller = new AbortController();
 
-        setHomeData({
-          ...data,
-          projects: Array.isArray(projectsData) ? projectsData : [],
-        });
+    async function loadHomeData() {
+      setHomeLoading(true);
+      setHomeErrorMessage("");
+
+      try {
+        const data = await getHomeData({ signal: controller.signal });
+        setHomeData(data);
       } catch (error) {
-        console.error("Error cargando datos del portafolio:", error);
-        setErrorMessage(error.message || "No se pudo cargar la informaciÃ³n.");
+        if (error?.isAbortError || error?.name === "AbortError") {
+          return;
+        }
+
+        console.error("Error cargando informacion principal del portafolio:", error);
+        setHomeErrorMessage(
+          getReadableErrorMessage(
+            error,
+            "No se pudo cargar la informacion principal del portafolio."
+          )
+        );
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) {
+          setHomeLoading(false);
+        }
       }
     }
 
     loadHomeData();
-  }, []);
 
-  if (loading) {
+    return () => controller.abort();
+  }, [homeRetryKey]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function loadProjectsData() {
+      setProjectsLoading(true);
+      setProjectsErrorMessage("");
+
+      try {
+        const data = await getProjects({ signal: controller.signal });
+        setProjects(Array.isArray(data) ? data : []);
+      } catch (error) {
+        if (error?.isAbortError || error?.name === "AbortError") {
+          return;
+        }
+
+        console.error("Error cargando proyectos del portafolio:", error);
+        setProjectsErrorMessage(
+          getReadableErrorMessage(
+            error,
+            "No se pudo cargar la seccion de proyectos."
+          )
+        );
+      } finally {
+        if (!controller.signal.aborted) {
+          setProjectsLoading(false);
+        }
+      }
+    }
+
+    loadProjectsData();
+
+    return () => controller.abort();
+  }, [projectsRetryKey]);
+
+  function retryHomeData() {
+    setHomeRetryKey((currentValue) => currentValue + 1);
+  }
+
+  function retryProjectsData() {
+    setProjectsRetryKey((currentValue) => currentValue + 1);
+  }
+
+  if (homeLoading && !homeData) {
     return (
       <>
         <Header />
@@ -54,12 +115,9 @@ export default function HomePage() {
         <main className="page">
           <section className="container">
             <span className="badge">Portfolio CJ</span>
-
-            {/* AquÃ­ debe aparecer un mensaje mientras React espera la respuesta del backend. */}
             <h1>Cargando portafolio...</h1>
-
             <p className="description">
-              Consultando la informaciÃ³n desde el backend FastAPI.
+              Consultando la informacion principal desde el backend FastAPI.
             </p>
           </section>
         </main>
@@ -69,19 +127,25 @@ export default function HomePage() {
     );
   }
 
-  if (errorMessage) {
+  if (homeErrorMessage && !homeData) {
     return (
       <>
         <Header />
 
         <main className="page">
           <section className="container">
-            <span className="badge">Error de conexiÃ³n</span>
+            <span className="badge">Error de conexion</span>
+            <h1>No se pudo cargar la informacion principal del portafolio</h1>
+            <p className="description">{homeErrorMessage}</p>
 
-            {/* AquÃ­ debe aparecer un mensaje claro si el frontend no puede consumir la API. */}
-            <h1>No se pudo conectar con el backend</h1>
-
-            <p className="description">{errorMessage}</p>
+            <button
+              type="button"
+              className="project-action-button"
+              onClick={retryHomeData}
+              disabled={homeLoading}
+            >
+              {homeLoading ? "Reintentando..." : "Reintentar"}
+            </button>
           </section>
         </main>
 
@@ -99,7 +163,12 @@ export default function HomePage() {
 
         <SkillsSection skills={skills} />
 
-        <ProjectsSection projects={projects} />
+        <ProjectsSection
+          projects={projects}
+          isLoading={projectsLoading}
+          errorMessage={projectsErrorMessage}
+          onRetry={retryProjectsData}
+        />
 
         <ExperienceSection experiences={experiences} />
 

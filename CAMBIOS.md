@@ -1,5 +1,33 @@
 # Cambios realizados
 
+## 2026-07-06 - Tareas 2.1, 2.2 y 2.7: resiliencia del frontend publico y formulario de contacto
+
+Se desacoplo la carga de `/api/public/home` y `/api/public/projects` para que la vista publica no dependa de una sola solicitud. La pagina principal ahora conserva perfil, skills, experiencia, educacion y certificaciones si falla la carga de proyectos, y la seccion de proyectos muestra su propio estado de error con reintento independiente.
+
+Tambien se ajustaron los helpers HTTP del frontend:
+
+- `GET` y `DELETE` sin body ya no envian `Content-Type: application/json`.
+- `POST`, `PUT` y `PATCH` con JSON conservan el header correspondiente.
+- Se agrego soporte de `AbortController` para evitar actualizaciones de estado despues de desmontar o reintentar cargas.
+- Los errores HTTP ahora se interpretan por status con mensajes mas utiles, incluyendo validaciones `422` y fallos de red.
+
+En el formulario publico de contacto:
+
+- se muestran mensajes reales de validacion cuando el backend responde `422`;
+- se diferencia un fallo de red de un fallo del servidor;
+- el formulario conserva lo escrito cuando el envio falla;
+- el formulario solo se limpia cuando el envio termina correctamente.
+
+Archivos tocados:
+
+- `frontend/src/pages/HomePage.jsx`
+- `frontend/src/components/sections/ProjectsSection.jsx`
+- `frontend/src/components/sections/ProjectsSection.css`
+- `frontend/src/components/sections/ContactSection.jsx`
+- `frontend/src/services/publicApi.js`
+- `frontend/src/services/adminApi.js`
+- `CAMBIOS.md`
+
 ## 2026-07-06 - Tarea 1.7: credenciales administrativas solo en memoria
 
 Se retiro la persistencia del usuario y la contrasena administrativa en `localStorage`. HTTP Basic se mantiene sin cambios en las rutas admin, pero las credenciales ahora viven unicamente en memoria dentro del modulo de API mientras la pagina permanece abierta.

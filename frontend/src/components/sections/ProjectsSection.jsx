@@ -75,12 +75,19 @@ function buildProjectImages(project) {
   return allImages;
 }
 
-export default function ProjectsSection({ projects = [] }) {
+export default function ProjectsSection({
+  projects = [],
+  isLoading = false,
+  errorMessage = "",
+  onRetry = null,
+}) {
   const [selectedProject, setSelectedProject] = useState(null);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [isZoomed, setIsZoomed] = useState(false);
 
   const hasProjects = Array.isArray(projects) && projects.length > 0;
+  const showEmptyLoadingState = isLoading && !hasProjects;
+  const showEmptyErrorState = Boolean(errorMessage) && !hasProjects;
 
   const modalImages = useMemo(
     () => buildProjectImages(selectedProject),
@@ -157,6 +164,47 @@ export default function ProjectsSection({ projects = [] }) {
     setIsZoomed((currentValue) => !currentValue);
   }
 
+  if (showEmptyLoadingState) {
+    return (
+      <section id="projects" className="projects-section">
+        <div className="container">
+          <div className="projects-heading">
+            <span className="badge">Proyectos</span>
+            <h2>Proyectos destacados</h2>
+            <p>Cargando proyectos del portafolio...</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (showEmptyErrorState) {
+    return (
+      <section id="projects" className="projects-section">
+        <div className="container">
+          <div className="projects-heading">
+            <span className="badge">Proyectos</span>
+            <h2>Proyectos destacados</h2>
+            <p>{errorMessage}</p>
+
+            {onRetry && (
+              <div className="projects-status projects-status--error">
+                <button
+                  type="button"
+                  className="projects-retry-button"
+                  onClick={onRetry}
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Reintentando..." : "Reintentar proyectos"}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   if (!hasProjects) {
     return (
       <section id="projects" className="projects-section">
@@ -185,6 +233,23 @@ export default function ProjectsSection({ projects = [] }) {
               consumo de APIs y construccion de interfaces modernas.
             </p>
           </div>
+
+          {errorMessage && (
+            <div className="projects-status projects-status--error">
+              <p>{errorMessage}</p>
+
+              {onRetry && (
+                <button
+                  type="button"
+                  className="projects-retry-button"
+                  onClick={onRetry}
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Reintentando..." : "Reintentar proyectos"}
+                </button>
+              )}
+            </div>
+          )}
 
           <div className="projects-grid">
             {projects.map((project) => {

@@ -5,8 +5,150 @@ export const ADMIN_AUTH_INVALID_EVENT = "portfolio-admin-auth-invalid";
 
 let adminCredentials = null;
 
+function createRequestError({
+  message,
+  status = null,
+  details = null,
+  userMessage = "",
+  isNetworkError = false,
+  isAbortError = false,
+}) {
+  const error = new Error(message);
+
+  error.status = status;
+  error.details = details;
+  error.userMessage = userMessage || message;
+  error.isNetworkError = isNetworkError;
+  error.isAbortError = isAbortError;
+
+  if (isAbortError) {
+    error.name = "AbortError";
+  }
+
+  return error;
+}
+
 function encodeBasicAuth(username, password) {
   return `Basic ${btoa(`${username}:${password}`)}`;
+}
+
+function shouldSetJsonContentType(body) {
+  if (body == null) {
+    return false;
+  }
+
+  if (typeof FormData !== "undefined" && body instanceof FormData) {
+    return false;
+  }
+
+  if (typeof Blob !== "undefined" && body instanceof Blob) {
+    return false;
+  }
+
+  if (
+    typeof URLSearchParams !== "undefined" &&
+    body instanceof URLSearchParams
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
+function buildHeaders(headers, body, authorizationValue) {
+  const finalHeaders = new Headers(headers || {});
+
+  if (authorizationValue) {
+    finalHeaders.set("Authorization", authorizationValue);
+  }
+
+  if (!finalHeaders.has("Content-Type") && shouldSetJsonContentType(body)) {
+    finalHeaders.set("Content-Type", "application/json");
+  }
+
+  return finalHeaders;
+}
+
+function formatValidationDetails(detail) {
+  if (!Array.isArray(detail) || detail.length === 0) {
+    return "Revisa los datos enviados e intenta nuevamente.";
+  }
+
+  return detail
+    .map((issue) => {
+      const fieldName = Array.isArray(issue?.loc)
+        ? issue.loc.filter((value) => typeof value === "string").at(-1)
+        : null;
+      const prefix = fieldName ? `${fieldName}: ` : "";
+      const rawMessage =
+        typeof issue?.msg === "string"
+          ? issue.msg.replace(/^Value error,\s*/i, "")
+          : "Dato invalido.";
+
+      return `${prefix}${rawMessage}`;
+    })
+    .join(" ");
+}
+
+function getDefaultStatusMessage(status) {
+  switch (status) {
+    case 400:
+      return "La solicitud administrativa no pudo procesarse.";
+    case 401:
+      return "La autenticacion administrativa no es valida.";
+    case 403:
+      return "No tienes permisos para realizar esta accion.";
+    case 404:
+      return "No se encontro el recurso solicitado.";
+    case 409:
+      return "La operacion entra en conflicto con el estado actual del recurso.";
+    case 422:
+      return "Revisa los datos enviados e intenta nuevamente.";
+    case 500:
+    case 502:
+    case 503:
+    case 504:
+      return "El servidor no pudo completar la operacion administrativa.";
+    default:
+      return "Error al consumir la API administrativa.";
+  }
+}
+
+async function parseErrorPayload(response) {
+  const contentType = response.headers.get("content-type") || "";
+
+  try {
+    if (contentType.includes("application/json")) {
+      return await response.json();
+    }
+
+    const text = await response.text();
+    return text || null;
+  } catch {
+    return null;
+  }
+}
+
+function buildErrorFromResponse(response, payload) {
+  const defaultMessage = getDefaultStatusMessage(response.status);
+  let userMessage = defaultMessage;
+
+  if (response.status === 422 && Array.isArray(payload?.detail)) {
+    userMessage = formatValidationDetails(payload.detail);
+  } else if (typeof payload?.detail === "string" && payload.detail.trim()) {
+    userMessage = payload.detail.trim();
+  } else if (typeof payload?.message === "string" && payload.message.trim()) {
+    userMessage = payload.message.trim();
+  } else if (typeof payload === "string" && payload.trim()) {
+    userMessage = payload.trim();
+  }
+
+  return createRequestError({
+    message: userMessage,
+    status: response.status,
+    details: payload,
+    userMessage,
+  });
 }
 
 function clearLegacyAdminCredentials() {
@@ -58,7 +200,7 @@ export function clearAdminCredentials() {
 
 async function request(endpoint, options = {}, credentials) {
   if (!API_BASE_URL) {
-    throw new Error("No estÃ¡ configurada la variable VITE_API_BASE_URL.");
+    throw new Error("No esta configurada la variable VITE_API_BASE_URL.");
   }
 
   const authCredentials = credentials || getAdminCredentials();
@@ -67,48 +209,46 @@ async function request(endpoint, options = {}, credentials) {
     throw new Error("No hay una sesion administrativa activa.");
   }
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: encodeBasicAuth(
-        authCredentials.username,
-        authCredentials.password
-      ),
-      ...(options.headers || {}),
-    },
-    ...options,
-  });
+  const { headers, body, method = "GET", ...restOptions } = options;
+  const authorizationValue = encodeBasicAuth(
+    authCredentials.username,
+    authCredentials.password
+  );
+  let response;
+
+  try {
+    response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      ...restOptions,
+      method,
+      headers: buildHeaders(headers, body, authorizationValue),
+      ...(body !== undefined ? { body } : {}),
+    });
+  } catch (error) {
+    if (error?.name === "AbortError") {
+      throw createRequestError({
+        message: "La solicitud fue cancelada.",
+        isAbortError: true,
+      });
+    }
+
+    throw createRequestError({
+      message:
+        "No fue posible conectar con el servidor administrativo. Verifica tu conexion e intenta nuevamente.",
+      userMessage:
+        "No fue posible conectar con el servidor administrativo. Verifica tu conexion e intenta nuevamente.",
+      isNetworkError: true,
+    });
+  }
 
   if (!response.ok) {
-    const contentType = response.headers.get("content-type") || "";
-    let errorMessage = "Error al consumir la API administrativa.";
-
-    try {
-      if (contentType.includes("application/json")) {
-        const errorData = await response.json();
-
-        errorMessage =
-          errorData?.detail ||
-          errorData?.message ||
-          errorData?.error ||
-          JSON.stringify(errorData);
-      } else {
-        const errorText = await response.text();
-
-        errorMessage = errorText || errorMessage;
-      }
-    } catch {
-      // Conserva el mensaje por defecto si no se puede interpretar la respuesta.
-    }
+    const errorPayload = await parseErrorPayload(response);
 
     if (response.status === 401 || response.status === 403) {
       clearAdminCredentials();
       notifyInvalidAdminAuth();
     }
 
-    const requestError = new Error(errorMessage);
-    requestError.status = response.status;
-    throw requestError;
+    throw buildErrorFromResponse(response, errorPayload);
   }
 
   if (response.status === 204) {
@@ -302,10 +442,6 @@ export function deleteAdminSocialLink(socialLinkId) {
     method: "DELETE",
   });
 }
-
-// -----------------------------------------------------------------------------
-//                              MEDIA ASSETS
-// -----------------------------------------------------------------------------
 
 export function listMediaAssets(assetType = null) {
   const query = assetType ? `?asset_type=${encodeURIComponent(assetType)}` : "";

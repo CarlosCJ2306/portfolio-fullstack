@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { sendContactMessage } from "../../services/publicApi";
 import "./ContactSection.css";
 
@@ -9,39 +9,49 @@ const initialFormData = {
   message: "",
 };
 
+function getContactErrorMessage(error) {
+  if (error?.status === 422) {
+    return (
+      error.userMessage ||
+      "Revisa los datos del formulario e intenta nuevamente."
+    );
+  }
+
+  if (error?.isNetworkError) {
+    return (
+      error.userMessage ||
+      "No fue posible conectar con el servidor. Verifica tu conexion e intenta nuevamente."
+    );
+  }
+
+  if (typeof error?.status === "number" && error.status >= 500) {
+    return "El mensaje no pudo enviarse en este momento. Intenta nuevamente mas tarde.";
+  }
+
+  return (
+    error?.userMessage ||
+    error?.message ||
+    "No se pudo enviar el mensaje. Intenta nuevamente."
+  );
+}
+
 export default function ContactSection({ profile }) {
-  /*
-    Este componente controla el formulario de contacto.
-
-    Responsabilidades:
-    - Mostrar campos para nombre, correo, asunto y mensaje.
-    - Guardar lo que el usuario escribe.
-    - Validar datos mínimos antes de enviar.
-    - Enviar la información al backend usando sendContactMessage().
-    - Mostrar estado de carga, éxito o error.
-  */
-
   const [formData, setFormData] = useState(initialFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const submitControllerRef = useRef(null);
   const contactEmail = profile?.email || "correo@example.com";
   const contactLocation = profile?.location || "Colombia";
   const cvUrl = profile?.cv_url || "";
 
+  useEffect(() => {
+    return () => {
+      submitControllerRef.current?.abort();
+    };
+  }, []);
+
   function handleChange(event) {
-    /*
-      Esta función se ejecuta cada vez que el usuario escribe en un input o textarea.
-
-      event.target.name identifica el campo:
-      - name
-      - email
-      - subject
-      - message
-
-      event.target.value contiene lo que el usuario escribió.
-    */
-
     const { name, value } = event.target;
 
     setFormData((currentData) => ({
@@ -51,23 +61,16 @@ export default function ContactSection({ profile }) {
   }
 
   function validateForm() {
-    /*
-      Validación básica del formulario.
-
-      No reemplaza las validaciones del backend, pero mejora la experiencia
-      porque evita enviar formularios incompletos.
-    */
-
     if (!formData.name.trim()) {
       return "El nombre es obligatorio.";
     }
 
     if (!formData.email.trim()) {
-      return "El correo electrónico es obligatorio.";
+      return "El correo electronico es obligatorio.";
     }
 
     if (!formData.email.includes("@")) {
-      return "Ingresa un correo electrónico válido.";
+      return "Ingresa un correo electronico valido.";
     }
 
     if (!formData.message.trim()) {
@@ -82,17 +85,6 @@ export default function ContactSection({ profile }) {
   }
 
   async function handleSubmit(event) {
-    /*
-      Esta función se ejecuta cuando el usuario envía el formulario.
-
-      Flujo:
-      1. Evita que el navegador recargue la página.
-      2. Limpia mensajes anteriores.
-      3. Valida el formulario.
-      4. Envía los datos al backend.
-      5. Muestra respuesta de éxito o error.
-    */
-
     event.preventDefault();
 
     setSuccessMessage("");
@@ -105,6 +97,9 @@ export default function ContactSection({ profile }) {
       return;
     }
 
+    const controller = new AbortController();
+    submitControllerRef.current = controller;
+
     try {
       setIsSubmitting(true);
 
@@ -115,21 +110,33 @@ export default function ContactSection({ profile }) {
         message: formData.message.trim(),
       };
 
-      const response = await sendContactMessage(payload);
+      const response = await sendContactMessage(payload, {
+        signal: controller.signal,
+      });
+
+      if (controller.signal.aborted) {
+        return;
+      }
 
       setSuccessMessage(
         response?.message || "Mensaje enviado correctamente."
       );
-
       setFormData(initialFormData);
     } catch (error) {
-      console.error("Error enviando mensaje de contacto:", error);
+      if (error?.isAbortError || error?.name === "AbortError") {
+        return;
+      }
 
-      setErrorMessage(
-        "No se pudo enviar el mensaje. Verifica que el backend esté funcionando."
-      );
+      console.error("Error enviando mensaje de contacto:", error);
+      setErrorMessage(getContactErrorMessage(error));
     } finally {
-      setIsSubmitting(false);
+      if (submitControllerRef.current === controller) {
+        submitControllerRef.current = null;
+      }
+
+      if (!controller.signal.aborted) {
+        setIsSubmitting(false);
+      }
     }
   }
 
@@ -137,21 +144,17 @@ export default function ContactSection({ profile }) {
     <section id="contact" className="contact-section">
       <div className="container contact-container">
         <div className="contact-info">
-          {/* Etiqueta visual de la sección. */}
           <span className="badge">Contacto</span>
 
-          {/* Título principal de la sección. */}
-          <h2>Hablemos de tu próximo proyecto</h2>
+          <h2>Hablemos de tu proximo proyecto</h2>
 
-          {/* Texto introductorio para invitar al usuario a escribir. */}
           <p>
             Si tienes una idea, una oportunidad laboral o quieres conversar
-            sobre desarrollo web, backend, automatización o soluciones digitales,
+            sobre desarrollo web, backend, automatizacion o soluciones digitales,
             puedes escribirme desde este formulario.
           </p>
 
           <div className="contact-highlights">
-            {/* Estos puntos explican qué tipo de contacto se puede hacer. */}
             <article>
               <strong>Disponible para oportunidades</strong>
               <span>Desarrollo backend, frontend y proyectos full stack.</span>
@@ -172,13 +175,13 @@ export default function ContactSection({ profile }) {
             </article>
 
             <article>
-              <strong>Ubicación</strong>
+              <strong>Ubicacion</strong>
               <span>{contactLocation}</span>
             </article>
 
             {cvUrl && (
               <article>
-                <strong>Currículum</strong>
+                <strong>Curriculum</strong>
                 <a href={cvUrl} target="_blank" rel="noreferrer">
                   Ver CV
                 </a>
@@ -186,7 +189,6 @@ export default function ContactSection({ profile }) {
             )}
           </div>
 
-          {/* Aquí debe aparecer el campo para el nombre del visitante. */}
           <div className="form-group">
             <label htmlFor="name">Nombre</label>
             <input
@@ -200,9 +202,8 @@ export default function ContactSection({ profile }) {
             />
           </div>
 
-          {/* Aquí debe aparecer el campo para el correo electrónico. */}
           <div className="form-group">
-            <label htmlFor="email">Correo electrónico</label>
+            <label htmlFor="email">Correo electronico</label>
             <input
               id="email"
               name="email"
@@ -214,7 +215,6 @@ export default function ContactSection({ profile }) {
             />
           </div>
 
-          {/* Aquí debe aparecer el campo para el asunto del mensaje. */}
           <div className="form-group">
             <label htmlFor="subject">Asunto opcional</label>
             <input
@@ -228,13 +228,12 @@ export default function ContactSection({ profile }) {
             />
           </div>
 
-          {/* Aquí debe aparecer el campo principal del mensaje. */}
           <div className="form-group">
             <label htmlFor="message">Mensaje</label>
             <textarea
               id="message"
               name="message"
-              placeholder="Cuéntame en qué puedo ayudarte..."
+              placeholder="Cuentame en que puedo ayudarte..."
               rows="6"
               value={formData.message}
               onChange={handleChange}
@@ -242,12 +241,10 @@ export default function ContactSection({ profile }) {
             />
           </div>
 
-          {/* Aquí aparece el mensaje de error si la validación o el backend fallan. */}
           {errorMessage && (
             <p className="form-message form-message-error">{errorMessage}</p>
           )}
 
-          {/* Aquí aparece el mensaje de éxito cuando el backend responde correctamente. */}
           {successMessage && (
             <p className="form-message form-message-success">{successMessage}</p>
           )}
