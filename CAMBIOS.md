@@ -1,5 +1,43 @@
 # Cambios realizados
 
+## 2026-07-06 - Tareas 3.1 y 3.2: resiliencia del panel admin y errores 422 legibles
+
+Se mejoro la resiliencia del panel administrativo para que los modulos carguen de forma independiente. La carga inicial ya no depende de una sola `Promise.all`: si falla proyectos, media assets, skills, mensajes u otro modulo, el resto del dashboard sigue disponible y cada panel muestra su propio error con opcion de reintento.
+
+Tambien se mantuvo el comportamiento seguro de autenticacion:
+
+- solo una respuesta `401` o `403` invalida la sesion en memoria y devuelve al login;
+- errores de red, `422` u otros fallos de modulo ya no cierran sesion;
+- el loader completo solo se usa antes de entrar al panel; una vez autenticado, los modulos pueden recargarse sin bloquear todo el dashboard.
+
+Ademas, los errores `422` de FastAPI ahora se convierten en mensajes legibles por campo dentro de `adminApi`, evitando respuestas como `[object Object]`. El parser cubre listas de validacion, `detail` como objeto, mensajes simples y formatos inesperados con fallback seguro.
+
+En los paneles admin se agrego una capa minima de feedback:
+
+- mensaje de error propio por modulo;
+- estado visual de actualizacion del modulo;
+- boton `Reintentar` por panel cuando aplica.
+
+Verificaciones:
+
+- `npm run lint` paso correctamente.
+- `npm run build` paso correctamente.
+- No se tocaron backend, base de datos ni autenticacion fuera del manejo de sesion en memoria ya existente.
+
+Archivos tocados:
+
+- `frontend/src/pages/AdminPage.jsx`
+- `frontend/src/services/adminApi.js`
+- `frontend/src/components/admin/AdminProfilePanel.jsx`
+- `frontend/src/components/admin/AdminSocialLinksPanel.jsx`
+- `frontend/src/components/admin/AdminSkillsPanel.jsx`
+- `frontend/src/components/admin/AdminProjectsPanel.jsx`
+- `frontend/src/components/admin/AdminExperiencePanel.jsx`
+- `frontend/src/components/admin/AdminEducationPanel.jsx`
+- `frontend/src/components/admin/AdminCertificationsPanel.jsx`
+- `frontend/src/components/admin/AdminMessagesPanel.jsx`
+- `CAMBIOS.md`
+
 ## Cierre de Fase 2
 
 La Fase 2 quedo cerrada con la resiliencia de la vista publica, la correccion de datos visibles y la alineacion de proyectos, PDF y modales con una experiencia mas segura y utilizable. La carga de `home` y `projects` ahora es independiente, el formulario de contacto muestra errores reales y la portada deja de inventar informacion cuando faltan datos.

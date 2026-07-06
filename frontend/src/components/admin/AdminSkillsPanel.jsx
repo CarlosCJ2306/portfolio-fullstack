@@ -15,6 +15,9 @@ export default function AdminSkillsPanel({
   onCancelSkillEdit,
   onAssetUploaded,
   onIconAssetChange,
+  panelError,
+  panelLoading,
+  onRetry,
 }) {
   return (
     <article className="admin-card admin-skills-panel">
@@ -22,6 +25,19 @@ export default function AdminSkillsPanel({
         <span className="badge">Skills</span>
         <h2>{editingSkillId ? "Editar skill" : "Crear skill"}</h2>
       </div>
+
+      {panelError && (
+        <div className="form-actions-inline">
+          <p className="admin-message error">{panelError}</p>
+          {onRetry && (
+            <button type="button" className="admin-button ghost" onClick={onRetry} disabled={panelLoading}>
+              {panelLoading ? "Reintentando..." : "Reintentar"}
+            </button>
+          )}
+        </div>
+      )}
+
+      {!panelError && panelLoading && <p className="muted">Actualizando skills...</p>}
 
       <form className="admin-form" onSubmit={onSkillSubmit}>
         <div className="form-row">

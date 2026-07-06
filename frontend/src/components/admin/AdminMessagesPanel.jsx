@@ -5,6 +5,9 @@ export default function AdminMessagesPanel({
   refreshingMessages,
   onMarkAsRead,
   formatDate,
+  panelError,
+  panelLoading,
+  onRetry,
 }) {
   return (
     <article className="admin-card admin-messages-panel">
@@ -12,6 +15,19 @@ export default function AdminMessagesPanel({
         <span className="badge">Mensajes</span>
         <h2>Mensajes de contacto</h2>
       </div>
+
+      {panelError && (
+        <div className="form-actions-inline">
+          <p className="admin-message error">{panelError}</p>
+          {onRetry && (
+            <button type="button" className="admin-button ghost" onClick={onRetry} disabled={panelLoading}>
+              {panelLoading ? "Reintentando..." : "Reintentar"}
+            </button>
+          )}
+        </div>
+      )}
+
+      {!panelError && panelLoading && <p className="muted">Actualizando mensajes...</p>}
 
       <div className="messages-list">
         {contactMessages.length === 0 ? (

@@ -14,6 +14,9 @@ export default function AdminCertificationsPanel({
   onCancelCertificationEdit,
   onAssetUploaded,
   onPdfAssetChange,
+  panelError,
+  panelLoading,
+  onRetry,
 }) {
   return (
     <article className="admin-card admin-certifications-panel">
@@ -21,6 +24,19 @@ export default function AdminCertificationsPanel({
         <span className="badge">Certificaciones</span>
         <h2>{editingCertificationId ? "Editar certificación" : "Crear certificación"}</h2>
       </div>
+
+      {panelError && (
+        <div className="form-actions-inline">
+          <p className="admin-message error">{panelError}</p>
+          {onRetry && (
+            <button type="button" className="admin-button ghost" onClick={onRetry} disabled={panelLoading}>
+              {panelLoading ? "Reintentando..." : "Reintentar"}
+            </button>
+          )}
+        </div>
+      )}
+
+      {!panelError && panelLoading && <p className="muted">Actualizando certificaciones...</p>}
 
       <form className="admin-form" onSubmit={onCertificationSubmit}>
         <label>

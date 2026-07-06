@@ -10,6 +10,9 @@ export default function AdminExperiencePanel({
   onEditExperience,
   onDeleteExperience,
   onCancelExperienceEdit,
+  panelError,
+  panelLoading,
+  onRetry,
 }) {
   return (
     <article className="admin-card admin-experience-panel">
@@ -17,6 +20,19 @@ export default function AdminExperiencePanel({
         <span className="badge">Experiencia</span>
         <h2>{editingExperienceId ? "Editar experiencia" : "Crear experiencia"}</h2>
       </div>
+
+      {panelError && (
+        <div className="form-actions-inline">
+          <p className="admin-message error">{panelError}</p>
+          {onRetry && (
+            <button type="button" className="admin-button ghost" onClick={onRetry} disabled={panelLoading}>
+              {panelLoading ? "Reintentando..." : "Reintentar"}
+            </button>
+          )}
+        </div>
+      )}
+
+      {!panelError && panelLoading && <p className="muted">Actualizando experiencia...</p>}
 
       <form className="admin-form" onSubmit={onExperienceSubmit}>
         <div className="form-row">

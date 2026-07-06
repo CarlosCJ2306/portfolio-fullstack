@@ -10,6 +10,9 @@ export default function AdminEducationPanel({
   onEditEducation,
   onDeleteEducation,
   onCancelEducationEdit,
+  panelError,
+  panelLoading,
+  onRetry,
 }) {
   return (
     <article className="admin-card admin-education-panel">
@@ -17,6 +20,19 @@ export default function AdminEducationPanel({
         <span className="badge">Educación</span>
         <h2>{editingEducationId ? "Editar educación" : "Crear educación"}</h2>
       </div>
+
+      {panelError && (
+        <div className="form-actions-inline">
+          <p className="admin-message error">{panelError}</p>
+          {onRetry && (
+            <button type="button" className="admin-button ghost" onClick={onRetry} disabled={panelLoading}>
+              {panelLoading ? "Reintentando..." : "Reintentar"}
+            </button>
+          )}
+        </div>
+      )}
+
+      {!panelError && panelLoading && <p className="muted">Actualizando educación...</p>}
 
       <form className="admin-form" onSubmit={onEducationSubmit}>
         <div className="form-row">

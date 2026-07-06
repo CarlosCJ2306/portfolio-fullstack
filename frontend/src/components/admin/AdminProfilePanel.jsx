@@ -9,6 +9,9 @@ export default function AdminProfilePanel({
   onProfileSubmit,
   onAssetUploaded,
   onAvatarAssetChange,
+  panelError,
+  panelLoading,
+  onRetry,
 }) {
   return (
     <article className="admin-card admin-profile-panel">
@@ -16,6 +19,19 @@ export default function AdminProfilePanel({
         <span className="badge">Perfil</span>
         <h2>Editar perfil principal</h2>
       </div>
+
+      {panelError && (
+        <div className="form-actions-inline">
+          <p className="admin-message error">{panelError}</p>
+          {onRetry && (
+            <button type="button" className="admin-button ghost" onClick={onRetry} disabled={panelLoading}>
+              {panelLoading ? "Reintentando..." : "Reintentar"}
+            </button>
+          )}
+        </div>
+      )}
+
+      {!panelError && panelLoading && <p className="muted">Actualizando perfil...</p>}
 
       <form className="admin-form" onSubmit={onProfileSubmit}>
         <label>

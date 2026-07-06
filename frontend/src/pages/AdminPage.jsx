@@ -135,6 +135,32 @@ const initialSocialLinkForm = {
   is_active: true,
 };
 
+const ADMIN_MODULE_KEYS = [
+  "dashboard",
+  "profile",
+  "messages",
+  "socialLinks",
+  "skills",
+  "projects",
+  "experience",
+  "education",
+  "certifications",
+  "mediaAssets",
+];
+
+function createInitialModuleStatus() {
+  return Object.fromEntries(
+    ADMIN_MODULE_KEYS.map((moduleKey) => [
+      moduleKey,
+      { loading: false, error: "" },
+    ])
+  );
+}
+
+function getAdminUiErrorMessage(error, fallbackMessage) {
+  return error?.userMessage || error?.message || fallbackMessage;
+}
+
 function normalizeProfileForm(profile) {
   const resolvedAvatarAssetId =
     profile?.avatar_asset_id ?? profile?.avatar?.id ?? "";
@@ -282,6 +308,7 @@ export default function AdminPage() {
   const [successMessage, setSuccessMessage] = useState("");
   const [notice, setNotice] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [moduleStatus, setModuleStatus] = useState(createInitialModuleStatus);
 
   const resetAdminPanelState = useCallback(() => {
     setDashboard(null);
@@ -306,6 +333,7 @@ export default function AdminPage() {
     setEditingExperienceId(null);
     setEditingEducationId(null);
     setEditingCertificationId(null);
+    setModuleStatus(createInitialModuleStatus());
   }, []);
 
   function showNotice(type, title, message = "") {
@@ -367,51 +395,196 @@ export default function AdminPage() {
     return items.map((item) => (item.id === itemId ? nextItem : item));
   }
 
+  function setModuleLoadingState(moduleKey, loadingState) {
+    setModuleStatus((currentStatus) => ({
+      ...currentStatus,
+      [moduleKey]: {
+        ...currentStatus[moduleKey],
+        loading: loadingState,
+      },
+    }));
+  }
+
+  function clearModuleError(moduleKey) {
+    setModuleStatus((currentStatus) => ({
+      ...currentStatus,
+      [moduleKey]: {
+        ...currentStatus[moduleKey],
+        error: "",
+      },
+    }));
+  }
+
+  function setModuleError(moduleKey, message) {
+    setModuleStatus((currentStatus) => ({
+      ...currentStatus,
+      [moduleKey]: {
+        ...currentStatus[moduleKey],
+        error: message,
+      },
+    }));
+  }
+
+  function clearModuleErrors(moduleKeys) {
+    setModuleStatus((currentStatus) => {
+      const nextStatus = { ...currentStatus };
+
+      moduleKeys.forEach((moduleKey) => {
+        nextStatus[moduleKey] = {
+          ...currentStatus[moduleKey],
+          error: "",
+        };
+      });
+
+      return nextStatus;
+    });
+  }
+
+  function getCombinedModuleError(moduleKeys) {
+    return moduleKeys
+      .map((moduleKey) => moduleStatus[moduleKey]?.error || "")
+      .filter(Boolean)
+      .join(" ");
+  }
+
+  function isAnyModuleLoading(moduleKeys) {
+    return moduleKeys.some((moduleKey) => Boolean(moduleStatus[moduleKey]?.loading));
+  }
+
+  async function loadAdminModule(moduleKey) {
+    const moduleConfigs = {
+      dashboard: {
+        loader: getAdminDashboard,
+        onSuccess: (data) => setDashboard(data),
+        fallbackMessage: "No se pudo cargar el resumen del panel.",
+      },
+      profile: {
+        loader: getAdminProfile,
+        onSuccess: (data) => setProfileForm(normalizeProfileForm(data)),
+        fallbackMessage: "No se pudo cargar el perfil administrativo.",
+      },
+      messages: {
+        loader: getAdminContactMessages,
+        onSuccess: (data) => setContactMessages(data || []),
+        fallbackMessage: "No se pudieron cargar los mensajes de contacto.",
+      },
+      socialLinks: {
+        loader: getAdminSocialLinks,
+        onSuccess: (data) => setSocialLinks(data || []),
+        fallbackMessage: "No se pudieron cargar los enlaces sociales.",
+      },
+      skills: {
+        loader: getAdminSkills,
+        onSuccess: (data) => setSkills(data || []),
+        fallbackMessage: "No se pudieron cargar las skills.",
+      },
+      projects: {
+        loader: getAdminProjects,
+        onSuccess: (data) => setProjects(data || []),
+        fallbackMessage: "No se pudieron cargar los proyectos.",
+      },
+      experience: {
+        loader: getAdminExperience,
+        onSuccess: (data) => setExperiences(data || []),
+        fallbackMessage: "No se pudo cargar la experiencia.",
+      },
+      education: {
+        loader: getAdminEducation,
+        onSuccess: (data) => setEducationList(data || []),
+        fallbackMessage: "No se pudo cargar la educacion.",
+      },
+      certifications: {
+        loader: getAdminCertifications,
+        onSuccess: (data) => setCertifications(data || []),
+        fallbackMessage: "No se pudieron cargar las certificaciones.",
+      },
+      mediaAssets: {
+        loader: listMediaAssets,
+        onSuccess: (data) => setMediaAssets(data || []),
+        fallbackMessage: "No se pudieron cargar los archivos multimedia.",
+      },
+    };
+
+    const moduleConfig = moduleConfigs[moduleKey];
+
+    if (!moduleConfig) {
+      return;
+    }
+
+    setModuleLoadingState(moduleKey, true);
+    clearModuleError(moduleKey);
+
+    try {
+      const data = await moduleConfig.loader();
+      moduleConfig.onSuccess(data);
+    } catch (error) {
+      if (error?.status === 401 || error?.status === 403) {
+        throw error;
+      }
+
+      console.error(`Error cargando modulo admin ${moduleKey}:`, error);
+      setModuleError(
+        moduleKey,
+        getAdminUiErrorMessage(error, moduleConfig.fallbackMessage)
+      );
+    } finally {
+      setModuleLoadingState(moduleKey, false);
+    }
+  }
+
   async function loadAdminData(options = {}) {
-    const { showLoading = true } = options;
+    const {
+      showLoading = true,
+      moduleKeys = ADMIN_MODULE_KEYS,
+    } = options;
+    const uniqueModuleKeys = Array.from(new Set(moduleKeys)).filter((moduleKey) =>
+      ADMIN_MODULE_KEYS.includes(moduleKey)
+    );
 
     try {
       if (showLoading) {
         setLoading(true);
       }
-      setErrorMessage("");
+      if (showLoading || uniqueModuleKeys.length === ADMIN_MODULE_KEYS.length) {
+        setErrorMessage("");
+      }
 
-      const [dashboardData, profileData, messagesData, socialLinksData] = await Promise.all([
-        getAdminDashboard(),
-        getAdminProfile(),
-        getAdminContactMessages(),
-        getAdminSocialLinks(),
-      ]);
+      clearModuleErrors(uniqueModuleKeys);
 
-      const [skillsData, projectsData] = await Promise.all([
-        getAdminSkills(),
-        getAdminProjects(),
-      ]);
+      const results = await Promise.allSettled(
+        uniqueModuleKeys.map((moduleKey) => loadAdminModule(moduleKey))
+      );
+      const authFailure = results.find(
+        (result) =>
+          result.status === "rejected"
+          && (result.reason?.status === 401 || result.reason?.status === 403)
+      );
 
-      const [experienceData, educationData, certificationsData, mediaAssetsData] = await Promise.all([
-        getAdminExperience(),
-        getAdminEducation(),
-        getAdminCertifications(),
-        listMediaAssets(),
-      ]);
+      if (authFailure?.status === "rejected") {
+        throw authFailure.reason;
+      }
 
-      setDashboard(dashboardData);
-      setProfileForm(normalizeProfileForm(profileData));
-      setContactMessages(messagesData || []);
-      setSocialLinks(socialLinksData || []);
-      setSkills(skillsData || []);
-      setProjects(projectsData || []);
-      setExperiences(experienceData || []);
-      setEducationList(educationData || []);
-      setCertifications(certificationsData || []);
-      setMediaAssets(mediaAssetsData || []);
       setIsAuthenticated(true);
     } catch (error) {
+      if (error?.status === 401 || error?.status === 403) {
+        return;
+      }
+
       console.error("Error cargando datos del admin:", error);
-      setErrorMessage(error.message || "No se pudo cargar el panel admin.");
+      setErrorMessage(
+        getAdminUiErrorMessage(error, "No se pudo cargar el panel admin.")
+      );
     } finally {
-      setLoading(false);
+      if (showLoading) {
+        setLoading(false);
+      }
     }
+  }
+
+  function retryAdminModules(moduleKeys) {
+    setErrorMessage("");
+    setSuccessMessage("");
+    loadAdminData({ showLoading: false, moduleKeys });
   }
 
   function handleLoginChange(event) {
@@ -477,6 +650,7 @@ export default function AdminPage() {
   }
 
   function handleAssetUploaded(newAsset) {
+    clearModuleError("mediaAssets");
     setMediaAssets((currentAssets) => [newAsset, ...currentAssets]);
   }
 
@@ -633,9 +807,10 @@ export default function AdminPage() {
       showNotice("success", "Sesión iniciada", response?.message || "Acceso administrativo autorizado.");
       await loadAdminData();
     } catch (error) {
+      const message = getAdminUiErrorMessage(error, "Credenciales inválidas.");
       console.error("Error autenticando admin:", error);
-      setErrorMessage(error.message || "Credenciales inválidas.");
-      showNotice("error", "No se pudo iniciar sesión", error.message || "Credenciales inválidas.");
+      setErrorMessage(message);
+      showNotice("error", "No se pudo iniciar sesión", message);
     } finally {
       setAuthenticating(false);
     }
@@ -660,11 +835,13 @@ export default function AdminPage() {
       if (editingSocialLinkId) {
         const updatedSocialLink = await updateAdminSocialLink(editingSocialLinkId, payload);
         setSocialLinks((currentItems) => replaceItemById(currentItems, editingSocialLinkId, updatedSocialLink));
+        clearModuleError("socialLinks");
         setSuccessMessage("Enlace social actualizado correctamente.");
         showNotice("success", "Enlace social guardado", "La tarjeta se actualizó sin recargar la vista.");
       } else {
         const createdSocialLink = await createAdminSocialLink(payload);
         setSocialLinks((currentItems) => [createdSocialLink, ...currentItems]);
+        clearModuleError("socialLinks");
         updateDashboardCounts({ total_social_links: (dashboard?.total_social_links || 0) + 1 });
         setSuccessMessage("Enlace social creado correctamente.");
         showNotice("success", "Enlace social creado", "Se agregó al listado al instante.");
@@ -672,9 +849,11 @@ export default function AdminPage() {
 
       resetSocialLinkForm();
     } catch (error) {
+      const message = getAdminUiErrorMessage(error, "No se pudo guardar el enlace social.");
       console.error("Error guardando enlace social:", error);
-      setErrorMessage(error.message || "No se pudo guardar el enlace social.");
-      showNotice("error", "Error al guardar enlace social", error.message || "No se pudo guardar el enlace social.");
+      setModuleError("socialLinks", message);
+      setErrorMessage(message);
+      showNotice("error", "Error al guardar enlace social", message);
     } finally {
       setSavingSocialLink(false);
     }
@@ -689,6 +868,7 @@ export default function AdminPage() {
       setErrorMessage("");
       setSuccessMessage("");
       await deleteAdminSocialLink(socialLinkId);
+      clearModuleError("socialLinks");
       if (editingSocialLinkId === socialLinkId) {
         resetSocialLinkForm();
       }
@@ -697,9 +877,11 @@ export default function AdminPage() {
       updateDashboardCounts({ total_social_links: Math.max((dashboard?.total_social_links || 1) - 1, 0) });
       showNotice("success", "Enlace social eliminado", "La tarjeta desapareció sin recargar el panel.");
     } catch (error) {
+      const message = getAdminUiErrorMessage(error, "No se pudo eliminar el enlace social.");
       console.error("Error eliminando enlace social:", error);
-      setErrorMessage(error.message || "No se pudo eliminar el enlace social.");
-      showNotice("error", "Error al eliminar enlace social", error.message || "No se pudo eliminar el enlace social.");
+      setModuleError("socialLinks", message);
+      setErrorMessage(message);
+      showNotice("error", "Error al eliminar enlace social", message);
     }
   }
 
@@ -724,11 +906,13 @@ export default function AdminPage() {
       if (editingSkillId) {
         const updatedSkill = await updateAdminSkill(editingSkillId, payload);
         setSkills((currentItems) => replaceItemById(currentItems, editingSkillId, updatedSkill));
+        clearModuleError("skills");
         setSuccessMessage("Skill actualizada correctamente.");
         showNotice("success", "Skill guardada", "La tarjeta se actualizó al instante.");
       } else {
         const createdSkill = await createAdminSkill(payload);
         setSkills((currentItems) => [createdSkill, ...currentItems]);
+        clearModuleError("skills");
         updateDashboardCounts({ total_skills: (dashboard?.total_skills || 0) + 1 });
         setSuccessMessage("Skill creada correctamente.");
         showNotice("success", "Skill creada", "Se agregó al listado sin recargar la página.");
@@ -736,9 +920,11 @@ export default function AdminPage() {
 
       resetSkillForm();
     } catch (error) {
+      const message = getAdminUiErrorMessage(error, "No se pudo guardar la skill.");
       console.error("Error guardando skill:", error);
-      setErrorMessage(error.message || "No se pudo guardar la skill.");
-      showNotice("error", "Error al guardar skill", error.message || "No se pudo guardar la skill.");
+      setModuleError("skills", message);
+      setErrorMessage(message);
+      showNotice("error", "Error al guardar skill", message);
     } finally {
       setSavingSkill(false);
     }
@@ -753,6 +939,7 @@ export default function AdminPage() {
       setErrorMessage("");
       setSuccessMessage("");
       await deleteAdminSkill(skillId);
+      clearModuleError("skills");
       if (editingSkillId === skillId) {
         resetSkillForm();
       }
@@ -761,9 +948,11 @@ export default function AdminPage() {
       updateDashboardCounts({ total_skills: Math.max((dashboard?.total_skills || 1) - 1, 0) });
       showNotice("success", "Skill eliminada", "La lista se actualizó sin recargar.");
     } catch (error) {
+      const message = getAdminUiErrorMessage(error, "No se pudo eliminar la skill.");
       console.error("Error eliminando skill:", error);
-      setErrorMessage(error.message || "No se pudo eliminar la skill.");
-      showNotice("error", "Error al eliminar skill", error.message || "No se pudo eliminar la skill.");
+      setModuleError("skills", message);
+      setErrorMessage(message);
+      showNotice("error", "Error al eliminar skill", message);
     }
   }
 
@@ -796,6 +985,7 @@ export default function AdminPage() {
         const previousProject = projects.find((project) => project.id === editingProjectId);
         const updatedProject = await updateAdminProject(editingProjectId, payload);
         setProjects((currentItems) => replaceItemById(currentItems, editingProjectId, updatedProject));
+        clearModuleError("projects");
         setSuccessMessage("Proyecto actualizado correctamente.");
         updateDashboardCounts({
           featured_projects:
@@ -810,6 +1000,7 @@ export default function AdminPage() {
       } else {
         const createdProject = await createAdminProject(payload);
         setProjects((currentItems) => [createdProject, ...currentItems]);
+        clearModuleError("projects");
         updateDashboardCounts({
           total_projects: (dashboard?.total_projects || 0) + 1,
           featured_projects: payload.is_featured
@@ -822,9 +1013,11 @@ export default function AdminPage() {
 
       resetProjectForm();
     } catch (error) {
+      const message = getAdminUiErrorMessage(error, "No se pudo guardar el proyecto.");
       console.error("Error guardando proyecto:", error);
-      setErrorMessage(error.message || "No se pudo guardar el proyecto.");
-      showNotice("error", "Error al guardar proyecto", error.message || "No se pudo guardar el proyecto.");
+      setModuleError("projects", message);
+      setErrorMessage(message);
+      showNotice("error", "Error al guardar proyecto", message);
     } finally {
       setSavingProject(false);
     }
@@ -890,11 +1083,13 @@ export default function AdminPage() {
       if (editingExperienceId) {
         const updatedExperience = await updateAdminExperience(editingExperienceId, payload);
         setExperiences((currentItems) => replaceItemById(currentItems, editingExperienceId, updatedExperience));
+        clearModuleError("experience");
         showNotice("success", "Experiencia guardada", "Los cambios se aplicaron sin recargar la página.");
         setSuccessMessage("Experiencia actualizada correctamente.");
       } else {
         const createdExperience = await createAdminExperience(payload);
         setExperiences((currentItems) => [createdExperience, ...currentItems]);
+        clearModuleError("experience");
         updateDashboardCounts({ total_experience: (dashboard?.total_experience || 0) + 1 });
         showNotice("success", "Experiencia creada", "Se agregó al listado al instante.");
         setSuccessMessage("Experiencia creada correctamente.");
@@ -902,9 +1097,11 @@ export default function AdminPage() {
 
       resetExperienceForm();
     } catch (error) {
+      const message = getAdminUiErrorMessage(error, "No se pudo guardar la experiencia.");
       console.error("Error guardando experiencia:", error);
-      setErrorMessage(error.message || "No se pudo guardar la experiencia.");
-      showNotice("error", "Error al guardar experiencia", error.message || "No se pudo guardar la experiencia.");
+      setModuleError("experience", message);
+      setErrorMessage(message);
+      showNotice("error", "Error al guardar experiencia", message);
     } finally {
       setSavingExperience(false);
     }
@@ -919,6 +1116,7 @@ export default function AdminPage() {
       setErrorMessage("");
       setSuccessMessage("");
       await deleteAdminExperience(experienceId);
+      clearModuleError("experience");
       if (editingExperienceId === experienceId) {
         resetExperienceForm();
       }
@@ -926,9 +1124,11 @@ export default function AdminPage() {
       updateDashboardCounts({ total_experience: Math.max((dashboard?.total_experience || 1) - 1, 0) });
       showNotice("success", "Experiencia eliminada", "El listado se actualizó sin recargar.");
     } catch (error) {
+      const message = getAdminUiErrorMessage(error, "No se pudo eliminar la experiencia.");
       console.error("Error eliminando experiencia:", error);
-      setErrorMessage(error.message || "No se pudo eliminar la experiencia.");
-      showNotice("error", "Error al eliminar experiencia", error.message || "No se pudo eliminar la experiencia.");
+      setModuleError("experience", message);
+      setErrorMessage(message);
+      showNotice("error", "Error al eliminar experiencia", message);
     }
   }
 
@@ -954,11 +1154,13 @@ export default function AdminPage() {
       if (editingEducationId) {
         const updatedEducation = await updateAdminEducation(editingEducationId, payload);
         setEducationList((currentItems) => replaceItemById(currentItems, editingEducationId, updatedEducation));
+        clearModuleError("education");
         showNotice("success", "Educación guardada", "Los cambios se aplicaron sin recargar la página.");
         setSuccessMessage("Educación actualizada correctamente.");
       } else {
         const createdEducation = await createAdminEducation(payload);
         setEducationList((currentItems) => [createdEducation, ...currentItems]);
+        clearModuleError("education");
         updateDashboardCounts({ total_education: (dashboard?.total_education || 0) + 1 });
         showNotice("success", "Educación creada", "Se agregó al listado al instante.");
         setSuccessMessage("Educación creada correctamente.");
@@ -966,9 +1168,11 @@ export default function AdminPage() {
 
       resetEducationForm();
     } catch (error) {
+      const message = getAdminUiErrorMessage(error, "No se pudo guardar la educación.");
       console.error("Error guardando educación:", error);
-      setErrorMessage(error.message || "No se pudo guardar la educación.");
-      showNotice("error", "Error al guardar educación", error.message || "No se pudo guardar la educación.");
+      setModuleError("education", message);
+      setErrorMessage(message);
+      showNotice("error", "Error al guardar educación", message);
     } finally {
       setSavingEducation(false);
     }
@@ -983,6 +1187,7 @@ export default function AdminPage() {
       setErrorMessage("");
       setSuccessMessage("");
       await deleteAdminEducation(educationId);
+      clearModuleError("education");
       if (editingEducationId === educationId) {
         resetEducationForm();
       }
@@ -990,9 +1195,11 @@ export default function AdminPage() {
       updateDashboardCounts({ total_education: Math.max((dashboard?.total_education || 1) - 1, 0) });
       showNotice("success", "Educación eliminada", "El listado se actualizó sin recargar.");
     } catch (error) {
+      const message = getAdminUiErrorMessage(error, "No se pudo eliminar la educación.");
       console.error("Error eliminando educación:", error);
-      setErrorMessage(error.message || "No se pudo eliminar la educación.");
-      showNotice("error", "Error al eliminar educación", error.message || "No se pudo eliminar la educación.");
+      setModuleError("education", message);
+      setErrorMessage(message);
+      showNotice("error", "Error al eliminar educación", message);
     }
   }
 
@@ -1018,11 +1225,13 @@ export default function AdminPage() {
       if (editingCertificationId) {
         const updatedCertification = await updateAdminCertification(editingCertificationId, payload);
         setCertifications((currentItems) => replaceItemById(currentItems, editingCertificationId, updatedCertification));
+        clearModuleError("certifications");
         showNotice("success", "Certificación guardada", "Los cambios se aplicaron sin recargar la página.");
         setSuccessMessage("Certificación actualizada correctamente.");
       } else {
         const createdCertification = await createAdminCertification(payload);
         setCertifications((currentItems) => [createdCertification, ...currentItems]);
+        clearModuleError("certifications");
         updateDashboardCounts({ total_certifications: (dashboard?.total_certifications || 0) + 1 });
         showNotice("success", "Certificación creada", "Se agregó al listado al instante.");
         setSuccessMessage("Certificación creada correctamente.");
@@ -1030,9 +1239,11 @@ export default function AdminPage() {
 
       resetCertificationForm();
     } catch (error) {
+      const message = getAdminUiErrorMessage(error, "No se pudo guardar la certificación.");
       console.error("Error guardando certificación:", error);
-      setErrorMessage(error.message || "No se pudo guardar la certificación.");
-      showNotice("error", "Error al guardar certificación", error.message || "No se pudo guardar la certificación.");
+      setModuleError("certifications", message);
+      setErrorMessage(message);
+      showNotice("error", "Error al guardar certificación", message);
     } finally {
       setSavingCertification(false);
     }
@@ -1047,6 +1258,7 @@ export default function AdminPage() {
       setErrorMessage("");
       setSuccessMessage("");
       await deleteAdminCertification(certificationId);
+      clearModuleError("certifications");
       if (editingCertificationId === certificationId) {
         resetCertificationForm();
       }
@@ -1054,9 +1266,11 @@ export default function AdminPage() {
       updateDashboardCounts({ total_certifications: Math.max((dashboard?.total_certifications || 1) - 1, 0) });
       showNotice("success", "Certificación eliminada", "El listado se actualizó sin recargar.");
     } catch (error) {
+      const message = getAdminUiErrorMessage(error, "No se pudo eliminar la certificación.");
       console.error("Error eliminando certificación:", error);
-      setErrorMessage(error.message || "No se pudo eliminar la certificación.");
-      showNotice("error", "Error al eliminar certificación", error.message || "No se pudo eliminar la certificación.");
+      setModuleError("certifications", message);
+      setErrorMessage(message);
+      showNotice("error", "Error al eliminar certificación", message);
     }
   }
 
@@ -1069,6 +1283,7 @@ export default function AdminPage() {
       setErrorMessage("");
       setSuccessMessage("");
       await deleteAdminProject(projectId);
+      clearModuleError("projects");
       if (editingProjectId === projectId) {
         resetProjectForm();
       }
@@ -1084,9 +1299,11 @@ export default function AdminPage() {
       });
       showNotice("success", "Proyecto eliminado", "La tarjeta salió sin refrescar toda la vista.");
     } catch (error) {
+      const message = getAdminUiErrorMessage(error, "No se pudo eliminar el proyecto.");
       console.error("Error eliminando proyecto:", error);
-      setErrorMessage(error.message || "No se pudo eliminar el proyecto.");
-      showNotice("error", "Error al eliminar proyecto", error.message || "No se pudo eliminar el proyecto.");
+      setModuleError("projects", message);
+      setErrorMessage(message);
+      showNotice("error", "Error al eliminar proyecto", message);
     }
   }
 
@@ -1115,12 +1332,15 @@ export default function AdminPage() {
       const updatedProfile = await updateAdminProfile(payload);
 
       setProfileForm(normalizeProfileForm(updatedProfile));
+      clearModuleError("profile");
       setSuccessMessage("Perfil actualizado correctamente.");
       showNotice("success", "Perfil guardado", "Los cambios se aplicaron sin recargar la interfaz.");
     } catch (error) {
+      const message = getAdminUiErrorMessage(error, "No se pudo actualizar el perfil.");
       console.error("Error actualizando perfil:", error);
-      setErrorMessage(error.message || "No se pudo actualizar el perfil.");
-      showNotice("error", "Error al actualizar perfil", error.message || "No se pudo actualizar el perfil.");
+      setModuleError("profile", message);
+      setErrorMessage(message);
+      showNotice("error", "Error al actualizar perfil", message);
     } finally {
       setSavingProfile(false);
     }
@@ -1134,17 +1354,21 @@ export default function AdminPage() {
     try {
       const updatedMessage = await markAdminContactMessageAsRead(contactMessageId);
       setContactMessages((currentItems) => replaceItemById(currentItems, contactMessageId, updatedMessage));
+      clearModuleError("messages");
       updateDashboardCounts({
         unread_contact_messages: Math.max((dashboard?.unread_contact_messages || 1) - 1, 0),
       });
       setSuccessMessage("Mensaje marcado como leído.");
       showNotice("success", "Mensaje leído", "La tarjeta cambió de estado sin recargar.");
     } catch (error) {
-      console.error("Error actualizando mensaje de contacto:", error);
-      setErrorMessage(
-        error.message || "No se pudo actualizar el mensaje de contacto."
+      const message = getAdminUiErrorMessage(
+        error,
+        "No se pudo actualizar el mensaje de contacto."
       );
-      showNotice("error", "Error al actualizar mensaje", error.message || "No se pudo actualizar el mensaje de contacto.");
+      console.error("Error actualizando mensaje de contacto:", error);
+      setModuleError("messages", message);
+      setErrorMessage(message);
+      showNotice("error", "Error al actualizar mensaje", message);
     } finally {
       setRefreshingMessages(false);
     }
@@ -1159,7 +1383,26 @@ export default function AdminPage() {
     setNotice(null);
   }
 
-  if (loading) {
+  const dashboardError = getCombinedModuleError(["dashboard"]);
+  const dashboardLoading = isAnyModuleLoading(["dashboard"]);
+  const socialLinksError = getCombinedModuleError(["socialLinks"]);
+  const socialLinksLoading = isAnyModuleLoading(["socialLinks"]);
+  const profileError = getCombinedModuleError(["profile", "mediaAssets"]);
+  const profileLoading = isAnyModuleLoading(["profile", "mediaAssets"]);
+  const messagesError = getCombinedModuleError(["messages"]);
+  const messagesLoading = isAnyModuleLoading(["messages"]);
+  const skillsError = getCombinedModuleError(["skills", "mediaAssets"]);
+  const skillsLoading = isAnyModuleLoading(["skills", "mediaAssets"]);
+  const projectsError = getCombinedModuleError(["projects", "skills", "mediaAssets"]);
+  const projectsLoading = isAnyModuleLoading(["projects", "skills", "mediaAssets"]);
+  const experienceError = getCombinedModuleError(["experience"]);
+  const experienceLoading = isAnyModuleLoading(["experience"]);
+  const educationError = getCombinedModuleError(["education"]);
+  const educationLoading = isAnyModuleLoading(["education"]);
+  const certificationsError = getCombinedModuleError(["certifications", "mediaAssets"]);
+  const certificationsLoading = isAnyModuleLoading(["certifications", "mediaAssets"]);
+
+  if (loading && !isAuthenticated) {
     return (
       <main className="admin-shell">
         <section className="admin-card admin-loader">
@@ -1191,6 +1434,22 @@ export default function AdminPage() {
       <AdminToast notice={notice} />
       <AdminTopbar onLogout={handleLogout} />
 
+      {dashboardError && (
+        <section className="admin-card" style={{ marginBottom: "1.5rem" }}>
+          <p className="admin-message error">{dashboardError}</p>
+          <div className="form-actions-inline">
+            <button
+              type="button"
+              className="admin-button ghost"
+              onClick={() => retryAdminModules(["dashboard"])}
+              disabled={dashboardLoading}
+            >
+              {dashboardLoading ? "Reintentando..." : "Reintentar resumen"}
+            </button>
+          </div>
+        </section>
+      )}
+
       <AdminStatsGrid dashboard={dashboard} />
 
       <section className="admin-grid panel-grid">
@@ -1204,6 +1463,9 @@ export default function AdminPage() {
           onEditSocialLink={openSocialLinkEditor}
           onDeleteSocialLink={handleDeleteSocialLink}
           onCancelSocialLinkEdit={resetSocialLinkForm}
+          panelError={socialLinksError}
+          panelLoading={socialLinksLoading}
+          onRetry={() => retryAdminModules(["socialLinks"])}
         />
 
         <AdminProfilePanel
@@ -1214,6 +1476,9 @@ export default function AdminPage() {
           onProfileSubmit={handleProfileSubmit}
           onAssetUploaded={handleAssetUploaded}
           onAvatarAssetChange={handleAvatarAssetChange}
+          panelError={profileError}
+          panelLoading={profileLoading}
+          onRetry={() => retryAdminModules(["profile", "mediaAssets"])}
         />
 
         <AdminMessagesPanel
@@ -1221,6 +1486,9 @@ export default function AdminPage() {
           refreshingMessages={refreshingMessages}
           onMarkAsRead={handleMarkAsRead}
           formatDate={formatDate}
+          panelError={messagesError}
+          panelLoading={messagesLoading}
+          onRetry={() => retryAdminModules(["messages"])}
         />
       </section>
 
@@ -1238,6 +1506,9 @@ export default function AdminPage() {
           onCancelSkillEdit={resetSkillForm}
           onAssetUploaded={handleAssetUploaded}
           onIconAssetChange={handleIconAssetChange}
+          panelError={skillsError}
+          panelLoading={skillsLoading}
+          onRetry={() => retryAdminModules(["skills", "mediaAssets"])}
         />
 
         <AdminProjectsPanel
@@ -1256,6 +1527,9 @@ export default function AdminPage() {
           onAssetUploaded={handleAssetUploaded}
           onImageAssetChange={handleImageAssetChange}
           onProjectGalleryChange={handleProjectGalleryChange}
+          panelError={projectsError}
+          panelLoading={projectsLoading}
+          onRetry={() => retryAdminModules(["projects", "skills", "mediaAssets"])}
         />
       </section>
 
@@ -1270,6 +1544,9 @@ export default function AdminPage() {
           onEditExperience={openExperienceEditor}
           onDeleteExperience={handleDeleteExperience}
           onCancelExperienceEdit={resetExperienceForm}
+          panelError={experienceError}
+          panelLoading={experienceLoading}
+          onRetry={() => retryAdminModules(["experience"])}
         />
 
         <AdminEducationPanel
@@ -1282,6 +1559,9 @@ export default function AdminPage() {
           onEditEducation={openEducationEditor}
           onDeleteEducation={handleDeleteEducation}
           onCancelEducationEdit={resetEducationForm}
+          panelError={educationError}
+          panelLoading={educationLoading}
+          onRetry={() => retryAdminModules(["education"])}
         />
 
         <AdminCertificationsPanel
@@ -1297,6 +1577,9 @@ export default function AdminPage() {
           mediaAssets={mediaAssets}
           onAssetUploaded={handleAssetUploaded}
           onPdfAssetChange={handlePdfAssetChange}
+          panelError={certificationsError}
+          panelLoading={certificationsLoading}
+          onRetry={() => retryAdminModules(["certifications", "mediaAssets"])}
         />
       </section>
 

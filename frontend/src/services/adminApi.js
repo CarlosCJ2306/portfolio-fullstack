@@ -5,6 +5,55 @@ export const ADMIN_AUTH_INVALID_EVENT = "portfolio-admin-auth-invalid";
 
 let adminCredentials = null;
 
+const FIELD_LABELS = {
+  avatar_asset_id: "avatar",
+  bullets: "bullets",
+  certificate_file_id: "archivo PDF",
+  category: "categoria",
+  city: "ciudad",
+  color: "color",
+  company: "empresa",
+  country: "pais",
+  credential_url: "URL de credencial",
+  cv_url: "URL del CV",
+  degree: "titulo",
+  demo_url: "URL de demo",
+  description: "descripcion",
+  display_order: "orden",
+  email: "correo",
+  end_date: "fecha de fin",
+  end_year: "ano de fin",
+  field_of_study: "area de estudio",
+  full_name: "nombre completo",
+  gallery_image_ids: "galeria de imagenes",
+  icon_asset_id: "icono",
+  icon_name: "nombre del icono",
+  image_asset_id: "imagen principal",
+  institution: "institucion",
+  is_active: "estado",
+  is_current: "actualmente activo",
+  issue_date: "fecha",
+  issuer: "emisor",
+  level: "nivel",
+  location: "ubicacion",
+  message: "mensaje",
+  name: "nombre",
+  phone: "telefono",
+  platform: "plataforma",
+  position: "cargo",
+  professional_title: "titulo profesional",
+  repository_url: "URL del repositorio",
+  short_description: "descripcion corta",
+  skill_ids: "skills asociadas",
+  slug: "slug",
+  start_date: "fecha de inicio",
+  start_year: "ano de inicio",
+  subject: "asunto",
+  summary: "resumen",
+  title: "titulo",
+  url: "URL",
+};
+
 function createRequestError({
   message,
   status = null,
@@ -69,25 +118,122 @@ function buildHeaders(headers, body, authorizationValue) {
   return finalHeaders;
 }
 
+function getFieldLabel(fieldName) {
+  if (!fieldName || typeof fieldName !== "string") {
+    return "formulario";
+  }
+
+  return FIELD_LABELS[fieldName] || fieldName.replaceAll("_", " ");
+}
+
+function normalizeValidationMessage(issue) {
+  const locationParts = Array.isArray(issue?.loc) ? issue.loc : [];
+  const stringLocations = locationParts.filter(
+    (value) =>
+      typeof value === "string"
+      && value !== "body"
+      && value !== "query"
+      && value !== "path"
+      && value !== "response"
+  );
+  const fieldName = stringLocations.at(-1) || "";
+  const previousLocation = locationParts.at(-2);
+  const fieldLabel = getFieldLabel(fieldName);
+  const issueType = issue?.type || "";
+  const rawMessage =
+    typeof issue?.msg === "string"
+      ? issue.msg.replace(/^Value error,\s*/i, "")
+      : "Dato invalido.";
+  const indexedLabel =
+    typeof previousLocation === "number"
+      ? `${fieldLabel} #${previousLocation + 1}`
+      : fieldLabel;
+
+  if (issueType.includes("missing")) {
+    return `El campo ${indexedLabel} es obligatorio.`;
+  }
+
+  if (issueType.includes("string_too_short")) {
+    const minLength = issue?.ctx?.min_length;
+
+    if (typeof minLength === "number") {
+      return `El campo ${indexedLabel} debe tener al menos ${minLength} caracteres.`;
+    }
+  }
+
+  if (issueType.includes("string_too_long")) {
+    const maxLength = issue?.ctx?.max_length;
+
+    if (typeof maxLength === "number") {
+      return `El campo ${indexedLabel} no puede superar ${maxLength} caracteres.`;
+    }
+  }
+
+  if (issueType.includes("greater_than") || issueType.includes("ge")) {
+    return `El campo ${indexedLabel} tiene un valor fuera del rango permitido.`;
+  }
+
+  if (issueType.includes("less_than") || issueType.includes("le")) {
+    return `El campo ${indexedLabel} tiene un valor fuera del rango permitido.`;
+  }
+
+  if (issueType.includes("url")) {
+    return `El campo ${indexedLabel} debe contener una URL valida.`;
+  }
+
+  if (issueType.includes("int_parsing") || issueType.includes("float_parsing")) {
+    return `El campo ${indexedLabel} debe contener un numero valido.`;
+  }
+
+  if (rawMessage) {
+    if (rawMessage.toLowerCase().startsWith("field required")) {
+      return `El campo ${indexedLabel} es obligatorio.`;
+    }
+
+    return `${indexedLabel}: ${rawMessage}`;
+  }
+
+  return `Revisa el campo ${indexedLabel}.`;
+}
+
 function formatValidationDetails(detail) {
   if (!Array.isArray(detail) || detail.length === 0) {
     return "Revisa los datos enviados e intenta nuevamente.";
   }
 
   return detail
-    .map((issue) => {
-      const fieldName = Array.isArray(issue?.loc)
-        ? issue.loc.filter((value) => typeof value === "string").at(-1)
-        : null;
-      const prefix = fieldName ? `${fieldName}: ` : "";
-      const rawMessage =
-        typeof issue?.msg === "string"
-          ? issue.msg.replace(/^Value error,\s*/i, "")
-          : "Dato invalido.";
-
-      return `${prefix}${rawMessage}`;
-    })
+    .map((issue) => normalizeValidationMessage(issue))
+    .filter(Boolean)
     .join(" ");
+}
+
+function formatObjectEntries(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return "";
+  }
+
+  const entries = Object.entries(value).flatMap(([key, entryValue]) => {
+    const label = getFieldLabel(key);
+
+    if (Array.isArray(entryValue)) {
+      return entryValue
+        .map((item) => `${label}: ${String(item)}`)
+        .filter(Boolean);
+    }
+
+    if (entryValue && typeof entryValue === "object") {
+      const nestedText = formatObjectEntries(entryValue);
+      return nestedText ? `${label}: ${nestedText}` : [];
+    }
+
+    if (entryValue === null || entryValue === undefined || entryValue === "") {
+      return [];
+    }
+
+    return `${label}: ${String(entryValue)}`;
+  });
+
+  return entries.join(" ");
 }
 
 function getDefaultStatusMessage(status) {
@@ -135,10 +281,19 @@ function buildErrorFromResponse(response, payload) {
 
   if (response.status === 422 && Array.isArray(payload?.detail)) {
     userMessage = formatValidationDetails(payload.detail);
+  } else if (response.status === 422 && payload?.detail && typeof payload.detail === "object") {
+    userMessage =
+      formatObjectEntries(payload.detail) || defaultMessage;
   } else if (typeof payload?.detail === "string" && payload.detail.trim()) {
     userMessage = payload.detail.trim();
+  } else if (payload?.detail && typeof payload.detail === "object") {
+    userMessage =
+      formatObjectEntries(payload.detail) || defaultMessage;
   } else if (typeof payload?.message === "string" && payload.message.trim()) {
     userMessage = payload.message.trim();
+  } else if (payload && typeof payload === "object") {
+    userMessage =
+      formatObjectEntries(payload) || defaultMessage;
   } else if (typeof payload === "string" && payload.trim()) {
     userMessage = payload.trim();
   }

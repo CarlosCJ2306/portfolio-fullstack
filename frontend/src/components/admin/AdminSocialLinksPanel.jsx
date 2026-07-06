@@ -10,6 +10,9 @@ export default function AdminSocialLinksPanel({
   onEditSocialLink,
   onDeleteSocialLink,
   onCancelSocialLinkEdit,
+  panelError,
+  panelLoading,
+  onRetry,
 }) {
   return (
     <article className="admin-card admin-social-links-panel">
@@ -17,6 +20,19 @@ export default function AdminSocialLinksPanel({
         <span className="badge">Redes</span>
         <h2>{editingSocialLinkId ? "Editar enlace social" : "Crear enlace social"}</h2>
       </div>
+
+      {panelError && (
+        <div className="form-actions-inline">
+          <p className="admin-message error">{panelError}</p>
+          {onRetry && (
+            <button type="button" className="admin-button ghost" onClick={onRetry} disabled={panelLoading}>
+              {panelLoading ? "Reintentando..." : "Reintentar"}
+            </button>
+          )}
+        </div>
+      )}
+
+      {!panelError && panelLoading && <p className="muted">Actualizando enlaces...</p>}
 
       <form className="admin-form" onSubmit={onSocialLinkSubmit}>
         <div className="form-row">
