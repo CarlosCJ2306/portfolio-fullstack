@@ -290,3 +290,120 @@ Fecha de ejecucion: 2026-07-07. Entrada de cambios registrada con la fecha solic
 2. Auditoria formal de contraste si se necesita conformidad WCAG cuantificada.
 3. Evaluar controles compactos de 32-34 px frente a una meta tactil de 44 px, equilibrando el area util de los modales pequenos.
 4. Mantener fuera de esta fase los CRUD reales pendientes de Fase 6.5.
+
+## Fase 6.7 - Payload y rendimiento base
+
+Fecha de ejecucion: 2026-07-07. Entrada de cambios registrada con la fecha solicitada `2026-07-06`.
+
+### Metodo y alcance
+
+- Mediciones locales y secuenciales, no prueba de carga ni SLA.
+- Cada endpoint recibio 1 solicitud de calentamiento y 5 solicitudes medidas.
+- Los bytes HTTP se obtuvieron del cuerpo real sin depender de `Content-Length` y sin descompresion automatica.
+- Las credenciales admin se leyeron solo en memoria y no se imprimieron.
+- El inventario multimedia uso longitudes Base64 y la formula `floor(longitud * 3 / 4) - padding`; no mostro ni copio contenido.
+- Chrome 149/CDP realizo 3 cargas limpias de `http://localhost:5173` con cache desactivada.
+
+### Endpoints
+
+| Endpoint | Status | Tamano | Tiempo minimo | Tiempo mediano | Tiempo maximo | Estado | Observaciones |
+|---|---:|---:|---:|---:|---:|---|---|
+| `GET /api/public/health` | 200 | 67 B | 1,89 ms | 2,31 ms | 2,68 ms | Objetivo | Referencia pequena, JSON |
+| `GET /api/public/home` | 200 | 530.621 B | 9,81 ms | 12,63 ms | 22,29 ms | Objetivo por tamano | 526.060 B corresponden a multimedia embebida |
+| `GET /api/public/projects` | 200 | 10.233.920 B | 56,60 ms | 60,44 ms | 70,88 ms | Riesgo alto | Casi todo el cuerpo es Base64 de portada/galeria |
+| `GET /api/public/certifications` | 200 | 121.287 B | 3,76 ms | 4,10 ms | 5,19 ms | Objetivo | Incluye un PDF Base64 de 120.656 caracteres |
+| `GET /api/admin/media-assets` | 200 | 10.858.065 B | 62,61 ms | 63,62 ms | 89,15 ms | Riesgo alto | Endpoint mas pesado y lento; devuelve los 13 assets con contenido completo |
+| `GET /api/admin/projects` | 200 | 10.233.956 B | 60,00 ms | 60,68 ms | 64,23 ms | Riesgo alto | Replica el peso multimedia del proyecto publico |
+| `GET /api/admin/certifications` | 200 | 121.372 B | 3,99 ms | 4,65 ms | 5,15 ms | Objetivo | PDF incluido dentro del JSON |
+
+Todos respondieron `application/json`. Los tiempos reflejan loopback local con SQLite y no predicen latencia de red o infraestructura de produccion.
+
+### Multimedia
+
+| Tipo | Cantidad | Tamano Base64 | Tamano decodificado estimado | Mayor asset | Riesgo |
+|---|---:|---:|---:|---|---|
+| `avatar` | 1 | 363.440 caracteres | 272.578 B | Asset #4, JPEG, 272.578 B | Bajo |
+| `image` | 6 | 10.328.420 caracteres | 7.746.310 B | Asset #10, `Acta_CJ_Trabajo de grado.jpeg`, 3.028.736 B | Alto |
+| `icon` | 3 | 0 Base64 + 1.013 B SVG | 1.013 B SVG | Asset #1, SVG, 493 B | Bajo |
+| `icon_svg` | 2 | 41.444 caracteres | 31.082 B | Asset #13, PNG, 20.637 B | Bajo |
+| `document` | 1 | 120.656 caracteres | 90.492 B | Asset #7, PDF, 90.492 B | Bajo |
+| **Total** | **13** | **10.853.960 caracteres** | **8.140.462 B Base64 + 1.013 B SVG** | Asset #10, 3.028.736 B | Alto por acumulacion |
+
+Datos estadisticos adicionales:
+
+- Imagen: promedio 1.291.052 B, mediana 991.144 B.
+- Icono SVG: promedio 338 B, mediana 337 B.
+- El PDF aporta 120.656 B al JSON para transportar 90.492 B de archivo, aproximadamente 33 % de sobrecarga Base64.
+
+### Proyecto y galeria
+
+- Payload actual: 10.233.920 B para 1 proyecto.
+- Metadata y texto aproximados: 1.602 B.
+- Portada: 267.336 caracteres Base64.
+- Galeria: 5 asociaciones, 5 IDs unicos y 9.964.980 caracteres Base64.
+- La galeria actual incluye tambien el asset de portada. El backend transporta esa imagen dos veces; el frontend la deduplica visualmente.
+- Contenido unico aproximado de las 5 imagenes: 7,47 MB decodificados; el JSON completo supera 10,23 MB por Base64 y duplicacion.
+
+`/api/public/home` no duplica proyectos en el dataset actual porque `featured_projects` esta vacio. Sin embargo, el contrato usa `ProjectRead`; si un proyecto se marca destacado, HomePage pediria `/home` y `/projects`, por lo que ese proyecto y su multimedia podrian viajar en ambas respuestas.
+
+### Build
+
+| Archivo/recurso | Tamano | Estado | Observaciones |
+|---|---:|---|---|
+| `frontend/dist` total | 1.024.275 B | Objetivo | 5 archivos |
+| JavaScript principal | 357.043 B | Advertencia | 96,83 kB gzip informado por Vite |
+| CSS principal | 75.057 B | Objetivo | 11,59 kB gzip informado por Vite |
+| `LogoCJ.png` | 321.169 B | Advertencia | Segundo recurso estatico mas grande |
+| `LogoCJ.ico` | 270.398 B | Advertencia | Grande para un favicon |
+| `index.html` | 608 B | Objetivo | Entrada minima |
+| Source maps | 0 | Objetivo | No se generaron `.map` |
+
+Revision de `dist`:
+
+- No aparecen `ADMIN_PASSWORD`, `ADMIN_USERNAME`, `API_DOCS_PASSWORD`, `DATABASE_URL`, `portfolio.db` ni valores de contrasena del entorno.
+- `VITE_API_BASE_URL=http://127.0.0.1:8000` si aparece; no es secreto y coincide con el entorno local medido.
+- No se detectaron archivos inesperados aparte de JS, CSS, HTML, logo y favicon.
+
+### Navegador
+
+| Metrica | Ejecucion 1 | Ejecucion 2 | Ejecucion 3 | Mediana | Observaciones |
+|---|---:|---:|---:|---:|---|
+| Requests completados | 68 | 68 | 68 | 68 | Vite desarrollo sirve modulos separados |
+| Bytes transferidos CDP | 15.987.057 | 15.987.057 | 15.987.057 | 15.987.057 | Incluye frontend dev y API; cache desactivada |
+| `performance.resource` transferidos | 5.221.548 | 5.221.548 | 5.221.548 | 5.221.548 | No contabiliza de forma util los cuerpos API cross-origin sin Timing-Allow-Origin |
+| Recursos decodificados del navegador | 5.202.048 | 5.202.048 | 5.202.048 | 5.202.048 | Principalmente modulos frontend dev |
+| DOMContentLoaded | 160 ms | 162 ms | 150 ms | 160 ms | Ocurre antes de terminar los fetch pesados |
+| Load event | 161 ms | 163 ms | 151 ms | 161 ms | No representa portfolio completamente hidratado con proyectos |
+| Endpoint mas pesado | 10.234.157 B | 10.234.157 B | 10.234.157 B | 10.234.157 B | `/api/public/projects` |
+| Recurso frontend mas pesado | 2.819.616 B | 2.819.616 B | 2.819.616 B | 2.819.616 B | `react-dom_client.js` sin bundle, propio del servidor Vite dev |
+
+No hubo errores de consola. Chrome registro cancelaciones `net::ERR_ABORTED` de la primera pareja `/home` y `/projects`; son aborts esperados por el montaje/limpieza de efectos bajo React StrictMode en desarrollo. Las solicitudes siguientes finalizaron con status 200.
+
+### Umbrales propuestos
+
+| Metrica | Objetivo | Advertencia | Riesgo alto | Estado actual |
+|---|---:|---:|---:|---|
+| JSON publico individual | <= 1 MB | > 1 MB hasta 5 MB | > 5 MB | Home/certificaciones objetivo; proyectos 10,23 MB, alto |
+| Admin media completo | <= 5 MB | > 5 MB hasta 10 MB | > 10 MB | 10,86 MB, alto |
+| PDF individual | <= 2 MB | > 2 MB hasta 5 MB | > 5 MB | 90,5 kB, objetivo |
+| Imagen individual decodificada | <= 500 kB | > 500 kB hasta 2 MB | > 2 MB | Mayor 3,03 MB, alto |
+| JS principal sin comprimir | <= 300 kB | > 300 kB hasta 500 kB | > 500 kB | 357 kB, advertencia; gzip 96,83 kB |
+| Carga inicial total sin cache | <= 3 MB | > 3 MB hasta 8 MB | > 8 MB | 15,99 MB en Vite local, alto |
+
+Son umbrales internos previos al despliegue, no SLA.
+
+### Escalabilidad y recomendaciones no implementadas
+
+1. Con el peso actual, 10 proyectos equivalentes con 5 imagenes cada uno rondarian 102 MB de JSON publico. Cerca del limite maximo actual de 5 MB por imagen, el peor caso podria superar ampliamente 300 MB Base64.
+2. `media-assets` devuelve todos los assets y su contenido en una sola respuesta; su costo crece linealmente y afectara memoria del navegador/admin.
+3. Multiples PDF pequenos son tolerables, pero documentos cercanos al limite de 10 MB crecerian aproximadamente a 13,3 MB Base64 cada uno.
+4. Separar metadata del contenido binario y ofrecer endpoints de archivo evitaria cargar assets no visibles.
+5. Considerar paginacion del catalogo admin, lazy loading, thumbnails, redimensionado/compresion y almacenamiento externo.
+6. Evitar que la portada vuelva a asociarse en `gallery_image_ids` o excluirla al serializar para no transportarla dos veces.
+7. Optimizar logo/favicons y evaluar code splitting solo despues de medir un preview/build de produccion.
+
+### Integridad
+
+- `portfolio.db` mantuvo 11.018.240 B y `LastWriteTimeUtc=2026-07-06T08:22:06.8784562Z` antes y despues.
+- No hubo CRUD, contacto valido, migraciones ni scripts destructivos.
+- No se cambio arquitectura, Base64, SQLite, contratos, autenticacion, uploads, SVG ni PDF.

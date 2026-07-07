@@ -1,5 +1,50 @@
 # Cambios realizados
 
+## 2026-07-06 - Fase 6.7: payload y rendimiento base
+
+Se establecio una linea base local de payload y rendimiento sin cambiar arquitectura, contratos, datos ni logica funcional.
+
+Mediciones:
+
+- 7 endpoints medidos con 1 calentamiento y 5 repeticiones;
+- endpoint mas pesado y lento: `GET /api/admin/media-assets`, 10.858.065 B y mediana 63,62 ms;
+- `GET /api/public/projects`: 10.233.920 B y mediana 60,44 ms;
+- multimedia: 13 assets, 10.853.960 caracteres Base64 y 8.140.462 B decodificados estimados, mas 1.013 B SVG;
+- asset mayor: imagen #10, 3.028.736 B decodificados;
+- PDF: 120.656 caracteres Base64 y 90.492 B decodificados;
+- build `dist`: 1.024.275 B en 5 archivos; JS principal 357.043 B y CSS 75.057 B;
+- no hay source maps ni indicios de secretos en `dist`.
+
+Carga limpia de navegador, 3 ejecuciones:
+
+- 68 requests por ejecucion;
+- 15.987.057 B transferidos segun CDP;
+- DOMContentLoaded mediano 160 ms y load event mediano 161 ms;
+- recurso API mas pesado: `/api/public/projects`, 10.234.157 B transferidos;
+- sin errores de consola; los aborts iniciales observados corresponden a React StrictMode en desarrollo.
+
+Riesgos identificados:
+
+- `/projects` y `/admin/media-assets` superan el umbral interno de 10 MB;
+- la galeria actual incluye la portada y el JSON la transporta dos veces, aunque React la deduplica visualmente;
+- `media-assets` entrega todos los Base64 en una sola respuesta;
+- 10 proyectos equivalentes podrian rondar 102 MB de JSON;
+- la imagen mayor supera 3 MB y el favicon ICO pesa 270.398 B.
+
+Confirmaciones:
+
+- no se implementaron optimizaciones, paginacion, endpoints de archivo ni almacenamiento externo;
+- `portfolio.db` conservo tamano y fecha de modificacion;
+- no se hicieron CRUD ni operaciones destructivas;
+- no se ejecutaron `reset_db.py`, `update_db.py`, `seed_db.py` ni migraciones;
+- `npm run build` finalizo con codigo 0; lint/build finales quedan registrados al cierre del lote.
+
+Pendientes para cierre de Fase 6:
+
+- ejecutar verificaciones finales y consolidar resultados de Fases 6.1 a 6.7;
+- decidir que riesgos de payload bloquean despliegue y cuales quedan como deuda priorizada;
+- mantener las recomendaciones de optimizacion fuera de este lote.
+
 ## 2026-07-06 - Fase 6.6: matriz responsive y accesibilidad
 
 Se completo la matriz responsive y de accesibilidad funcional con Chrome 149 y CDP en:
