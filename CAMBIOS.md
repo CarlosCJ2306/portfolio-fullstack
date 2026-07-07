@@ -1,5 +1,57 @@
 # Cambios realizados
 
+## 2026-07-06 - Cierre de Fase 4: responsividad publica y administrativa
+
+Se realizo el cierre de Fase 4 con una revision final de QA responsive, accesibilidad visual y consistencia UX/UI del frontend publico y del panel administrativo. Solo se aplicaron microajustes de bajo riesgo; no se toco backend, base de datos, autenticacion ni logica funcional.
+
+Resumen de Fase 4 completada:
+
+- parte publica:
+  - se ajustaron layout global, header sticky y anclas;
+  - se corrigieron quiebres de texto y padding excesivo;
+  - se dejo operativa la galeria/modal de proyectos en movil, tablet y desktop;
+  - se dejo operativo el modal PDF de certificaciones con acciones visibles y fallback usable.
+- parte administrativa:
+  - se agrego selector de modulo visible para movil y modulo unico por pantalla estrecha;
+  - se compactaron stats, formularios, cards y acciones;
+  - se reorganizaron pickers, galeria, PDF/documentos y estados de upload;
+  - se hizo una pasada final para prevenir overflow horizontal y mejorar textos visibles del selector movil.
+
+Problemas corregidos en la fase:
+
+- textos partidos letra por letra por combinacion de grids estrechos, `letter-spacing` y reglas de quiebre;
+- saturacion del admin en movil por mostrar demasiado contenido a la vez;
+- modales publicos con distribucion y altura poco eficientes en pantallas estrechas;
+- pickers administrativos pesados o desbordados en movil;
+- riesgo residual de overflow horizontal en contenedores admin compuestos;
+- textos visibles del selector movil del admin normalizados con acentos.
+
+Viewports revisados por breakpoints y QA de cierre:
+
+- 320 x 568
+- 375 x 667
+- 390 x 844
+- 430 x 932
+- 480 x 1040
+- 768 x 1024
+- 820 x 1180
+- 1024 x 768
+- 1180px o superior
+- 1440px o superior
+
+Verificaciones:
+
+- `npm run lint` paso correctamente.
+- `npm run build` paso correctamente.
+- no se ejecuto `reset_db.py`.
+- no se tocaron backend, base de datos ni autenticacion.
+
+Pendientes para Fase 5:
+
+- limpieza documental y de textos no visibles heredados;
+- revision de componentes o estilos redundantes que ya no aporten valor;
+- refinamiento final para despliegue y verificacion manual completa con capturas/dispositivos reales.
+
 ## 2026-07-06 - Lote 3 de reforma UX/UI responsive del panel administrativo
 
 Se mejoro la experiencia responsive de los pickers administrativos para imagenes, iconos, documentos PDF y galeria de proyectos sin tocar backend, autenticacion, validaciones ni logica de uploads.

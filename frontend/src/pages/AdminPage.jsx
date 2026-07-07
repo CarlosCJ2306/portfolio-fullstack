@@ -2516,27 +2516,27 @@ export default function AdminPage() {
 
       <AdminStatsGrid dashboard={dashboard} />
 
-      <section className="admin-card admin-module-switcher" aria-label="Navegacion de modulos">
-        <div className="admin-module-switcher__copy">
-          <span className="badge">Modulos</span>
-          <h2>Vista del panel</h2>
-          <p>En movil se muestra un modulo a la vez para reducir saturacion.</p>
-          <p className="admin-module-switcher__status">
-            Actual: <strong>{selectedAdminModuleOption.label}</strong>
-            {selectedAdminModuleCountLabel ? ` - ${selectedAdminModuleCountLabel}` : ""}
-          </p>
-        </div>
+        <section className="admin-card admin-module-switcher" aria-label="Navegación de módulos">
+          <div className="admin-module-switcher__copy">
+            <span className="badge">Módulos</span>
+            <h2>Vista del panel</h2>
+            <p>En móvil se muestra un módulo a la vez para reducir saturación.</p>
+            <p className="admin-module-switcher__status">
+              Actual: <strong>{selectedAdminModuleOption.label}</strong>
+              {selectedAdminModuleCountLabel ? ` - ${selectedAdminModuleCountLabel}` : ""}
+            </p>
+          </div>
 
-        <label className="admin-module-switcher__field" htmlFor="admin-module-select">
-          <span>Modulo visible</span>
-          <div className="admin-module-switcher__select-wrap">
-            <select
-              id="admin-module-select"
-              name="admin_module"
-              value={selectedAdminModule}
-              onChange={(event) => setSelectedAdminModule(event.target.value)}
-              aria-label="Seleccionar modulo administrativo visible"
-            >
+          <label className="admin-module-switcher__field" htmlFor="admin-module-select">
+            <span>Módulo visible</span>
+            <div className="admin-module-switcher__select-wrap">
+              <select
+                id="admin-module-select"
+                name="admin_module"
+                value={selectedAdminModule}
+                onChange={(event) => setSelectedAdminModule(event.target.value)}
+                aria-label="Seleccionar módulo administrativo visible"
+              >
               {ADMIN_CONTENT_MODULE_OPTIONS.map((option) => (
                 <option key={option.key} value={option.key}>
                   {option.label}
