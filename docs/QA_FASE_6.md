@@ -220,3 +220,73 @@ Fecha de ejecucion: 2026-07-07. Entrada de cambios registrada con la fecha solic
 - No se modifico `portfolio.db`; no fue necesario ejecutar `check_db`.
 - No se subieron archivos, no se descargaron documentos y no se hicieron operaciones destructivas.
 - No se cambio codigo funcional, rutas, contratos, autenticacion, uploads, SVG ni PDF.
+
+## Fase 6.6 - Matriz responsive y accesibilidad
+
+Fecha de ejecucion: 2026-07-07. Entrada de cambios registrada con la fecha solicitada `2026-07-06`.
+
+### Metodo
+
+- Chrome 149 headless controlado mediante Chrome DevTools Protocol.
+- Backend local en `http://127.0.0.1:8000` y frontend Vite en `http://localhost:5173`.
+- Medicion de viewport, `scrollWidth`, rectangulos, elementos desbordados, foco, estados ARIA, consola y media query `prefers-reduced-motion`.
+- Inspeccion visual de capturas temporales en 320 x 568 para proyecto, PDF y admin.
+- Sin contacto valido, CRUD, uploads, DELETE ni otras escrituras sobre datos reales.
+
+### Matriz
+
+| Area | Viewport | Caso | Resultado esperado | Resultado obtenido | Estado | Observaciones | Accion pendiente |
+|---|---:|---|---|---|---|---|---|
+| Publico | 320 x 568 | Layout, header y secciones | Sin overflow ni texto vertical; menu compacto | `scrollWidth=320`, 0 elementos desbordados, 0 textos estrechos, header 59 px y menu movil visible | Aprobado | Contacto y footer terminan dentro del viewport | Ninguna |
+| Publico | 375 x 667 | Layout general | Sin overflow horizontal | `scrollWidth=375`, sin desbordes ni imagenes rotas | Aprobado | Header movil de 59 px | Ninguna |
+| Publico | 390 x 844 | Layout general | Cards y textos legibles | Sin overflow, texto vertical ni imagenes rotas | Aprobado | Menu movil disponible | Ninguna |
+| Publico | 430 x 932 | Layout general | Secciones dentro del viewport | Sin overflow y ancho correcto en contacto/footer | Aprobado | Menu movil disponible | Ninguna |
+| Publico | 768 x 1024 | Tablet vertical | Aprovechar ancho sin romper navegacion | Sin elementos desbordados; menu compacto activo | Aprobado | El ancho util descuenta scrollbar vertical | Ninguna |
+| Publico | 1024 x 768 | Tablet horizontal | Navegacion amplia y modales contenidos | Sin overflow; header 73 px y navegacion desktop | Aprobado | Sin texto partido | Ninguna |
+| Publico | 1180 x 800 | Escritorio | Layout amplio estable | Sin overflow ni imagenes rotas | Aprobado | Proyecto usa dialogo de 1144 x 736 | Ninguna |
+| Publico | 1440 x 900 | Escritorio amplio | Respetar limites maximos | Sin overflow; modal proyecto limitado a 1240 px y PDF a 960 px | Aprobado | No se estira contenido indefinidamente | Ninguna |
+| Proyecto | 320 x 568 | Modal, imagen y miniaturas | Modal visible; imagen completa; tira compacta | Dialogo 304 x 434, imagen contenida, 5 miniaturas desplazables y foco inicial dentro | Aprobado | Anterior/Siguiente/Zoom miden 32 px de alto para preservar area visual | Considerar 36-44 px en una futura revision tactil sin reducir demasiado el visor |
+| Proyecto | 375-430 px | Modal movil | Sin overflow y controles usables | Dialogos entre 359 y 414 px de ancho; imagen contenida y miniaturas con scroll interno | Aprobado | Escape cerro correctamente | Ninguna |
+| Proyecto | 768-1440 px | Modal tablet/escritorio | Dialogo dentro del viewport | Todos los rectangulos quedaron contenidos y la imagen mantuvo `contain` | Aprobado | Zoom no aumento el modal | Ninguna |
+| Proyecto | 320 x 568 | Texto dinamico largo | No crear scroll horizontal interno | Tras microajuste, contenido y descripcion tienen `clientWidth=scrollWidth` | Aprobado corregido | Antes aparecia scrollbar por una cadena sin espacios | Ninguna |
+| PDF | 320 x 568 | Modal y visor | Acciones visibles e iframe util | Dialogo 304 x 545; iframe 302 x 377; Cerrar, Abrir y Descargar visibles | Aprobado | Acciones compactas de 34 px de alto | Considerar objetivo tactil mayor en fase futura |
+| PDF | 375-430 px | Modal movil | Mantener area util | Iframe entre 451 y 586 px de alto, sin overflow del dialogo | Aprobado | Fallback Abrir/Descargar conservado | Ninguna |
+| PDF | 768-1440 px | Modal tablet/escritorio | Visor amplio y limitado | Dialogo contenido; iframe entre 567 y 721 px o mas segun altura | Aprobado | Ancho maximo 960 px | Ninguna |
+| Admin login | Todos | Login responsive | Card, inputs y boton dentro del viewport | 0 desbordes en los 8 viewports; controles de 42-45 px | Aprobado | Ancho completo en movil y maximo controlado en desktop | Ninguna |
+| Admin | 320-430 px | Topbar, stats y modulo visible | Un modulo, sin texto vertical | `scrollWidth` igual al viewport, 10 stats, 1 panel visible y 0 textos estrechos | Aprobado | Topbar dentro del viewport | Ninguna |
+| Admin | 768 x 1024 | Tablet | Layout de un modulo sin compresion | 1 panel visible, 0 overflow y stats legibles | Aprobado | Comportamiento intermedio consistente | Ninguna |
+| Admin | 1024-1440 px | Escritorio | Mostrar contenido amplio | 8 paneles disponibles, topbar y stats sin overflow | Aprobado | Selector permanece disponible | Ninguna |
+| Admin | 320 x 568 | Stat Perfil | `Configurado` legible | Tras microajuste: 17 px, una sola linea y 117 px de ancho | Aprobado corregido | Antes partia `Configura/do` | Ninguna |
+| Admin picker | 320 x 568 | Avatar y selector | Preview y modal dentro del viewport | Preview real de Asset #4; modal 281 x 523 dentro del viewport, con scroll interno | Aprobado corregido | Se confirmo que el preview si existe | Ninguna |
+| Admin galeria | 320 x 568 | Selector de imagenes adicionales | No desplazar modal con el formulario largo | Modal 281 x 523 fijado al viewport, sin overflow de pagina | Aprobado corregido | `backdrop-filter` del card creaba un bloque contenedor para `position: fixed` | Ninguna |
+| Admin mensajes | 320 x 568 | Lectura/refresco | Card y accion usables | Card contenida; boton Refrescar 95 x 42 | Aprobado | Sin escrituras | Ninguna |
+| Accesibilidad | 320 x 568 | Tab y foco publico | Foco visible y orden razonable | Tab recorrio logo y menu; ambos mostraron outline solido de 2 px | Aprobado | La prueba uso eventos de teclado nativos CDP | Ninguna |
+| Accesibilidad | 320 x 568 | Menu movil | Enter/Espacio y Escape operables | Enter abrio y Espacio alterno el boton; Escape dejo el menu cerrado | Aprobado | `aria-expanded` reflejo el estado | Ninguna |
+| Accesibilidad | 320 x 568 | Modal proyecto | Foco inicial, trap, flechas y retorno | Foco dentro al abrir; Tab contenido; ArrowRight cambio imagen; miniatura activa con ARIA; foco retorno al disparador | Aprobado | Escape cerro el dialogo | Ninguna |
+| Accesibilidad | 320 x 568 | Modal PDF | Foco, trap, Escape y retorno | Foco inicial en Cerrar; Tab permanecio dentro; Escape cerro y devolvio foco a Abrir PDF | Aprobado | Iframe permanece accesible por Tab | Ninguna |
+| Accesibilidad | Admin movil | Foco y selector | Indicador visible y label existente | Ver sitio mostro halo cyan; select tiene label `Modulo visible` y foco visible | Aprobado | Details/summary siguen navegables nativamente | Ninguna |
+| Accesibilidad | Publico/Admin | Reduced motion | Desactivar movimiento no esencial | `matchMedia` activo y 0 elementos visibles conservaron duraciones relevantes | Aprobado | Regla aplicada sin cambiar layout | Ninguna |
+| Visual | Publico/Admin | Contraste razonable | Texto, badges, botones y errores distinguibles | Capturas revisadas sin contraste evidentemente insuficiente | Aprobado con observacion | No sustituye auditoria automatizada WCAG de contraste | Ejecutar medicion formal si se exige conformidad normativa |
+| Consola | Todos | Sin errores inesperados | Consola limpia durante matriz | 0 errores/warnings relevantes en publico y admin | Aprobado | Rutas API respondieron 200 | Ninguna |
+
+### Microajustes aplicados
+
+1. `CertificationsSection.jsx`: se corrigieron dos literales de `formacion` a `formación`.
+2. `ProjectsSection.css`: la descripcion dinamica usa quiebre seguro y el area desplazable oculta overflow horizontal interno.
+3. `AdminStatsGrid.css`: el valor textual `Configurado` usa tamano responsive y una linea en movil.
+4. `AdminLayout.css`: se retiro `backdrop-filter` solo de los paneles que alojan pickers. Esto evita que sus overlays `position: fixed` queden anclados al card largo en vez del viewport.
+
+### Resultado general
+
+- Publico y admin aprobaron los ocho viewports sin overflow horizontal critico ni texto letra por letra.
+- Los modales de proyecto y PDF quedaron contenidos y funcionales en movil, tablet y escritorio.
+- Los pickers admin quedaron corregidos y fijados al viewport en 320 x 568.
+- Foco, traps, retorno, teclado, estados ARIA y reduced motion quedaron validados.
+- No se realizaron CRUD ni operaciones destructivas.
+
+### Pendientes para Fase 6.7
+
+1. Medicion de payload y rendimiento.
+2. Auditoria formal de contraste si se necesita conformidad WCAG cuantificada.
+3. Evaluar controles compactos de 32-34 px frente a una meta tactil de 44 px, equilibrando el area util de los modales pequenos.
+4. Mantener fuera de esta fase los CRUD reales pendientes de Fase 6.5.

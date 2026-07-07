@@ -61,6 +61,17 @@
   min-width: 0;
 }
 
+/*
+  Los pickers usan overlays position: fixed. backdrop-filter crea un bloque
+  contenedor para esos descendientes y desplaza el modal con el panel largo.
+*/
+.admin-profile-panel,
+.admin-skills-panel,
+.admin-projects-panel,
+.admin-certifications-panel {
+  backdrop-filter: none;
+}
+
 .admin-card h1,
 .admin-card h2,
 .admin-loader h1,

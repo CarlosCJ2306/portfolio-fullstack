@@ -1,5 +1,50 @@
 # Cambios realizados
 
+## 2026-07-06 - Fase 6.6: matriz responsive y accesibilidad
+
+Se completo la matriz responsive y de accesibilidad funcional con Chrome 149 y CDP en:
+
+- 320 x 568;
+- 375 x 667;
+- 390 x 844;
+- 430 x 932;
+- 768 x 1024;
+- 1024 x 768;
+- 1180 x 800;
+- 1440 x 900.
+
+Resultado publico/admin:
+
+- no se detecto overflow horizontal critico, texto letra por letra ni imagenes rotas;
+- header, menu movil, anclas, cards, formularios, stats y selector admin se mantuvieron usables;
+- en movil se mostro un modulo admin a la vez y en escritorio se conservaron los ocho paneles;
+- proyecto, galeria, zoom, miniaturas, PDF y acciones alternativas quedaron contenidos en los viewports;
+- Tab, foco visible, traps, Escape, retorno de foco, estados ARIA y `prefers-reduced-motion` quedaron aprobados;
+- consola publica y admin sin errores o warnings relevantes.
+
+Microajustes realizados:
+
+- se corrigio `formacion` a `formación` en los dos estados visibles de certificaciones;
+- se elimino el overflow horizontal interno causado por descripciones de proyecto con cadenas sin espacios;
+- `Configurado` permanece en una sola linea en el stat Perfil de 320 px;
+- los overlays de `AdminImagePicker` y `AdminProjectGalleryPicker` vuelven a fijarse al viewport: se retiro `backdrop-filter` solo de los paneles que alojan esos pickers.
+
+Verificaciones:
+
+- `npm run lint`: codigo 0;
+- `npm run build`: codigo 0, 68 modulos transformados;
+- `portfolio.db` conservo tamano y fecha de modificacion;
+- no se realizaron CRUD, uploads, DELETE ni operaciones destructivas;
+- no se ejecutaron `reset_db.py`, `update_db.py`, `seed_db.py` ni migraciones;
+- no se modificaron backend, rutas, contratos, autenticacion, validaciones, SVG ni PDF.
+
+Pendientes para Fase 6.7:
+
+- medicion de payload y rendimiento;
+- auditoria cuantitativa de contraste si se requiere conformidad formal;
+- decidir si los controles compactos de 32-34 px deben crecer hacia 44 px sin reducir en exceso los visores moviles;
+- mantener los CRUD reales pendientes para un lote separado con backup y autorizacion.
+
 ## 2026-07-06 - Fase 6.5: checklist manual funcional completo
 
 Se ejecuto QA funcional con Chrome 149 headless y Chrome DevTools Protocol sobre las instancias locales reales, sin instalar dependencias ni cambiar codigo funcional.

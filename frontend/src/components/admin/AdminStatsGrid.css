@@ -60,6 +60,11 @@
   .admin-stats-grid .stat-card strong {
     font-size: 24px;
   }
+
+  .admin-stats-grid .stat-card:first-child strong {
+    font-size: clamp(17px, 4.8vw, 22px);
+    white-space: nowrap;
+  }
 }
 
 @media (max-width: 380px) {

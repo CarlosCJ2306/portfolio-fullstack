@@ -231,7 +231,7 @@ export default function CertificationsSection({ certifications = [] }) {
           <div className="certifications-heading">
             <span className="badge">Certificaciones</span>
 
-            <h2>Certificaciones y formacion complementaria</h2>
+            <h2>Certificaciones y formación complementaria</h2>
 
             <p>
               Aun no hay certificaciones registradas para mostrar en el
@@ -250,7 +250,7 @@ export default function CertificationsSection({ certifications = [] }) {
           <div className="certifications-heading">
             <span className="badge">Certificaciones</span>
 
-            <h2>Certificaciones y formacion complementaria</h2>
+            <h2>Certificaciones y formación complementaria</h2>
 
             <p>
               Cursos, credenciales y aprendizajes adicionales que fortalecen mi
