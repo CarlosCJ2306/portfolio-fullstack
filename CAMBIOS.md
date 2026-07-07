@@ -1,5 +1,44 @@
 # Cambios realizados
 
+## 2026-07-06 - Fase 6.2: pruebas backend con SQLite temporal
+
+Se creó la estructura inicial de pruebas backend para validar contratos del API sin usar la base real.
+
+Archivos y dependencias:
+
+- se agregaron `backend/tests/conftest.py`, `test_public_contracts.py`, `test_admin_contracts.py`, `test_media_contracts.py` y el inicializador del paquete;
+- se añadieron `pytest==8.4.2` y `httpx==0.28.1` a `backend/requirements.txt`;
+- `conftest.py` configura una SQLite desechable antes de importar la app, crea tablas desde los modelos reales, activa y comprueba foreign keys y elimina el entorno temporal al terminar;
+- existe una protección explícita que aborta si la URL contiene `portfolio.db`, no es SQLite o queda fuera del directorio temporal;
+- las credenciales de test se generan aleatoriamente y permanecen solo en memoria.
+
+Contratos cubiertos:
+
+- home público vacío sin datos ficticios, proyectos con/sin portada y galería ordenada, certificaciones con credencial y PDF separados, y contacto válido/inválido;
+- perfil admin conservando `avatar_asset_id`, autenticación Basic, validaciones 422 y protección 409 de assets referenciados;
+- tipos válidos e inválidos para avatar, portada, galería, iconos `icon`/`icon_svg` y documentos PDF;
+- uploads válidos, MIME incompatible, Base64 inválido, límite de imagen de 5 MB y SVG inseguro.
+
+Ejecución:
+
+- comando final: `.\venv\Scripts\python.exe -m pytest` desde `backend`;
+- resultado final: **20 pruebas aprobadas**, código 0, en 2,87 s;
+- queda una advertencia externa de deprecación de `TestClient` con `httpx`, documentada en `docs/QA_FASE_6.md`;
+- una primera ejecución aprobó las 17 pruebas entonces existentes, pero falló al limpiar un log temporal abierto en Windows; se corrigió únicamente el teardown cerrando handlers y se repitió toda la suite.
+
+Confirmaciones:
+
+- no se usó, abrió ni modificó `backend/portfolio.db` durante las pruebas;
+- no se ejecutaron `reset_db.py`, `update_db.py`, `seed_db.py` ni migraciones;
+- no se cambió lógica funcional, contratos, autenticación real, uploads, SVG ni PDF;
+- no se hicieron smoke tests ni pruebas frontend.
+
+Pendientes para Fase 6.3:
+
+- definir y ejecutar smoke tests seguros del flujo integrado;
+- completar pruebas manuales y matriz responsive/accesible en lotes posteriores;
+- vigilar la transición de Starlette/FastAPI desde `httpx` hacia `httpx2` sin cambiar dependencias hasta contar con una ruta estable.
+
 ## 2026-07-06 - Fase 6.1: línea base técnica y revisión de Git
 
 Se estableció la línea base técnica posterior al cierre de las Fases 1 a 5, sin modificar lógica funcional ni datos.

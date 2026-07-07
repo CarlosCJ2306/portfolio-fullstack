@@ -35,3 +35,47 @@ Fecha de ejecución: 2026-07-06.
 - No se ejecutaron scripts destructivos, semillas ni migraciones.
 - No se creó ni modificó lógica funcional del backend o frontend.
 - No se realizaron CRUD, smoke tests ni pruebas automatizadas en este lote.
+
+## Fase 6.2 - Pruebas backend con SQLite temporal
+
+Fecha de ejecución: 2026-07-06.
+
+### Estrategia de aislamiento
+
+- `tests/conftest.py` crea un directorio temporal de sesión y configura `DATABASE_URL` antes de importar la app.
+- La base usada se llama `qa_backend.sqlite3`; se crea con los modelos reales mediante `Base.metadata` y se recrea para cada prueba.
+- Una protección explícita aborta la colección si la URL contiene `portfolio.db`, si no es SQLite o si la ruta queda fuera del directorio temporal.
+- `PRAGMA foreign_keys=ON` se comprueba antes de cada prueba.
+- Las credenciales admin se generan aleatoriamente en memoria y no se guardan en archivos.
+- El engine, los handlers de log y el directorio temporal se cierran y eliminan al terminar.
+
+### Resultados
+
+| Comando o revisión | Resultado esperado | Resultado obtenido | Estado | Observaciones |
+|---|---|---|---|---|
+| `.\venv\Scripts\python.exe -m pip install pytest==8.4.2 httpx==0.28.1` | Instalar dependencias mínimas de test | Dependencias instaladas en el entorno virtual local | Aprobado | Las versiones se agregaron a `backend/requirements.txt`. |
+| Primera ejecución de `.\venv\Scripts\python.exe -m pytest` | Suite completa y limpieza temporal | 17 pruebas funcionales pasaron; teardown falló porque Windows mantenía abierto el log temporal | Corregido | Se cerraron los handlers con `logging.shutdown()` al finalizar la sesión. No hubo fallo contractual. |
+| Ejecución final de `.\venv\Scripts\python.exe -m pytest` | Todas las pruebas aprobadas | 20 pruebas aprobadas en 2,87 s | Aprobado | Código 0. Se mantiene una advertencia de deprecación externa de `TestClient` respecto a `httpx`. |
+| Protección contra la DB real | Ninguna prueba puede apuntar a `portfolio.db` | URL temporal verificada antes de importar la app y antes de cada prueba | Aprobado | La suite no abrió ni escribió `backend/portfolio.db`. |
+| SQLite temporal | Tablas reales, claves foráneas activas y limpieza final | Esquema real creado por prueba; `foreign_keys = 1`; archivo temporal eliminado | Aprobado | No se ejecutaron migraciones, seeds ni resets. |
+
+### Contratos cubiertos
+
+- Público: `/api/public/home` vacío sin identidad ficticia, proyectos sin galería y con portada/galería ordenada, certificaciones con `credential_url` separado del PDF y contacto válido/inválido.
+- Admin: HTTP Basic, conservación de `avatar_asset_id`, errores 422 de proyecto, y bloqueo 409 al eliminar assets usados como avatar, icono, portada, galería o PDF.
+- Asociaciones: avatar, portada, galería, `icon`/`icon_svg` y documento PDF; se rechazan tipos incompatibles.
+- Media: imagen y PDF válidos, MIME incompatible, Base64 inválido, imagen superior a 5 MB y SVG con contenido activo inseguro.
+
+### Archivos de prueba
+
+- `backend/tests/conftest.py`
+- `backend/tests/test_public_contracts.py`
+- `backend/tests/test_admin_contracts.py`
+- `backend/tests/test_media_contracts.py`
+
+### Riesgos y pendientes
+
+1. FastAPI expone una advertencia de deprecación de `TestClient` con `httpx`; revisar la migración recomendada por Starlette cuando el ecosistema estabilice `httpx2`.
+2. La validación backend de URLs se limita actualmente a reglas del schema como longitud; la suite no impone un contrato más estricto que producción.
+3. Quedan fuera de este lote los smoke tests, las pruebas frontend, rendimiento y la matriz responsive/accesible.
+4. No se repitió `check_db` contra la base real: Fase 6.1 ya lo aprobó y esta suite impide explícitamente apuntar a `portfolio.db`.
