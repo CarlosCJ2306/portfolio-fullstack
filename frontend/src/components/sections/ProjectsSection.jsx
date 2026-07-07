@@ -131,7 +131,7 @@ function buildProjectImages(project) {
             id: item.media_asset_id ?? null,
             src: imageDisplay.src,
             alt: imageDisplay.alt,
-            label: `Galeria ${index + 1}`,
+            label: `Galería ${index + 1}`,
           };
         })
         .filter(Boolean)
@@ -167,7 +167,7 @@ function getProjectDescription(project) {
   return (
     project?.description
     || project?.short_description
-    || "Sin descripcion adicional para este proyecto."
+    || "Sin descripción adicional para este proyecto."
   );
 }
 
@@ -383,7 +383,7 @@ export default function ProjectsSection({
             <span className="badge">Proyectos</span>
             <h2>Proyectos destacados</h2>
             <p>
-              Aun no hay proyectos registrados para mostrar en el portafolio.
+              Aún no hay proyectos registrados para mostrar en el portafolio.
             </p>
           </div>
         </div>
@@ -399,8 +399,8 @@ export default function ProjectsSection({
             <span className="badge">Proyectos</span>
             <h2>Proyectos destacados</h2>
             <p>
-              Soluciones desarrolladas con enfoque practico, arquitectura backend,
-              consumo de APIs y construccion de interfaces modernas.
+              Soluciones desarrolladas con enfoque práctico, arquitectura backend,
+              consumo de APIs y construcción de interfaces modernas.
             </p>
           </div>
 

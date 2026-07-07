@@ -1,5 +1,43 @@
 # Cambios realizados
 
+## 2026-07-06 - Fase 5 · Lote 1: limpieza de textos visibles, mojibake y metadatos básicos
+
+Se realizo una limpieza puntual de textos visibles y metadatos del frontend sin tocar backend, base de datos, autenticacion ni logica funcional.
+
+Cambios aplicados:
+
+- se corrigieron literales visibles con mojibake y faltantes de tildes en header, footer, educacion, proyectos, galeria administrativa y labels visibles del admin;
+- se alinearon terminos visibles como `Educación`, `Galería`, `Módulo visible`, `Descripción`, `Documento PDF` e `imágenes`;
+- se retiró `AdminNotice` porque seguía comunicando capacidades como futuras aunque ya están implementadas;
+- se eliminaron su import y render en `AdminPage.jsx`, y tambien su CSS para evitar referencias huerfanas;
+- se ajustó `frontend/index.html` con `lang="es"` ya consistente, un `title` mas claro y una descripcion basica del portfolio;
+- se corrigieron labels base de `adminApi.js` que terminan apareciendo en mensajes legibles del panel administrativo.
+
+Verificaciones:
+
+- `npm run lint` paso correctamente.
+- `npm run build` paso correctamente.
+- no se ejecuto `reset_db.py`.
+- no se tocaron backend, base de datos, autenticacion, validaciones, uploads, SVG ni PDF.
+
+Archivos tocados:
+
+- `frontend/index.html`
+- `frontend/src/components/layout/Header.jsx`
+- `frontend/src/components/layout/Footer.jsx`
+- `frontend/src/components/sections/EducationSection.jsx`
+- `frontend/src/components/sections/ProjectsSection.jsx`
+- `frontend/src/components/admin/AdminProjectGalleryPicker.jsx`
+- `frontend/src/components/admin/AdminProjectsPanel.jsx`
+- `frontend/src/pages/AdminPage.jsx`
+- `frontend/src/services/adminApi.js`
+- `CAMBIOS.md`
+
+Archivos retirados:
+
+- `frontend/src/components/admin/AdminNotice.jsx`
+- `frontend/src/components/admin/AdminNotice.css`
+
 ## 2026-07-06 - Cierre de Fase 4: responsividad publica y administrativa
 
 Se realizo el cierre de Fase 4 con una revision final de QA responsive, accesibilidad visual y consistencia UX/UI del frontend publico y del panel administrativo. Solo se aplicaron microajustes de bajo riesgo; no se toco backend, base de datos, autenticacion ni logica funcional.

@@ -6,7 +6,7 @@ const NAV_ITEMS = [
   { href: "#skills", label: "Skills" },
   { href: "#projects", label: "Proyectos" },
   { href: "#experience", label: "Experiencia" },
-  { href: "#education", label: "Educacion" },
+  { href: "#education", label: "Educación" },
   { href: "#certifications", label: "Certificaciones" },
   { href: "#contact", label: "Contacto" },
 ];
@@ -46,7 +46,7 @@ export default function Header() {
 
   return (
     <header className="site-header">
-      <nav className="navbar container" aria-label="Navegacion principal">
+      <nav className="navbar container" aria-label="Navegación principal">
         <a href="#home" className="logo" aria-label="Ir al inicio" onClick={closeMenu}>
           <img src="/LogoCJ.png" alt="Logo principal" className="logo-image" />
         </a>
@@ -56,10 +56,10 @@ export default function Header() {
           className="nav-toggle"
           aria-expanded={isMenuOpen}
           aria-controls="site-primary-navigation"
-          aria-label={isMenuOpen ? "Cerrar menu principal" : "Abrir menu principal"}
+          aria-label={isMenuOpen ? "Cerrar menú principal" : "Abrir menú principal"}
           onClick={toggleMenu}
         >
-          {isMenuOpen ? "Cerrar" : "Menu"}
+          {isMenuOpen ? "Cerrar" : "Menú"}
         </button>
 
         <div

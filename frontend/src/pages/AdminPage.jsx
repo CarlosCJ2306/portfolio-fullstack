@@ -41,7 +41,6 @@ import AdminCertificationsPanel from "../components/admin/AdminCertificationsPan
 import AdminEducationPanel from "../components/admin/AdminEducationPanel";
 import AdminExperiencePanel from "../components/admin/AdminExperiencePanel";
 import AdminMessagesPanel from "../components/admin/AdminMessagesPanel";
-import AdminNotice from "../components/admin/AdminNotice";
 import AdminProfilePanel from "../components/admin/AdminProfilePanel";
 import AdminProjectsPanel from "../components/admin/AdminProjectsPanel";
 import AdminSkillsPanel from "../components/admin/AdminSkillsPanel";
@@ -155,7 +154,7 @@ const ADMIN_CONTENT_MODULE_OPTIONS = [
   { key: "skills", label: "Skills" },
   { key: "projects", label: "Proyectos" },
   { key: "experience", label: "Experiencia" },
-  { key: "education", label: "Educacion" },
+  { key: "education", label: "Educación" },
   { key: "certifications", label: "Certificaciones" },
   { key: "messages", label: "Mensajes" },
 ];
@@ -2751,7 +2750,6 @@ export default function AdminPage() {
         </div>
       </section>
 
-      <AdminNotice />
-    </main>
+      </main>
   );
 }

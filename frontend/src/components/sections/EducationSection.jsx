@@ -43,8 +43,8 @@ export default function EducationSection({ education = [] }) {
       <section id="education" className="education-section">
         <div className="container">
           <div className="education-heading">
-            <span className="badge">Educacion</span>
-            <h2>Formacion academica</h2>
+            <span className="badge">Educación</span>
+            <h2>Formación académica</h2>
             <p>
               Aún no hay información académica registrada para mostrar en el
               portafolio.
@@ -59,7 +59,7 @@ export default function EducationSection({ education = [] }) {
     <section id="education" className="education-section">
       <div className="container">
         <div className="education-heading">
-          <span className="badge">Educacion</span>
+          <span className="badge">Educación</span>
           <h2>Formación académica</h2>
           <p>
             Base académica que respalda mi perfil técnico, mi capacidad de
@@ -73,13 +73,13 @@ export default function EducationSection({ education = [] }) {
               item.institution ||
               item.institution_name ||
               item.school ||
-              "Institucion educativa";
+              "Institución educativa";
 
             const degree =
               item.degree ||
               item.title ||
               item.program ||
-              "Programa academico";
+              "Programa académico";
 
             const field =
               item.field_of_study ||

@@ -9,7 +9,7 @@ export default function Footer({ profile }) {
     <footer className="site-footer">
       <div className="container footer-container">
         <p>
-          © {currentYear} {footerLabel}. Todos los derechos reservados.
+          &copy; {currentYear} {footerLabel}. Todos los derechos reservados.
         </p>
       </div>
     </footer>
