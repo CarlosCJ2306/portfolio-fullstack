@@ -48,64 +48,99 @@ export default function AdminProfilePanel({
       )}
 
       <form className="admin-form" onSubmit={onProfileSubmit}>
-        <label>
-          Nombre completo
-          <input name="full_name" value={profileForm.full_name} onChange={onProfileChange} disabled={savingProfile} />
-        </label>
+        <section className="admin-form-section">
+          <div className="admin-form-section__header">
+            <h3>Identidad pública</h3>
+            <p>Nombre, título y resumen principal del portfolio.</p>
+          </div>
 
-        <label>
-          Título profesional
-          <input name="professional_title" value={profileForm.professional_title} onChange={onProfileChange} disabled={savingProfile} />
-        </label>
+          <div className="admin-form-section__stack">
+            <label>
+              Nombre completo
+              <input name="full_name" value={profileForm.full_name} onChange={onProfileChange} disabled={savingProfile} />
+            </label>
 
-        <label>
-          Resumen
-          <textarea name="summary" rows="6" value={profileForm.summary} onChange={onProfileChange} disabled={savingProfile} />
-        </label>
+            <label>
+              Título profesional
+              <input
+                name="professional_title"
+                value={profileForm.professional_title}
+                onChange={onProfileChange}
+                disabled={savingProfile}
+              />
+            </label>
 
-        <div className="form-row">
-          <label>
-            Ubicación
-            <input name="location" value={profileForm.location} onChange={onProfileChange} disabled={savingProfile} />
-          </label>
+            <label>
+              Resumen
+              <textarea name="summary" rows="6" value={profileForm.summary} onChange={onProfileChange} disabled={savingProfile} />
+            </label>
+          </div>
+        </section>
 
-          <label>
-            Correo
-            <input name="email" type="email" value={profileForm.email} onChange={onProfileChange} disabled={savingProfile} />
-          </label>
-        </div>
+        <section className="admin-form-section">
+          <div className="admin-form-section__header">
+            <h3>Contacto</h3>
+            <p>Datos visibles y enlaces de contacto del perfil.</p>
+          </div>
 
-        <div className="form-row">
-          <label>
-            Teléfono
-            <input name="phone" value={profileForm.phone} onChange={onProfileChange} disabled={savingProfile} />
-          </label>
+          <div className="admin-form-section__grid">
+            <label>
+              Ubicación
+              <input name="location" value={profileForm.location} onChange={onProfileChange} disabled={savingProfile} />
+            </label>
 
-          <label>
-            URL CV
-            <input name="cv_url" value={profileForm.cv_url} onChange={onProfileChange} disabled={savingProfile} />
-          </label>
-        </div>
+            <label>
+              Correo
+              <input name="email" type="email" value={profileForm.email} onChange={onProfileChange} disabled={savingProfile} />
+            </label>
 
-        <AdminImagePicker
-          value={profileForm.avatar_asset_id || null}
-          currentAsset={
-            profileForm.avatar_asset_id
-              ? mediaAssets?.find((a) => a.id === Number(profileForm.avatar_asset_id)) ?? null
-              : null
-          }
-          assetType="avatar"
-          label="Avatar / Foto de perfil"
-          disabled={savingProfile}
-          mediaAssets={mediaAssets || []}
-          onChange={onAvatarAssetChange}
-          onAssetUploaded={onAssetUploaded}
-          sessionUploadedAssets={sessionUploadedAssets}
-        />
+            <label>
+              Teléfono
+              <input name="phone" value={profileForm.phone} onChange={onProfileChange} disabled={savingProfile} />
+            </label>
 
-        <button type="submit" className="admin-button primary" disabled={savingProfile}>
-          {savingProfile ? "Guardando..." : "Guardar perfil"}
-        </button>
+            <label>
+              URL CV
+              <input name="cv_url" value={profileForm.cv_url} onChange={onProfileChange} disabled={savingProfile} />
+            </label>
+          </div>
+        </section>
+
+        <section className="admin-form-section">
+          <div className="admin-form-section__header">
+            <h3>Avatar y CV</h3>
+            <p>La imagen se conserva aunque edites solo texto, siempre que no la reemplaces.</p>
+          </div>
+
+          <AdminImagePicker
+            value={profileForm.avatar_asset_id || null}
+            currentAsset={
+              profileForm.avatar_asset_id
+                ? mediaAssets?.find((a) => a.id === Number(profileForm.avatar_asset_id)) ?? null
+                : null
+            }
+            assetType="avatar"
+            label="Avatar / Foto de perfil"
+            disabled={savingProfile}
+            mediaAssets={mediaAssets || []}
+            onChange={onAvatarAssetChange}
+            onAssetUploaded={onAssetUploaded}
+            sessionUploadedAssets={sessionUploadedAssets}
+          />
+        </section>
+
+        <section className="admin-form-section admin-form-footer">
+          <div className="admin-form-section__header">
+            <h3>Guardado</h3>
+            <p>Revisa los cambios antes de actualizar la información pública.</p>
+          </div>
+
+          <p className="admin-form-footer__hint">El avatar actual se mantiene si no seleccionas uno diferente.</p>
+
+          <button type="submit" className="admin-button primary" disabled={savingProfile}>
+            {savingProfile ? "Guardando..." : "Guardar perfil"}
+          </button>
+        </section>
       </form>
     </article>
   );

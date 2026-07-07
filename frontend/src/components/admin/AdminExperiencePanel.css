@@ -1,6 +1,6 @@
 .admin-experience-panel {
   display: grid;
-  gap: 12px;
+  gap: 14px;
 }
 
 .admin-experience-panel .timeline-list {
@@ -29,40 +29,40 @@
   box-shadow: 0 0 0 5px rgba(56, 189, 248, 0.12);
 }
 
+.experience-admin-content {
+  display: grid;
+  gap: 12px;
+}
+
 .experience-admin-top {
   display: flex;
   justify-content: space-between;
   gap: 12px;
   align-items: flex-start;
+  min-width: 0;
 }
 
 .experience-admin-top strong,
 .experience-admin-top p,
 .experience-admin-description,
-.experience-admin-list {
+.experience-admin-list,
+.experience-admin-location {
   margin: 0;
 }
 
-.experience-admin-top p {
-  margin-top: 6px;
+.experience-admin-top p,
+.experience-admin-description,
+.experience-admin-list,
+.experience-admin-location {
   color: #cbd5e1;
 }
 
-.experience-admin-date,
-.experience-admin-location,
-.experience-admin-description {
+.experience-admin-location {
   color: #94a3b8;
 }
 
-.experience-admin-location,
-.experience-admin-description {
-  margin-top: 8px;
-}
-
 .experience-admin-list {
-  margin-top: 10px;
   padding-left: 18px;
-  color: #cbd5e1;
 }
 
 .experience-admin-list li + li {
@@ -70,6 +70,15 @@
 }
 
 @media (max-width: 768px) {
+  .experience-admin-card {
+    padding: 14px;
+    grid-template-columns: 1fr;
+  }
+
+  .experience-admin-marker {
+    display: none;
+  }
+
   .experience-admin-top {
     flex-direction: column;
   }

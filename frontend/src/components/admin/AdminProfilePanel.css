@@ -1,4 +1,8 @@
 .admin-profile-panel {
   display: grid;
-  gap: 12px;
+  gap: 14px;
+}
+
+.admin-profile-panel .admin-form {
+  gap: 16px;
 }

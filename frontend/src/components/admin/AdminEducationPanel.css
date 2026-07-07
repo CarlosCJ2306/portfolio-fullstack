@@ -1,6 +1,6 @@
 .admin-education-panel {
   display: grid;
-  gap: 12px;
+  gap: 14px;
 }
 
 .admin-education-panel .education-admin-list {
@@ -29,30 +29,28 @@
   color: #7dd3fc;
 }
 
+.education-admin-content {
+  display: grid;
+  gap: 10px;
+}
+
 .education-admin-content strong,
-.education-admin-content p {
+.education-admin-content p,
+.education-admin-description {
   margin: 0;
 }
 
 .education-admin-content p {
   color: #cbd5e1;
-  margin-top: 6px;
 }
 
-.education-admin-field,
-.education-admin-date,
 .education-admin-description {
-  display: inline-block;
   color: #94a3b8;
-  margin-top: 8px;
-}
-
-.education-admin-description {
-  margin-top: 10px;
 }
 
 @media (max-width: 768px) {
   .education-admin-card {
     grid-template-columns: 1fr;
+    padding: 14px;
   }
 }

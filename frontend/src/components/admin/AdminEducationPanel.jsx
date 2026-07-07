@@ -22,7 +22,7 @@ export default function AdminEducationPanel({
     <article className="admin-card admin-education-panel">
       <div className="section-header">
         <span className="badge">Educación</span>
-        <h2>{editingEducationId ? "Editar educación" : "Crear educación"}</h2>
+        <h2>Formación académica</h2>
       </div>
 
       {panelError && (
@@ -48,65 +48,112 @@ export default function AdminEducationPanel({
         </div>
       )}
 
-      <form className="admin-form" onSubmit={onEducationSubmit}>
-        <div className="form-row">
-          <label>
-            Institución
-            <input name="institution" value={educationForm.institution} onChange={onEducationChange} disabled={savingEducation} />
-          </label>
+      <details className="admin-collapsible" open={editingEducationId ? true : undefined}>
+        <summary className="admin-collapsible__summary">
+          <div className="admin-collapsible__summary-copy">
+            <span className="admin-collapsible__eyebrow">Formulario</span>
+            <span className="admin-collapsible__title">{editingEducationId ? "Editar educación" : "Crear nueva educación"}</span>
+            <p className="admin-collapsible__meta">Agrupa institución, programa, años y descripción para trabajar mejor en pantallas pequeñas.</p>
+          </div>
+          <span className="admin-collapsible__icon" aria-hidden="true">
+            v
+          </span>
+        </summary>
 
-          <label>
-            Título
-            <input name="degree" value={educationForm.degree} onChange={onEducationChange} disabled={savingEducation} />
-          </label>
+        <div className="admin-collapsible__body">
+          <form className="admin-form" onSubmit={onEducationSubmit}>
+            <section className="admin-form-section">
+              <div className="admin-form-section__header">
+                <h3>Institución y programa</h3>
+                <p>Datos principales de la formación académica.</p>
+              </div>
+
+              <div className="admin-form-section__grid">
+                <label>
+                  Institución
+                  <input name="institution" value={educationForm.institution} onChange={onEducationChange} disabled={savingEducation} />
+                </label>
+
+                <label>
+                  Título
+                  <input name="degree" value={educationForm.degree} onChange={onEducationChange} disabled={savingEducation} />
+                </label>
+
+                <label>
+                  Área
+                  <input name="field_of_study" value={educationForm.field_of_study} onChange={onEducationChange} disabled={savingEducation} />
+                </label>
+
+                <label>
+                  Orden
+                  <input
+                    name="display_order"
+                    type="number"
+                    value={educationForm.display_order}
+                    onChange={onEducationChange}
+                    disabled={savingEducation}
+                  />
+                </label>
+              </div>
+            </section>
+
+            <section className="admin-form-section">
+              <div className="admin-form-section__header">
+                <h3>Años</h3>
+                <p>Usa rangos claros para mantener una línea de tiempo consistente.</p>
+              </div>
+
+              <div className="admin-form-section__grid">
+                <label>
+                  Año inicio
+                  <input name="start_year" type="number" value={educationForm.start_year} onChange={onEducationChange} disabled={savingEducation} />
+                </label>
+
+                <label>
+                  Año fin
+                  <input name="end_year" type="number" value={educationForm.end_year} onChange={onEducationChange} disabled={savingEducation} />
+                </label>
+              </div>
+            </section>
+
+            <section className="admin-form-section">
+              <div className="admin-form-section__header">
+                <h3>Descripción y estado</h3>
+                <p>Contexto adicional y visibilidad pública.</p>
+              </div>
+
+              <label>
+                Descripción
+                <textarea name="description" rows="4" value={educationForm.description} onChange={onEducationChange} disabled={savingEducation} />
+              </label>
+
+              <label className="toggle-row">
+                <input name="is_active" type="checkbox" checked={educationForm.is_active} onChange={onEducationChange} disabled={savingEducation} />
+                <span>Activo</span>
+              </label>
+            </section>
+
+            <section className="admin-form-section admin-form-footer">
+              <div className="admin-form-section__header">
+                <h3>Acciones</h3>
+                <p>Guarda la educación o cancela la edición actual.</p>
+              </div>
+
+              <div className="form-actions-inline">
+                <button type="submit" className="admin-button primary" disabled={savingEducation}>
+                  {savingEducation ? "Guardando..." : editingEducationId ? "Actualizar educación" : "Crear educación"}
+                </button>
+
+                {editingEducationId && (
+                  <button type="button" className="admin-button ghost" onClick={onCancelEducationEdit} disabled={savingEducation}>
+                    Cancelar edición
+                  </button>
+                )}
+              </div>
+            </section>
+          </form>
         </div>
-
-        <div className="form-row">
-          <label>
-            Área
-            <input name="field_of_study" value={educationForm.field_of_study} onChange={onEducationChange} disabled={savingEducation} />
-          </label>
-
-          <label>
-            Orden
-            <input name="display_order" type="number" value={educationForm.display_order} onChange={onEducationChange} disabled={savingEducation} />
-          </label>
-        </div>
-
-        <div className="form-row">
-          <label>
-            Año inicio
-            <input name="start_year" type="number" value={educationForm.start_year} onChange={onEducationChange} disabled={savingEducation} />
-          </label>
-
-          <label>
-            Año fin
-            <input name="end_year" type="number" value={educationForm.end_year} onChange={onEducationChange} disabled={savingEducation} />
-          </label>
-        </div>
-
-        <label>
-          Descripción
-          <textarea name="description" rows="4" value={educationForm.description} onChange={onEducationChange} disabled={savingEducation} />
-        </label>
-
-        <label className="toggle-row">
-          <input name="is_active" type="checkbox" checked={educationForm.is_active} onChange={onEducationChange} disabled={savingEducation} />
-          <span>Activo</span>
-        </label>
-
-        <div className="form-actions-inline">
-          <button type="submit" className="admin-button primary" disabled={savingEducation}>
-            {savingEducation ? "Guardando..." : editingEducationId ? "Actualizar educación" : "Crear educación"}
-          </button>
-
-          {editingEducationId && (
-            <button type="button" className="admin-button ghost" onClick={onCancelEducationEdit} disabled={savingEducation}>
-              Cancelar edición
-            </button>
-          )}
-        </div>
-      </form>
+      </details>
 
       <div className="entity-list education-admin-list">
         {education.length === 0 ? (
@@ -116,23 +163,31 @@ export default function AdminEducationPanel({
             const isDeleting = deletingEducationIds?.includes(item.id);
 
             return (
-              <article className="education-admin-card" key={item.id}>
-                <div className="education-admin-icon">🎓</div>
+              <article className="education-admin-card admin-list-card" key={item.id}>
+                <div className="education-admin-icon" aria-hidden="true">
+                  🎓
+                </div>
                 <div className="education-admin-content">
-                  <strong>{item.degree}</strong>
+                  <div className="admin-list-card__footer">
+                    <strong>{item.degree}</strong>
+                    <span className={`admin-status-pill ${item.is_active ? "is-active" : "is-inactive"}`}>
+                      {item.is_active ? "Activa" : "Inactiva"}
+                    </span>
+                  </div>
+
                   <p>{item.institution}</p>
 
-                  {item.field_of_study && <span className="education-admin-field">{item.field_of_study}</span>}
-
-                  {(item.start_year || item.end_year) && (
-                    <span className="education-admin-date">
-                      {item.start_year || ""} {item.start_year && item.end_year ? "—" : ""} {item.end_year || ""}
-                    </span>
-                  )}
+                  <div className="admin-meta-row">
+                    {item.field_of_study && <span className="admin-meta-chip">{item.field_of_study}</span>}
+                    {(item.start_year || item.end_year) && (
+                      <span className="admin-meta-chip">
+                        {item.start_year || "Inicio"} {item.start_year && item.end_year ? "-" : ""} {item.end_year || "Actualidad"}
+                      </span>
+                    )}
+                    <span className="admin-meta-chip">Orden {item.display_order}</span>
+                  </div>
 
                   {item.description && <p className="education-admin-description">{item.description}</p>}
-
-                  <div className="entity-meta">Orden {item.display_order}</div>
 
                   <div className="entity-actions">
                     <button

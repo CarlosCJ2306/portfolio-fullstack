@@ -66,10 +66,12 @@
 
 @media (max-width: 768px) {
   .admin-toast {
-    right: 16px;
-    left: 16px;
-    bottom: 16px;
+    right: 12px;
+    left: 12px;
+    top: 12px;
+    bottom: auto;
     width: auto;
+    padding: 14px 16px;
   }
 }
 

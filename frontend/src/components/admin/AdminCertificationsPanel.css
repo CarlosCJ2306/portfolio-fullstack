@@ -1,6 +1,6 @@
 .admin-certifications-panel {
   display: grid;
-  gap: 12px;
+  gap: 14px;
 }
 
 .admin-certifications-panel .certification-admin-list {
@@ -27,38 +27,35 @@
   border-radius: 14px;
   background: rgba(34, 197, 94, 0.16);
   color: #86efac;
+  font-size: 20px;
+}
+
+.certification-admin-content {
+  display: grid;
+  gap: 10px;
 }
 
 .certification-admin-content strong,
-.certification-admin-content p {
+.certification-admin-content p,
+.certification-admin-description {
   margin: 0;
 }
 
 .certification-admin-content p {
   color: #cbd5e1;
-  margin-top: 6px;
 }
 
-.certification-admin-date,
 .certification-admin-description {
-  display: inline-block;
   color: #94a3b8;
-  margin-top: 8px;
 }
 
 .certification-admin-link {
   display: inline-flex;
-  margin-top: 10px;
-  color: #7dd3fc;
-  text-decoration: none;
-}
-
-.certification-admin-link:hover {
-  text-decoration: underline;
 }
 
 @media (max-width: 768px) {
   .certification-admin-card {
     grid-template-columns: 1fr;
+    padding: 14px;
   }
 }

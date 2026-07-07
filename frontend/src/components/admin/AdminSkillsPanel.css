@@ -1,6 +1,6 @@
 .admin-skills-panel {
   display: grid;
-  gap: 12px;
+  gap: 14px;
 }
 
 .admin-skills-panel .entity-list {
@@ -10,57 +10,32 @@
 }
 
 .admin-skills-panel .entity-card {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
+  display: grid;
+  gap: 14px;
   padding: 16px;
   border-radius: 18px;
   background: rgba(2, 6, 23, 0.56);
   border: 1px solid rgba(148, 163, 184, 0.18);
   transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+  min-width: 0;
 }
 
 .admin-skills-panel .entity-card:hover {
   transform: translateY(-2px);
 }
 
-.admin-skills-panel .entity-card strong,
-.admin-skills-panel .entity-card p {
-  margin: 0;
-}
-
-.admin-skills-panel .entity-card p {
-  color: #cbd5e1;
-  margin-top: 6px;
-}
-
-.admin-skills-panel .entity-meta {
-  display: inline-block;
-  margin-top: 8px;
-  color: #94a3b8;
-  font-size: 13px;
-}
-
-.admin-skills-panel .entity-actions {
-  display: flex;
-  gap: 10px;
-  align-items: flex-start;
-  flex-wrap: wrap;
-}
-
-/* --- Icono de skill en la tarjeta --- */
-.entity-card__content {
+.admin-skills-panel .entity-card__content {
   display: flex;
   align-items: center;
   gap: 14px;
   min-width: 0;
 }
 
-.entity-card__icon {
+.admin-skills-panel .entity-card__icon {
   flex-shrink: 0;
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
   background: rgba(14, 165, 233, 0.1);
   border: 1px solid rgba(56, 189, 248, 0.22);
   overflow: hidden;
@@ -69,86 +44,28 @@
   justify-content: center;
 }
 
-.entity-card__icon-img {
+.admin-skills-panel .entity-card__icon-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.entity-card__icon-svg {
-  width: 28px;
-  height: 28px;
-  color: #7dd3fc;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.entity-card__icon-svg svg {
-  width: 100%;
-  height: 100%;
-}
-
-.entity-card__icon-placeholder {
+.admin-skills-panel .entity-card__icon-placeholder {
   font-size: 18px;
   font-weight: 700;
   color: #38bdf8;
 }
 
-@media (max-width: 768px) {
-  .admin-skills-panel .entity-card {
-    flex-direction: column;
-  }
-}
-
-
-.admin-skills-panel .entity-list {
-  display: grid;
-  gap: 12px;
-  margin-top: 20px;
-}
-
-.admin-skills-panel .entity-card {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 16px;
-  border-radius: 18px;
-  background: rgba(2, 6, 23, 0.56);
-  border: 1px solid rgba(148, 163, 184, 0.18);
-  transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
-}
-
-.admin-skills-panel .entity-card:hover {
-  transform: translateY(-2px);
-}
-
-.admin-skills-panel .entity-card strong,
-.admin-skills-panel .entity-card p {
+.admin-skills-panel .entity-card strong {
   margin: 0;
 }
 
-.admin-skills-panel .entity-card p {
-  color: #cbd5e1;
-  margin-top: 6px;
-}
-
-.admin-skills-panel .entity-meta {
-  display: inline-block;
-  margin-top: 8px;
-  color: #94a3b8;
-  font-size: 13px;
-}
-
-.admin-skills-panel .entity-actions {
-  display: flex;
-  gap: 10px;
-  align-items: flex-start;
-  flex-wrap: wrap;
-}
-
 @media (max-width: 768px) {
   .admin-skills-panel .entity-card {
-    flex-direction: column;
+    padding: 14px;
+  }
+
+  .admin-skills-panel .entity-card__content {
+    align-items: flex-start;
   }
 }

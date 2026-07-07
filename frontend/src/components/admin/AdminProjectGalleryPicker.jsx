@@ -53,7 +53,7 @@ function validateGalleryFileBeforeRead(file) {
   const hasAllowedExtension = GALLERY_ALLOWED_EXTENSIONS.includes(fileExtension);
 
   if (file.size > GALLERY_MAX_BYTES) {
-    throw new Error("El archivo supera el limite de 5 MB para la galeria del proyecto.");
+    throw new Error("El archivo supera el límite de 5 MB para la galería del proyecto.");
   }
 
   if (
@@ -62,13 +62,13 @@ function validateGalleryFileBeforeRead(file) {
     && !hasAllowedMimeType
   ) {
     throw new Error(
-      `El tipo de archivo '${normalizedMimeType}' no es valido para la galeria del proyecto.`
+      `El tipo de archivo '${normalizedMimeType}' no es válido para la galería del proyecto.`
     );
   }
 
   if (!hasAllowedMimeType && !hasAllowedExtension) {
     throw new Error(
-      `La extension '${fileExtension || "(sin extension)"}' no es valida para la galeria del proyecto.`
+      `La extensión '${fileExtension || "(sin extensión)"}' no es válida para la galería del proyecto.`
     );
   }
 
@@ -78,7 +78,7 @@ function validateGalleryFileBeforeRead(file) {
 
   if (!effectiveMimeType) {
     throw new Error(
-      "No se pudo determinar un tipo de archivo valido para la galeria del proyecto."
+      "No se pudo determinar un tipo de archivo válido para la galería del proyecto."
     );
   }
 
@@ -106,7 +106,7 @@ function createUploadItem(file, index) {
     fileName: file?.name || `archivo-${index + 1}`,
     status: "pendiente",
     progress: 0,
-    message: "Pendiente de validacion.",
+    message: "Pendiente de validación.",
   };
 }
 
@@ -450,7 +450,7 @@ export default function AdminProjectGalleryPicker({
 
     if (hasActiveUpload) {
       setUploadError(
-        "Ya hay una carga en curso. Espera a que termine o cancelala antes de iniciar otra."
+        "Ya hay una carga en curso. Espera a que termine o cancélala antes de iniciar otra."
       );
       return;
     }
@@ -478,7 +478,7 @@ export default function AdminProjectGalleryPicker({
         validation = validateGalleryFileBeforeRead(file);
       } catch (error) {
         const message =
-          error.message || "El archivo seleccionado no es valido para la galeria.";
+          error.message || "El archivo seleccionado no es válido para la galería.";
         updateUploadItem(uploadItem.id, {
           status: "fallido",
           progress: 0,
@@ -567,7 +567,7 @@ export default function AdminProjectGalleryPicker({
   function handleCloseModal() {
     if (hasActiveUpload) {
       const shouldCancel = window.confirm(
-        "Hay cargas en curso. Si cierras ahora, se cancelaran los uploads pendientes. ¿Deseas continuar?"
+        "Hay cargas en curso. Si cierras ahora, se cancelarán los uploads pendientes. ¿Deseas continuar?"
       );
 
       if (!shouldCancel) {
@@ -594,29 +594,34 @@ export default function AdminProjectGalleryPicker({
     >
       <div className="project-gallery-picker__header">
         <div>
-          <strong>Galeria del proyecto</strong>
+          <strong>Galería del proyecto</strong>
           <p className="project-gallery-picker__hint">
-            Agrega imagenes adicionales sin afectar la portada principal.
+            Imágenes adicionales sin afectar la portada principal.
           </p>
         </div>
 
-        <button
-          type="button"
-          className="admin-button secondary"
-          onClick={handleOpenModal}
-          disabled={disabled}
-        >
-          Agregar imagenes
-        </button>
+        <div className="project-gallery-picker__header-meta">
+          <span className="project-gallery-picker__count-pill">
+            {selectedAssets.length} seleccionada{selectedAssets.length === 1 ? "" : "s"}
+          </span>
+          <button
+            type="button"
+            className="admin-button secondary"
+            onClick={handleOpenModal}
+            disabled={disabled}
+          >
+            Agregar imágenes
+          </button>
+        </div>
       </div>
 
       {selectedAssets.length === 0 ? (
         <div className="project-gallery-picker__empty">
-          <span className="project-gallery-picker__empty-icon">Imagen</span>
-          <p>No hay imagenes adicionales seleccionadas.</p>
+          <span className="project-gallery-picker__empty-icon">Galería</span>
+          <p>No hay imágenes adicionales seleccionadas.</p>
         </div>
       ) : (
-        <div className="project-gallery-picker__list">
+        <div className="project-gallery-picker__list" aria-label="Imágenes adicionales seleccionadas">
           {selectedAssets.map((asset, index) => {
             const previewSrc = getAssetPreviewSrc(asset);
             const safeSvgSrc = getSafeSvgDataUrl(asset.svg_content);
@@ -644,9 +649,11 @@ export default function AdminProjectGalleryPicker({
                 </div>
 
                 <div className="project-gallery-picker__meta">
-                  <strong>{asset.file_name || `Asset #${asset.id}`}</strong>
-                  <span>Posicion {index + 1}</span>
-                  <span>Asset #{asset.id}</span>
+                  <strong className="admin-file-name">{asset.file_name || `Asset #${asset.id}`}</strong>
+                  <div className="project-gallery-picker__meta-pills">
+                    <span className="project-gallery-picker__meta-pill">Posición {index + 1}</span>
+                    <span className="project-gallery-picker__meta-pill">Asset #{asset.id}</span>
+                  </div>
                 </div>
 
                 <div className="project-gallery-picker__actions">
@@ -698,12 +705,12 @@ export default function AdminProjectGalleryPicker({
           onClick={handleOverlayClick}
           role="dialog"
           aria-modal="true"
-          aria-label="Selector de galeria del proyecto"
+          aria-label="Selector de galería del proyecto"
         >
           <div className="project-gallery-picker__modal">
             <div className="project-gallery-picker__modal-header">
               <div>
-                <h3>Seleccionar imagenes adicionales</h3>
+                <h3>Seleccionar imágenes adicionales</h3>
                 <p>Seleccionadas: {selectedAssetIds.length}</p>
               </div>
 
@@ -713,9 +720,13 @@ export default function AdminProjectGalleryPicker({
                 onClick={handleCloseModal}
                 aria-label="Cerrar"
               >
-                X
+                ×
               </button>
             </div>
+
+            <p className="project-gallery-picker__modal-intro">
+              Sube nuevas imágenes o reutiliza assets existentes de la biblioteca.
+            </p>
 
             <div
               className={`project-gallery-picker__dropzone${dragging ? " project-gallery-picker__dropzone--dragging" : ""}${hasActiveUpload ? " project-gallery-picker__dropzone--uploading" : ""}`}
@@ -742,25 +753,25 @@ export default function AdminProjectGalleryPicker({
                 disabled={hasActiveUpload}
               />
 
-              <span className="project-gallery-picker__dropzone-icon">
-                {hasActiveUpload ? "Subiendo" : "Subir"}
+              <span className="project-gallery-picker__dropzone-icon" aria-hidden="true">
+                {hasActiveUpload ? "⏳" : "🖼️"}
               </span>
               <p>
                 {hasActiveUpload
-                  ? "Carga en curso. Espera a que termine o cancelala para iniciar otra."
-                  : "Arrastra una o varias imagenes o haz clic para subir"}
+                  ? "Carga en curso. Espera a que termine o cancélala para iniciar otra."
+                  : "Arrastra una o varias imágenes o haz clic para subir"}
               </p>
               <small>
                 PNG, JPG, WebP o SVG hasta 5 MB. Cada archivo se valida antes de leerse,
-                se sube por separado y solo los exitosos se agregan a la galeria.
+                se sube por separado y solo los exitosos se agregan a la galería.
               </small>
             </div>
 
             {hasActiveUpload && (
               <div className="project-gallery-picker__upload-warning">
                 <span>
-                  Las cargas activas continuan dentro de este modal. Si lo cierras, se
-                  cancelaran.
+                  Las cargas activas continúan dentro de este modal. Si lo cierras, se
+                  cancelarán.
                 </span>
                 <button
                   type="button"
@@ -783,8 +794,10 @@ export default function AdminProjectGalleryPicker({
                       className={`project-gallery-picker__upload-item project-gallery-picker__upload-item--${item.status}`}
                     >
                       <div className="project-gallery-picker__upload-top">
-                        <strong>{item.fileName}</strong>
-                        <span>{getStatusLabel(item.status)}</span>
+                        <strong className="admin-file-name">{item.fileName}</strong>
+                        <span className={`project-gallery-picker__status-chip project-gallery-picker__status-chip--${item.status}`}>
+                          {getStatusLabel(item.status)}
+                        </span>
                       </div>
 
                       <div className="project-gallery-picker__upload-progress">
@@ -821,8 +834,8 @@ export default function AdminProjectGalleryPicker({
 
             <div className="project-gallery-picker__asset-summary">
               {filteredAssets.length > 0
-                ? `${filteredAssets.length} imagenes disponibles en la biblioteca`
-                : "No hay imagenes disponibles todavia."}
+                ? `${filteredAssets.length} imágenes disponibles en la biblioteca`
+                : "No hay imágenes disponibles todavía."}
             </div>
 
             {filteredAssets.length > 0 && (
@@ -857,12 +870,13 @@ export default function AdminProjectGalleryPicker({
                         <div className="project-gallery-picker__grid-placeholder">?</div>
                       )}
 
-                      <span className="project-gallery-picker__grid-name">
+                      <span className="project-gallery-picker__grid-name admin-file-name">
                         {asset.file_name || `#${asset.id}`}
                       </span>
+                      <span className="project-gallery-picker__grid-meta">Asset #{asset.id}</span>
 
                       {isSelected && (
-                        <span className="project-gallery-picker__grid-check">OK</span>
+                        <span className="project-gallery-picker__grid-check">✓</span>
                       )}
                     </button>
                   );

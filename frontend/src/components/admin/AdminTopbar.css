@@ -3,6 +3,7 @@
   justify-content: space-between;
   gap: 24px;
   align-items: flex-start;
+  min-width: 0;
 }
 
 .admin-actions {
@@ -10,15 +11,44 @@
   gap: 12px;
   flex-wrap: wrap;
   justify-content: flex-end;
+  min-width: 0;
+}
+
+.admin-topbar-panel > div:first-child,
+.admin-actions {
+  min-width: 0;
+}
+
+.admin-topbar-panel h1 {
+  word-break: normal;
+  overflow-wrap: break-word;
+}
+
+.admin-topbar-panel p {
+  word-break: normal;
+  overflow-wrap: break-word;
 }
 
 @media (max-width: 768px) {
   .admin-topbar-panel {
     flex-direction: column;
     align-items: flex-start;
+    gap: 16px;
   }
 
   .admin-actions {
     justify-content: flex-start;
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-topbar-panel h1 {
+    font-size: clamp(24px, 7vw, 28px);
+  }
+
+  .admin-topbar-panel p {
+    font-size: 14px;
+    line-height: 1.45;
   }
 }

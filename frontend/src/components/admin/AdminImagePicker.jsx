@@ -88,6 +88,14 @@ const ASSET_TYPE_LABELS = {
   document: "Documento",
 };
 
+const PREVIEW_TITLE_BY_TYPE = {
+  avatar: "Vista previa del avatar",
+  image: "Vista previa de la imagen",
+  icon: "Vista previa del icono",
+  icon_svg: "Vista previa del icono",
+  document: "Documento PDF asociado",
+};
+
 function getFileExtension(fileName) {
   const lastDotIndex = fileName.lastIndexOf(".");
 
@@ -123,7 +131,7 @@ function validateFileBeforeRead(file, assetType) {
 
   if (file.size > rules.maxBytes) {
     throw new Error(
-      `El archivo supera el limite de ${formatMaxSize(rules.maxBytes)} para ${rules.label}.`
+      `El archivo supera el límite de ${formatMaxSize(rules.maxBytes)} para ${rules.label}.`
     );
   }
 
@@ -133,13 +141,13 @@ function validateFileBeforeRead(file, assetType) {
     && !hasAllowedMimeType
   ) {
     throw new Error(
-      `El tipo de archivo '${normalizedMimeType}' no es valido para ${rules.label}.`
+      `El tipo de archivo '${normalizedMimeType}' no es válido para ${rules.label}.`
     );
   }
 
   if (!hasAllowedMimeType && !hasAllowedExtension) {
     throw new Error(
-      `La extension '${fileExtension || "(sin extension)"}' no es valida para ${rules.label}.`
+      `La extensión '${fileExtension || "(sin extensión)"}' no es válida para ${rules.label}.`
     );
   }
 
@@ -149,7 +157,7 @@ function validateFileBeforeRead(file, assetType) {
 
   if (!effectiveMimeType) {
     throw new Error(
-      `No se pudo determinar un tipo de archivo valido para ${rules.label}.`
+      `No se pudo determinar un tipo de archivo válido para ${rules.label}.`
     );
   }
 
@@ -165,7 +173,7 @@ function createUploadItem(file) {
     fileName: file?.name || "archivo",
     status: "pendiente",
     progress: 0,
-    message: "Pendiente de validacion.",
+    message: "Pendiente de validación.",
   };
 }
 
@@ -239,7 +247,7 @@ function getPickerCopy(assetType, hasValue) {
       modalTitle: "Seleccionar documento PDF",
       dialogLabel: "Selector de documento PDF",
       uploadIdleLabel: "Arrastra un PDF o haz clic para subir",
-      uploadBusyLabel: "Carga en curso. Espera o cancelala para iniciar otra.",
+      uploadBusyLabel: "Carga en curso. Espera o cancélala para iniciar otra.",
       uploadHint: "Archivos PDF hasta 10 MB",
       libraryCount: (count) =>
         count > 0
@@ -255,8 +263,8 @@ function getPickerCopy(assetType, hasValue) {
       modalTitle: "Seleccionar icono",
       dialogLabel: "Selector de icono",
       uploadIdleLabel: "Arrastra un archivo o haz clic para subir",
-      uploadBusyLabel: "Carga en curso. Espera o cancelala para iniciar otra.",
-      uploadHint: "PNG, JPG, WebP o SVG dentro del limite permitido",
+      uploadBusyLabel: "Carga en curso. Espera o cancélala para iniciar otra.",
+      uploadHint: "PNG, JPG, WebP o SVG dentro del límite permitido",
       libraryCount: (count) =>
         count > 0
           ? `${count} icono${count !== 1 ? "s" : ""} disponible${count !== 1 ? "s" : ""}`
@@ -270,13 +278,35 @@ function getPickerCopy(assetType, hasValue) {
     modalTitle: "Seleccionar imagen",
     dialogLabel: "Selector de imagen",
     uploadIdleLabel: "Arrastra un archivo o haz clic para subir",
-    uploadBusyLabel: "Carga en curso. Espera o cancelala para iniciar otra.",
-    uploadHint: "PNG, JPG, WebP o SVG dentro del limite permitido",
+    uploadBusyLabel: "Carga en curso. Espera o cancélala para iniciar otra.",
+    uploadHint: "PNG, JPG, WebP o SVG dentro del límite permitido",
     libraryCount: (count) =>
       count > 0
         ? `${count} imagen${count !== 1 ? "es" : ""} disponible${count !== 1 ? "s" : ""}`
         : "No hay imágenes subidas aún. Sube la primera usando la zona de arriba.",
   };
+}
+
+function getAssetStateLabel(assetType, asset) {
+  if (!asset) {
+    return assetType === "document" ? "Sin documento asociado" : "Sin asset seleccionado";
+  }
+
+  if (assetType === "document") {
+    return asset.mime_type === "application/pdf"
+      ? "Documento PDF listo"
+      : "Documento asociado";
+  }
+
+  if (assetType === "avatar") {
+    return "Avatar seleccionado";
+  }
+
+  if (assetType === "icon" || assetType === "icon_svg") {
+    return "Icono seleccionado";
+  }
+
+  return "Imagen seleccionada";
 }
 
 export default function AdminImagePicker({
@@ -388,6 +418,9 @@ export default function AdminImagePicker({
   );
   const selectedAssetTypeLabel =
     ASSET_TYPE_LABELS[selectedAsset?.asset_type] || selectedAsset?.asset_type || null;
+  const previewTitle = PREVIEW_TITLE_BY_TYPE[assetType] || PREVIEW_TITLE_BY_TYPE.image;
+  const selectedAssetName = selectedAsset?.file_name || pickerCopy.emptyText;
+  const selectedAssetStateLabel = getAssetStateLabel(assetType, selectedAsset);
 
   function handleOpenPdf() {
     if (
@@ -545,7 +578,7 @@ export default function AdminImagePicker({
 
     if (hasActiveUpload) {
       setUploadError(
-        "Ya hay una carga en curso. Espera a que termine o cancelala antes de iniciar otra."
+        "Ya hay una carga en curso. Espera a que termine o cancélala antes de iniciar otra."
       );
       return;
     }
@@ -560,7 +593,7 @@ export default function AdminImagePicker({
       validation = validateFileBeforeRead(file, assetType);
     } catch (error) {
       const message =
-        error.message || "El archivo seleccionado no es valido para este campo.";
+        error.message || "El archivo seleccionado no es válido para este campo.";
       updateUploadItem(uploadItem.id, {
         status: "fallido",
         progress: 0,
@@ -660,7 +693,7 @@ export default function AdminImagePicker({
 
     if (droppedFiles.length > 1) {
       setUploadError(
-        "Este selector solo admite un archivo a la vez. Si necesitas varias imagenes, usa la galeria del proyecto."
+        "Este selector solo admite un archivo a la vez. Si necesitas varias imágenes, usa la galería del proyecto."
       );
       return;
     }
@@ -710,7 +743,7 @@ export default function AdminImagePicker({
   function handleCloseModal() {
     if (hasActiveUpload) {
       const shouldCancel = window.confirm(
-        "Hay una carga en curso. Si cierras ahora, se cancelara el upload actual. ¿Deseas continuar?"
+        "Hay una carga en curso. Si cierras ahora, se cancelará el upload actual. ¿Deseas continuar?"
       );
 
       if (!shouldCancel) {
@@ -735,11 +768,14 @@ export default function AdminImagePicker({
     <div className={`image-picker${disabled ? " image-picker--disabled" : ""}`}>
       <span className="image-picker__label">{label}</span>
 
-      <div className="image-picker__preview-row">
-        <div className="image-picker__preview-box">
+      <div className={`image-picker__preview-card image-picker__preview-card--${assetType}`}>
+        <div
+          className={`image-picker__preview-box image-picker__preview-box--${assetType}`}
+          aria-label={previewTitle}
+        >
           {isPdf ? (
             <div className="image-picker__preview-empty">
-              <span className="image-picker__preview-icon">📄</span>
+              <span className="image-picker__preview-icon" aria-hidden="true">📄</span>
               <span className="image-picker__preview-text">Documento PDF</span>
             </div>
           ) : previewSrc ? (
@@ -756,79 +792,103 @@ export default function AdminImagePicker({
             />
           ) : (
             <div className="image-picker__preview-empty">
-              <span className="image-picker__preview-icon">
+              <span className="image-picker__preview-icon" aria-hidden="true">
                 {assetType === "document" ? "📄" : "🖼️"}
               </span>
-              <span className="image-picker__preview-text">
-                {pickerCopy.emptyText}
-              </span>
+              <span className="image-picker__preview-text">{pickerCopy.emptyText}</span>
             </div>
           )}
         </div>
 
-        <div className="image-picker__controls">
-          <button
-            type="button"
-            className="admin-button secondary image-picker__open-btn"
-            onClick={handleOpenModal}
-            disabled={disabled}
-          >
-            {pickerCopy.selectButton}
-          </button>
+        <div className="image-picker__summary">
+          <div className="image-picker__summary-main">
+            <div className="image-picker__summary-copy">
+              <strong className="image-picker__summary-name admin-file-name">
+                {selectedAssetName}
+              </strong>
+              <span className="image-picker__summary-state">{selectedAssetStateLabel}</span>
+            </div>
 
-          {value && (
+            {value && <span className="image-picker__id-badge">Asset #{value}</span>}
+          </div>
+
+          <div className="image-picker__controls">
             <button
               type="button"
-              className="admin-button ghost image-picker__clear-btn"
-              onClick={handleClearAsset}
-              disabled={disabled || hasActiveUpload}
+              className="admin-button secondary image-picker__open-btn"
+              onClick={handleOpenModal}
+              disabled={disabled}
             >
-              Quitar
+              {pickerCopy.selectButton}
             </button>
-          )}
 
-          {value && <span className="image-picker__id-badge">Asset #{value}</span>}
+            {value && (
+              <button
+                type="button"
+                className="admin-button ghost image-picker__clear-btn"
+                onClick={handleClearAsset}
+                disabled={disabled || hasActiveUpload}
+              >
+                Quitar
+              </button>
+            )}
+
+            {assetType === "document" && isPdf && selectedAsset?.data_base64 && (
+              <button
+                type="button"
+                className="admin-button ghost image-picker__pdf-btn"
+                onClick={handleOpenPdf}
+                disabled={disabled}
+              >
+                Abrir PDF
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
       {selectedAsset && (
         <div className="image-picker__asset-meta-card">
-          <div className="image-picker__asset-meta-grid">
-            <span>
-              <strong>Nombre:</strong>{" "}
-              {selectedAsset.file_name || "Sin nombre"}
-            </span>
-            <span>
-              <strong>Tipo:</strong>{" "}
-              {selectedAssetTypeLabel || "No disponible"}
-            </span>
-            <span>
-              <strong>MIME:</strong>{" "}
-              {selectedAsset.mime_type || "No disponible"}
-            </span>
-            <span>
-              <strong>Tamaño:</strong>{" "}
-              {selectedAssetSize || "No disponible"}
-            </span>
+          <div className="image-picker__asset-meta-primary">
+            {selectedAssetTypeLabel && (
+              <span className="image-picker__meta-pill">{selectedAssetTypeLabel}</span>
+            )}
+            {selectedAssetSize && (
+              <span className="image-picker__meta-pill">{selectedAssetSize}</span>
+            )}
+            {selectedAsset.mime_type && (
+              <span className="image-picker__meta-pill image-picker__meta-pill--muted">
+                {selectedAsset.mime_type}
+              </span>
+            )}
           </div>
 
-          {assetType === "document" && (
-            <div className="image-picker__asset-meta-actions">
-              {isPdf && selectedAsset?.data_base64 ? (
-                <button
-                  type="button"
-                  className="admin-button ghost"
-                  onClick={handleOpenPdf}
-                >
-                  Abrir PDF
-                </button>
-              ) : (
-                <span className="image-picker__asset-meta-note">
-                  No hay PDF disponible para abrir o previsualizar.
-                </span>
-              )}
-            </div>
+          {assetType === "document" && !isPdf && (
+            <span className="image-picker__asset-meta-note">
+              No hay PDF disponible para abrir o previsualizar.
+            </span>
           )}
+
+          <details className="image-picker__asset-details">
+            <summary>Detalles del archivo</summary>
+            <div className="image-picker__asset-meta-grid">
+              <span className="admin-file-name">
+                <strong>Nombre:</strong> {selectedAsset.file_name || "Sin nombre"}
+              </span>
+              <span>
+                <strong>Tipo:</strong> {selectedAssetTypeLabel || "No disponible"}
+              </span>
+              <span className="admin-text-break-safe">
+                <strong>MIME:</strong> {selectedAsset.mime_type || "No disponible"}
+              </span>
+              <span>
+                <strong>Tamaño:</strong> {selectedAssetSize || "No disponible"}
+              </span>
+              <span>
+                <strong>Asset ID:</strong> #{selectedAsset.id}
+              </span>
+            </div>
+          </details>
         </div>
       )}
 
@@ -860,9 +920,13 @@ export default function AdminImagePicker({
                 onClick={handleCloseModal}
                 aria-label="Cerrar"
               >
-                ✕
+                ×
               </button>
             </div>
+
+            <p className="image-picker__modal-intro">
+              Sube un archivo nuevo o selecciona uno ya disponible en la biblioteca.
+            </p>
 
             <div
               className={`image-picker__dropzone${dragging ? " image-picker__dropzone--dragging" : ""}${hasActiveUpload ? " image-picker__dropzone--uploading" : ""}`}
@@ -890,14 +954,14 @@ export default function AdminImagePicker({
 
               {hasActiveUpload ? (
                 <>
-                  <span className="image-picker__upload-icon">⏳</span>
+                  <span className="image-picker__upload-icon" aria-hidden="true">⏳</span>
                   <p className="image-picker__upload-label">
                     {pickerCopy.uploadBusyLabel}
                   </p>
                 </>
               ) : (
                 <>
-                  <span className="image-picker__upload-icon">⬆️</span>
+                  <span className="image-picker__upload-icon" aria-hidden="true">⬆️</span>
                   <p className="image-picker__upload-label">
                     {pickerCopy.uploadIdleLabel}
                   </p>
@@ -910,7 +974,7 @@ export default function AdminImagePicker({
 
             {hasActiveUpload && (
               <div className="image-picker__upload-warning">
-                <span>La carga sigue en curso. Si cierras el modal, se cancelara.</span>
+                <span>La carga sigue en curso. Si cierras el modal, se cancelará.</span>
                 <button
                   type="button"
                   className="admin-button ghost"
@@ -929,8 +993,10 @@ export default function AdminImagePicker({
                     className={`image-picker__upload-item image-picker__upload-item--${item.status}`}
                   >
                     <div className="image-picker__upload-top">
-                      <strong>{item.fileName}</strong>
-                      <span>{getStatusLabel(item.status)}</span>
+                      <strong className="admin-file-name">{item.fileName}</strong>
+                      <span className={`image-picker__status-chip image-picker__status-chip--${item.status}`}>
+                        {getStatusLabel(item.status)}
+                      </span>
                     </div>
                     <div className="image-picker__upload-progress">
                       <span
@@ -972,10 +1038,7 @@ export default function AdminImagePicker({
                         disabled={hasActiveUpload}
                       >
                         {isItemPdf ? (
-                          <div
-                            className="image-picker__gallery-placeholder"
-                            style={{ fontSize: "2rem" }}
-                          >
+                          <div className="image-picker__gallery-placeholder" style={{ fontSize: "2rem" }}>
                             📄
                           </div>
                         ) : src ? (
@@ -998,9 +1061,10 @@ export default function AdminImagePicker({
                           <span className="image-picker__gallery-check">✓</span>
                         )}
 
-                        <span className="image-picker__gallery-name">
+                        <span className="image-picker__gallery-name admin-file-name">
                           {asset.file_name || `#${asset.id}`}
                         </span>
+                        <span className="image-picker__gallery-meta">Asset #{asset.id}</span>
                       </button>
                     );
                   })}

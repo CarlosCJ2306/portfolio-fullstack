@@ -1,5 +1,155 @@
 # Cambios realizados
 
+## 2026-07-06 - Lote 3 de reforma UX/UI responsive del panel administrativo
+
+Se mejoro la experiencia responsive de los pickers administrativos para imagenes, iconos, documentos PDF y galeria de proyectos sin tocar backend, autenticacion, validaciones ni logica de uploads.
+
+Cambios aplicados:
+
+- `AdminImagePicker` se reorganizo como una tarjeta compacta con preview, resumen del asset seleccionado, acciones principales y metadatos tecnicos colapsables;
+- se diferencio mejor el comportamiento visual por tipo de asset: avatar/icono compacto, imagen amplia y documento PDF en formato de tarjeta documental;
+- la accion `Abrir PDF` queda visible cuando existe un documento PDF usable, sin mezclarlo con otros metadatos ni con `credential_url`;
+- los estados de upload se compactaron con chips de estado, progreso claro y nombres de archivo controlados con clases seguras;
+- `AdminProjectGalleryPicker` se transformo en una experiencia mas clara para movil: resumen de seleccion, tira/lista compacta de imagenes, acciones por tarjeta y modal de biblioteca mas ordenado;
+- en movil la galeria seleccionada ahora puede desplazarse horizontalmente sin empujar en exceso el resto del formulario;
+- se mejoraron dropzones, acciones y metadatos para evitar saturacion visual y quiebres agresivos de nombres largos;
+- se reforzaron estilos de foco visible para dropzones, items seleccionables y controles del modal.
+
+Verificaciones:
+
+- `npm run lint` paso correctamente.
+- `npm run build` paso correctamente.
+- no se ejecuto `reset_db.py`.
+
+Archivos tocados:
+
+- `frontend/src/components/admin/AdminImagePicker.jsx`
+- `frontend/src/components/admin/AdminImagePicker.css`
+- `frontend/src/components/admin/AdminProjectGalleryPicker.jsx`
+- `frontend/src/components/admin/AdminProjectGalleryPicker.css`
+- `CAMBIOS.md`
+
+## 2026-07-06 - Lote 2 de reforma UX/UI responsive del panel administrativo
+
+Se mejoro la experiencia visual y responsive de formularios, cards y acciones del panel administrativo sin tocar backend, autenticacion ni logica CRUD.
+
+Cambios aplicados:
+
+- los formularios largos de redes, skills, proyectos, experiencia, educacion y certificaciones ahora usan bloques colapsables para reducir saturacion en movil;
+- el formulario de proyectos se dividio visualmente en secciones: informacion basica, descripcion, enlaces, imagen y galeria, skills asociadas y estado;
+- el formulario de perfil se reorganizo en bloques claros: identidad publica, contacto, avatar/CV y guardado;
+- las cards de redes, skills, proyectos, experiencia, educacion, certificaciones y mensajes ahora tienen mejor jerarquia visual con titulo, metadata compacta, badges de estado y acciones mas ordenadas;
+- los botones Editar, Eliminar, Guardar, Crear, Refrescar y Marcar leido quedaron mas compactos y consistentes en movil, tablet y desktop;
+- la bandeja de mensajes se presenta con comportamiento de inbox y muestra primero los pendientes;
+- se mantuvieron intactos los estados CRUD por ID, validaciones cliente, uploads, autenticacion y actualizacion local existente.
+
+Verificaciones:
+
+- `npm run lint` paso correctamente.
+- `npm run build` paso correctamente.
+- no se ejecuto `reset_db.py`.
+
+Archivos tocados:
+
+- `frontend/src/styles/AdminLayout.css`
+- `frontend/src/components/admin/AdminProfilePanel.jsx`
+- `frontend/src/components/admin/AdminProfilePanel.css`
+- `frontend/src/components/admin/AdminSocialLinksPanel.jsx`
+- `frontend/src/components/admin/AdminSocialLinksPanel.css`
+- `frontend/src/components/admin/AdminSkillsPanel.jsx`
+- `frontend/src/components/admin/AdminSkillsPanel.css`
+- `frontend/src/components/admin/AdminProjectsPanel.jsx`
+- `frontend/src/components/admin/AdminProjectsPanel.css`
+- `frontend/src/components/admin/AdminExperiencePanel.jsx`
+- `frontend/src/components/admin/AdminExperiencePanel.css`
+- `frontend/src/components/admin/AdminEducationPanel.jsx`
+- `frontend/src/components/admin/AdminEducationPanel.css`
+- `frontend/src/components/admin/AdminCertificationsPanel.jsx`
+- `frontend/src/components/admin/AdminCertificationsPanel.css`
+- `frontend/src/components/admin/AdminMessagesPanel.jsx`
+- `frontend/src/components/admin/AdminMessagesPanel.css`
+- `CAMBIOS.md`
+
+## 2026-07-06 - Lote 1 de reforma UX/UI responsive del panel administrativo
+
+Se reorganizo la experiencia movil base del panel admin sin tocar backend ni logica funcional.
+
+Causa raiz confirmada:
+
+- varios textos del admin seguian usando combinaciones de grid estrecho, `letter-spacing` alto y reglas de quiebre poco adecuadas para labels, badges, stats y botones;
+- el bloque de cambio de modulo existia, pero no tenia jerarquia visual ni estado claro del modulo activo;
+- los stats seguian sintiendose como cards comprimidas en movil;
+- en movil el panel necesitaba hacer mas evidente que solo se trabaja con un modulo visible a la vez.
+
+Cambios aplicados:
+
+- se ajustaron las reglas base del admin para que headings, badges, labels, stats y botones usen quiebre normal y no se partan letra por letra;
+- se mantuvieron las utilidades de quiebre fuerte solo para valores dinamicos tecnicos y no para titulos o controles;
+- el bloque `Modulo visible` se convirtio en una tarjeta integrada al tema oscuro, con titulo, ayuda breve, label clara y estado actual del modulo con conteo/resumen;
+- el `select` del modulo ahora tiene estilo oscuro, foco visible y un indicador visual consistente con el dashboard;
+- los stats del admin se compactaron en movil como grid de 2 columnas con labels y valores mas controlados;
+- se mantuvo la regla de mostrar solo el modulo seleccionado en movil, sin romper tablet y desktop.
+
+Verificaciones:
+
+- `npm run lint` paso correctamente.
+- `npm run build` paso correctamente.
+- no se ejecuto `reset_db.py`.
+
+Archivos tocados:
+
+- `frontend/src/pages/AdminPage.jsx`
+- `frontend/src/styles/AdminLayout.css`
+- `frontend/src/components/admin/AdminStatsGrid.css`
+- `CAMBIOS.md`
+
+## 2026-07-06 - Tareas 4.4, 4.5 y 4.6: responsividad del panel administrativo
+
+Se corrigio la experiencia responsive del panel administrativo en movil, tablet y escritorio sin tocar backend, autenticacion ni contratos.
+
+Causa raiz confirmada:
+
+- el admin no tenia navegacion compacta por modulo, por lo que en movil se convertia en una lista muy larga de paneles;
+- varios contenedores flex/grid del admin se estrechaban demasiado en pantallas pequenas;
+- botones, labels, stats y textos dinamicos no tenian una estrategia consistente de ancho minimo, quiebre y apilado;
+- pickers y galerias mantenian controles en linea cuando en movil necesitaban pasar a una disposicion vertical;
+- el admin no tenia una capa base clara para `focus-visible`, targets tactiles y `prefers-reduced-motion`.
+
+Cambios aplicados:
+
+- se agrego navegacion compacta por modulo en movil mediante un selector visible solo en pantallas estrechas;
+- en movil se muestra solo el modulo seleccionado, manteniendo el estado del panel sin desmontar la logica principal;
+- se ajustaron topbar, stats, paneles, botones y formularios para evitar texto letra por letra y mejorar targets tactiles;
+- se reforzaron `min-width`, `minmax(0, 1fr)` y quiebres seguros por palabra en cards, headings, labels y contenido dinamico;
+- se compactaron los stats en movil como grid de 2 columnas;
+- se apilaron mejor preview, controles, modal y dropzones de `AdminImagePicker` y `AdminProjectGalleryPicker`;
+- los toasts del admin en movil ahora aparecen arriba para no tapar formularios largos;
+- se agregaron reglas de `prefers-reduced-motion` y foco visible para componentes del admin.
+
+Verificaciones:
+
+- `npm run lint` paso correctamente.
+- `npm run build` paso correctamente.
+- no se ejecuto `reset_db.py`.
+
+Archivos tocados:
+
+- `frontend/src/pages/AdminPage.jsx`
+- `frontend/src/styles/AdminLayout.css`
+- `frontend/src/components/admin/AdminTopbar.css`
+- `frontend/src/components/admin/AdminStatsGrid.css`
+- `frontend/src/components/admin/AdminSocialLinksPanel.css`
+- `frontend/src/components/admin/AdminSkillsPanel.css`
+- `frontend/src/components/admin/AdminProjectsPanel.css`
+- `frontend/src/components/admin/AdminExperiencePanel.css`
+- `frontend/src/components/admin/AdminEducationPanel.css`
+- `frontend/src/components/admin/AdminCertificationsPanel.css`
+- `frontend/src/components/admin/AdminMessagesPanel.css`
+- `frontend/src/components/admin/AdminImagePicker.css`
+- `frontend/src/components/admin/AdminProjectGalleryPicker.css`
+- `frontend/src/components/admin/AdminToast.css`
+- `CAMBIOS.md`
+
 ## 2026-07-06 - Ajuste posterior al lote 4.1, 4.2 y 4.3: correccion de quiebres de texto y afinacion movil
 
 Se corrigieron problemas introducidos o no resueltos tras el lote de responsividad de Fase 4, con foco en textos que se partian letra por letra y en el ajuste fino de los modales publicos en `320 x 568`.

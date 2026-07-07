@@ -149,6 +149,17 @@ const ADMIN_MODULE_KEYS = [
   "mediaAssets",
 ];
 
+const ADMIN_CONTENT_MODULE_OPTIONS = [
+  { key: "profile", label: "Perfil" },
+  { key: "socialLinks", label: "Redes" },
+  { key: "skills", label: "Skills" },
+  { key: "projects", label: "Proyectos" },
+  { key: "experience", label: "Experiencia" },
+  { key: "education", label: "Educacion" },
+  { key: "certifications", label: "Certificaciones" },
+  { key: "messages", label: "Mensajes" },
+];
+
 function createInitialModuleStatus() {
   return Object.fromEntries(
     ADMIN_MODULE_KEYS.map((moduleKey) => [
@@ -169,6 +180,29 @@ function createInitialFormValidationErrors() {
     education: {},
     certification: {},
   };
+}
+
+function getAdminModuleCountLabel(moduleKey, data) {
+  switch (moduleKey) {
+    case "profile":
+      return data.dashboard?.profile_exists ? "Configurado" : "Pendiente";
+    case "socialLinks":
+      return `${data.socialLinks.length} enlace${data.socialLinks.length === 1 ? "" : "s"}`;
+    case "skills":
+      return `${data.skills.length} skill${data.skills.length === 1 ? "" : "s"}`;
+    case "projects":
+      return `${data.projects.length} proyecto${data.projects.length === 1 ? "" : "s"}`;
+    case "experience":
+      return `${data.experiences.length} registro${data.experiences.length === 1 ? "" : "s"}`;
+    case "education":
+      return `${data.educationList.length} registro${data.educationList.length === 1 ? "" : "s"}`;
+    case "certifications":
+      return `${data.certifications.length} registro${data.certifications.length === 1 ? "" : "s"}`;
+    case "messages":
+      return `${data.contactMessages.length} mensaje${data.contactMessages.length === 1 ? "" : "s"}`;
+    default:
+      return "";
+  }
 }
 
 const SLUG_PATTERN = /^[A-Za-z0-9]+(?:[-_][A-Za-z0-9]+)*$/;
@@ -759,6 +793,10 @@ export default function AdminPage() {
   const [successMessage, setSuccessMessage] = useState("");
   const [notice, setNotice] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [selectedAdminModule, setSelectedAdminModule] = useState("profile");
+  const [isCompactModuleNavigation, setIsCompactModuleNavigation] = useState(
+    () => (typeof window !== "undefined" ? window.innerWidth <= 768 : false)
+  );
   const [moduleStatus, setModuleStatus] = useState(createInitialModuleStatus);
   const [formValidationErrors, setFormValidationErrors] = useState(
     createInitialFormValidationErrors
@@ -836,6 +874,18 @@ export default function AdminPage() {
 
     return () => window.clearTimeout(timeoutId);
   }, [notice]);
+
+  useEffect(() => {
+    function handleResize() {
+      setIsCompactModuleNavigation(window.innerWidth <= 768);
+    }
+
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   useEffect(() => {
     function handleInvalidAdminAuth() {
@@ -1114,6 +1164,14 @@ export default function AdminPage() {
     setErrorMessage("");
     setSuccessMessage("");
     loadAdminData({ showLoading: false, moduleKeys });
+  }
+
+  function isAdminModuleGroupVisible(moduleKeys) {
+    if (!isCompactModuleNavigation) {
+      return true;
+    }
+
+    return moduleKeys.includes(selectedAdminModule);
   }
 
   async function handleRefreshMessages() {
@@ -2389,6 +2447,23 @@ export default function AdminPage() {
   const educationLoading = isAnyModuleLoading(["education"]);
   const certificationsError = getCombinedModuleError(["certifications", "mediaAssets"]);
   const certificationsLoading = isAnyModuleLoading(["certifications", "mediaAssets"]);
+  const selectedAdminModuleOption =
+    ADMIN_CONTENT_MODULE_OPTIONS.find(
+      (option) => option.key === selectedAdminModule
+    ) || ADMIN_CONTENT_MODULE_OPTIONS[0];
+  const selectedAdminModuleCountLabel = getAdminModuleCountLabel(
+    selectedAdminModule,
+    {
+      dashboard,
+      socialLinks,
+      skills,
+      projects,
+      experiences,
+      educationList,
+      certifications,
+      contactMessages,
+    }
+  );
 
   if (loading && !isAuthenticated) {
     return (
@@ -2441,7 +2516,48 @@ export default function AdminPage() {
 
       <AdminStatsGrid dashboard={dashboard} />
 
-      <section className="admin-grid panel-grid">
+      <section className="admin-card admin-module-switcher" aria-label="Navegacion de modulos">
+        <div className="admin-module-switcher__copy">
+          <span className="badge">Modulos</span>
+          <h2>Vista del panel</h2>
+          <p>En movil se muestra un modulo a la vez para reducir saturacion.</p>
+          <p className="admin-module-switcher__status">
+            Actual: <strong>{selectedAdminModuleOption.label}</strong>
+            {selectedAdminModuleCountLabel ? ` - ${selectedAdminModuleCountLabel}` : ""}
+          </p>
+        </div>
+
+        <label className="admin-module-switcher__field" htmlFor="admin-module-select">
+          <span>Modulo visible</span>
+          <div className="admin-module-switcher__select-wrap">
+            <select
+              id="admin-module-select"
+              name="admin_module"
+              value={selectedAdminModule}
+              onChange={(event) => setSelectedAdminModule(event.target.value)}
+              aria-label="Seleccionar modulo administrativo visible"
+            >
+              {ADMIN_CONTENT_MODULE_OPTIONS.map((option) => (
+                <option key={option.key} value={option.key}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <span className="admin-module-switcher__select-icon" aria-hidden="true">
+              v
+            </span>
+          </div>
+        </label>
+      </section>
+
+      <section
+        className={`admin-grid panel-grid admin-panel-section${isAdminModuleGroupVisible(["socialLinks", "profile", "messages"]) ? "" : " admin-panel-section--hidden"}`}
+        hidden={!isAdminModuleGroupVisible(["socialLinks", "profile", "messages"])}
+      >
+        <div
+          className={`admin-module-panel${!isAdminModuleGroupVisible(["socialLinks"]) ? " admin-module-panel--hidden" : ""}`}
+          hidden={!isAdminModuleGroupVisible(["socialLinks"])}
+        >
         <AdminSocialLinksPanel
           socialLinks={socialLinks}
           socialLinkForm={socialLinkForm}
@@ -2458,7 +2574,12 @@ export default function AdminPage() {
           panelLoading={socialLinksLoading}
           onRetry={() => retryAdminModules(["socialLinks"])}
         />
+        </div>
 
+        <div
+          className={`admin-module-panel${!isAdminModuleGroupVisible(["profile"]) ? " admin-module-panel--hidden" : ""}`}
+          hidden={!isAdminModuleGroupVisible(["profile"])}
+        >
         <AdminProfilePanel
           profileForm={profileForm}
           savingProfile={savingProfile}
@@ -2473,7 +2594,12 @@ export default function AdminPage() {
           panelLoading={profileLoading}
           onRetry={() => retryAdminModules(["profile", "mediaAssets"])}
         />
+        </div>
 
+        <div
+          className={`admin-module-panel${!isAdminModuleGroupVisible(["messages"]) ? " admin-module-panel--hidden" : ""}`}
+          hidden={!isAdminModuleGroupVisible(["messages"])}
+        >
         <AdminMessagesPanel
           contactMessages={contactMessages}
           refreshingMessages={refreshingMessages}
@@ -2487,9 +2613,17 @@ export default function AdminPage() {
           onRefresh={handleRefreshMessages}
           onRetry={handleRefreshMessages}
         />
+        </div>
       </section>
 
-      <section className="admin-grid panel-grid">
+      <section
+        className={`admin-grid panel-grid admin-panel-section${isAdminModuleGroupVisible(["skills", "projects"]) ? "" : " admin-panel-section--hidden"}`}
+        hidden={!isAdminModuleGroupVisible(["skills", "projects"])}
+      >
+        <div
+          className={`admin-module-panel${!isAdminModuleGroupVisible(["skills"]) ? " admin-module-panel--hidden" : ""}`}
+          hidden={!isAdminModuleGroupVisible(["skills"])}
+        >
         <AdminSkillsPanel
           skills={skills}
           skillForm={skillForm}
@@ -2510,7 +2644,12 @@ export default function AdminPage() {
           panelLoading={skillsLoading}
           onRetry={() => retryAdminModules(["skills", "mediaAssets"])}
         />
+        </div>
 
+        <div
+          className={`admin-module-panel${!isAdminModuleGroupVisible(["projects"]) ? " admin-module-panel--hidden" : ""}`}
+          hidden={!isAdminModuleGroupVisible(["projects"])}
+        >
         <AdminProjectsPanel
           projects={projects}
           skills={skills}
@@ -2534,9 +2673,17 @@ export default function AdminPage() {
           panelLoading={projectsLoading}
           onRetry={() => retryAdminModules(["projects", "skills", "mediaAssets"])}
         />
+        </div>
       </section>
 
-      <section className="admin-grid content-grid">
+      <section
+        className={`admin-grid content-grid admin-panel-section${isAdminModuleGroupVisible(["experience", "education", "certifications"]) ? "" : " admin-panel-section--hidden"}`}
+        hidden={!isAdminModuleGroupVisible(["experience", "education", "certifications"])}
+      >
+        <div
+          className={`admin-module-panel${!isAdminModuleGroupVisible(["experience"]) ? " admin-module-panel--hidden" : ""}`}
+          hidden={!isAdminModuleGroupVisible(["experience"])}
+        >
         <AdminExperiencePanel
           experiences={experiences}
           experienceForm={experienceForm}
@@ -2553,7 +2700,12 @@ export default function AdminPage() {
           panelLoading={experienceLoading}
           onRetry={() => retryAdminModules(["experience"])}
         />
+        </div>
 
+        <div
+          className={`admin-module-panel${!isAdminModuleGroupVisible(["education"]) ? " admin-module-panel--hidden" : ""}`}
+          hidden={!isAdminModuleGroupVisible(["education"])}
+        >
         <AdminEducationPanel
           education={educationList}
           educationForm={educationForm}
@@ -2570,7 +2722,12 @@ export default function AdminPage() {
           panelLoading={educationLoading}
           onRetry={() => retryAdminModules(["education"])}
         />
+        </div>
 
+        <div
+          className={`admin-module-panel${!isAdminModuleGroupVisible(["certifications"]) ? " admin-module-panel--hidden" : ""}`}
+          hidden={!isAdminModuleGroupVisible(["certifications"])}
+        >
         <AdminCertificationsPanel
           certifications={certifications}
           certificationForm={certificationForm}
@@ -2591,6 +2748,7 @@ export default function AdminPage() {
           panelLoading={certificationsLoading}
           onRetry={() => retryAdminModules(["certifications", "mediaAssets"])}
         />
+        </div>
       </section>
 
       <AdminNotice />

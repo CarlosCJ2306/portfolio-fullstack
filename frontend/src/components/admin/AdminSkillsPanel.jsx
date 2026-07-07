@@ -28,7 +28,7 @@ export default function AdminSkillsPanel({
     <article className="admin-card admin-skills-panel">
       <div className="section-header">
         <span className="badge">Skills</span>
-        <h2>{editingSkillId ? "Editar skill" : "Crear skill"}</h2>
+        <h2>Skills y tecnologías</h2>
       </div>
 
       {panelError && (
@@ -54,75 +54,124 @@ export default function AdminSkillsPanel({
         </div>
       )}
 
-      <form className="admin-form" onSubmit={onSkillSubmit}>
-        <div className="form-row">
-          <label>
-            Nombre
-            <input name="name" value={skillForm.name} onChange={onSkillChange} disabled={savingSkill} />
-          </label>
+      <details className="admin-collapsible" open={editingSkillId ? true : undefined}>
+        <summary className="admin-collapsible__summary">
+          <div className="admin-collapsible__summary-copy">
+            <span className="admin-collapsible__eyebrow">Formulario</span>
+            <span className="admin-collapsible__title">{editingSkillId ? "Editar skill" : "Crear nueva skill"}</span>
+            <p className="admin-collapsible__meta">Mantén este bloque compacto en móvil y abre solo cuando vayas a crear o editar.</p>
+          </div>
+          <span className="admin-collapsible__icon" aria-hidden="true">
+            v
+          </span>
+        </summary>
 
-          <label>
-            Categoría
-            <input name="category" value={skillForm.category} onChange={onSkillChange} disabled={savingSkill} />
-          </label>
+        <div className="admin-collapsible__body">
+          <form className="admin-form" onSubmit={onSkillSubmit}>
+            <section className="admin-form-section">
+              <div className="admin-form-section__header">
+                <h3>Datos principales</h3>
+                <p>Nombre, categoría y nivel de la tecnología o habilidad.</p>
+              </div>
+
+              <div className="admin-form-section__grid">
+                <label>
+                  Nombre
+                  <input name="name" value={skillForm.name} onChange={onSkillChange} disabled={savingSkill} />
+                </label>
+
+                <label>
+                  Categoría
+                  <input name="category" value={skillForm.category} onChange={onSkillChange} disabled={savingSkill} />
+                </label>
+
+                <label>
+                  Nivel
+                  <input name="level" value={skillForm.level} onChange={onSkillChange} disabled={savingSkill} />
+                </label>
+
+                <label>
+                  Color (hex)
+                  <input name="color" value={skillForm.color} onChange={onSkillChange} placeholder="#3776AB" disabled={savingSkill} />
+                </label>
+              </div>
+            </section>
+
+            <section className="admin-form-section">
+              <div className="admin-form-section__header">
+                <h3>Ícono y apariencia</h3>
+                <p>Selecciona un ícono seguro o sube uno compatible con la política actual.</p>
+              </div>
+
+              <AdminImagePicker
+                value={skillForm.icon_asset_id || null}
+                currentAsset={
+                  skillForm.icon_asset_id
+                    ? mediaAssets?.find((asset) => asset.id === Number(skillForm.icon_asset_id)) ?? null
+                    : null
+                }
+                assetType="icon_svg"
+                label="Ícono (SVG o imagen)"
+                disabled={savingSkill}
+                mediaAssets={mediaAssets || []}
+                onChange={onIconAssetChange}
+                onAssetUploaded={onAssetUploaded}
+                sessionUploadedAssets={sessionUploadedAssets}
+              />
+            </section>
+
+            <section className="admin-form-section">
+              <div className="admin-form-section__header">
+                <h3>Visibilidad y orden</h3>
+                <p>Controla cómo aparece la skill en la vista pública.</p>
+              </div>
+
+              <div className="admin-form-section__grid">
+                <label>
+                  Orden de visualización
+                  <input
+                    name="display_order"
+                    type="number"
+                    value={skillForm.display_order}
+                    onChange={onSkillChange}
+                    disabled={savingSkill}
+                  />
+                </label>
+
+                <label className="toggle-row">
+                  <input
+                    name="is_active"
+                    type="checkbox"
+                    checked={skillForm.is_active}
+                    onChange={onSkillChange}
+                    disabled={savingSkill}
+                  />
+                  <span>Activo</span>
+                </label>
+              </div>
+            </section>
+
+            <section className="admin-form-section admin-form-footer">
+              <div className="admin-form-section__header">
+                <h3>Acciones</h3>
+                <p>Guarda la skill o cancela la edición en curso.</p>
+              </div>
+
+              <div className="form-actions-inline">
+                <button type="submit" className="admin-button primary" disabled={savingSkill}>
+                  {savingSkill ? "Guardando..." : editingSkillId ? "Actualizar skill" : "Crear skill"}
+                </button>
+
+                {editingSkillId && (
+                  <button type="button" className="admin-button ghost" onClick={onCancelSkillEdit} disabled={savingSkill}>
+                    Cancelar edición
+                  </button>
+                )}
+              </div>
+            </section>
+          </form>
         </div>
-
-        <div className="form-row">
-          <label>
-            Nivel
-            <input name="level" value={skillForm.level} onChange={onSkillChange} disabled={savingSkill} />
-          </label>
-
-          <label>
-            Color (hex)
-            <input name="color" value={skillForm.color} onChange={onSkillChange} placeholder="#3776AB" disabled={savingSkill} />
-          </label>
-        </div>
-
-        <AdminImagePicker
-          value={skillForm.icon_asset_id || null}
-          currentAsset={
-            skillForm.icon_asset_id
-              ? mediaAssets?.find((asset) => asset.id === Number(skillForm.icon_asset_id)) ?? null
-              : null
-          }
-          assetType="icon_svg"
-          label="Ícono (SVG o imagen)"
-          disabled={savingSkill}
-          mediaAssets={mediaAssets || []}
-          onChange={onIconAssetChange}
-          onAssetUploaded={onAssetUploaded}
-          sessionUploadedAssets={sessionUploadedAssets}
-        />
-
-        <label>
-          Orden de visualización
-          <input name="display_order" type="number" value={skillForm.display_order} onChange={onSkillChange} disabled={savingSkill} />
-        </label>
-
-        <label className="toggle-row">
-          <input
-            name="is_active"
-            type="checkbox"
-            checked={skillForm.is_active}
-            onChange={onSkillChange}
-            disabled={savingSkill}
-          />
-          <span>Activo</span>
-        </label>
-
-        <div className="form-actions-inline">
-          <button type="submit" className="admin-button primary" disabled={savingSkill}>
-            {savingSkill ? "Guardando..." : editingSkillId ? "Actualizar skill" : "Crear skill"}
-          </button>
-
-          {editingSkillId && (
-            <button type="button" className="admin-button ghost" onClick={onCancelSkillEdit} disabled={savingSkill}>
-              Cancelar edición
-            </button>
-          )}
-        </div>
-      </form>
+      </details>
 
       <div className="entity-list">
         {skills.length === 0 ? (
@@ -131,36 +180,35 @@ export default function AdminSkillsPanel({
           skills.map((skill) => {
             const isDeleting = deletingSkillIds?.includes(skill.id);
             const iconSrc =
-              skill.icon?.data_base64 && skill.icon?.mime_type
-                ? `data:${skill.icon.mime_type};base64,${skill.icon.data_base64}`
-                : null;
+              skill.icon?.data_base64 && skill.icon?.mime_type ? `data:${skill.icon.mime_type};base64,${skill.icon.data_base64}` : null;
             const safeSvgSrc = getSafeSvgDataUrl(skill.icon?.svg_content);
 
             return (
-              <article className="entity-card" key={skill.id}>
+              <article className="entity-card admin-list-card" key={skill.id}>
                 <div className="entity-card__content">
                   <div className="entity-card__icon">
                     {iconSrc ? (
                       <img src={iconSrc} alt={skill.name} className="entity-card__icon-img" />
                     ) : safeSvgSrc ? (
-                      <img
-                        src={safeSvgSrc}
-                        alt={skill.icon?.alt_text || skill.name}
-                        className="entity-card__icon-img"
-                      />
+                      <img src={safeSvgSrc} alt={skill.icon?.alt_text || skill.name} className="entity-card__icon-img" />
                     ) : (
-                      <div className="entity-card__icon-placeholder">
-                        {skill.name.charAt(0).toUpperCase()}
-                      </div>
+                      <div className="entity-card__icon-placeholder">{skill.name.charAt(0).toUpperCase()}</div>
                     )}
                   </div>
 
-                  <div>
-                    <strong>{skill.name}</strong>
-                    <p>{skill.category} · {skill.level}</p>
-                    <span className="entity-meta">
-                      Orden {skill.display_order} · {skill.is_active ? "Activa" : "Inactiva"}
-                    </span>
+                  <div className="admin-stack">
+                    <div className="admin-list-card__footer">
+                      <strong>{skill.name}</strong>
+                      <span className={`admin-status-pill ${skill.is_active ? "is-active" : "is-inactive"}`}>
+                        {skill.is_active ? "Activa" : "Inactiva"}
+                      </span>
+                    </div>
+
+                    <div className="admin-meta-row">
+                      <span className="admin-meta-chip">{skill.category || "Sin categoría"}</span>
+                      <span className="admin-meta-chip">Nivel: {skill.level || "Sin definir"}</span>
+                      <span className="admin-meta-chip">Orden {skill.display_order}</span>
+                    </div>
                   </div>
                 </div>
 
