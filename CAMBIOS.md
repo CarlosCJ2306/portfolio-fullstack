@@ -1,5 +1,87 @@
 # Cambios realizados
 
+## 2026-07-06 - Fase 6.5: checklist manual funcional completo
+
+Se ejecuto QA funcional con Chrome 149 headless y Chrome DevTools Protocol sobre las instancias locales reales, sin instalar dependencias ni cambiar codigo funcional.
+
+Flujos probados:
+
+- home publico, siete secciones, header y navegacion por anclas;
+- proyecto con portada, 5 miniaturas, anterior/siguiente, zoom y cierres por Escape, boton y fondo;
+- certificacion con PDF Blob valido, iframe y acciones Abrir/Descargar;
+- contacto vacio y correo invalido sin envio real;
+- login incorrecto y correcto, dashboard, stats y ocho modulos admin;
+- selector movil mostrando un modulo a la vez;
+- validaciones locales de proyecto, skill/color y certificacion/URL;
+- rechazo de `README.md` como avatar antes del upload;
+- refresco de mensajes y error de red simulado sin cierre de sesion;
+- logout y exigencia de nuevo login al recargar `/admin`.
+
+Datos QA y seguridad:
+
+- no se crearon registros `QA_F6_*`;
+- no se eliminaron datos QA ni registros reales;
+- no se envio contacto valido, no se marco ni elimino ningun mensaje y no se modifico perfil/avatar;
+- no se creo backup porque no hubo escrituras sobre `portfolio.db`;
+- no se ejecutaron `reset_db.py`, `update_db.py`, `seed_db.py` ni migraciones;
+- no se tocaron backend/frontend funcional, rutas, contratos, autenticacion, uploads, SVG ni PDF.
+
+Resultado general:
+
+- flujos publicos y administrativos de lectura/interaccion: aprobados;
+- validaciones y errores no autenticativos: aprobados;
+- resultado global: aprobado con pendientes autorizados para CRUD real, doble guardado del avatar y operaciones sobre mensajes;
+- hallazgo menor: el titulo publico de certificaciones muestra `formacion` sin tilde;
+- riesgo a revisar: el perfil admin mostro Asset ID asociado, pero no se detecto preview visual del avatar durante el recorrido.
+
+Pendientes para Fase 6.6:
+
+- matriz responsive completa en los viewports definidos;
+- pruebas de accesibilidad con teclado, foco, lectores/semantica y contraste;
+- repetir casos sin cobertura de datos: proyecto sin imagen y certificacion con `credential_url`;
+- decidir si se autoriza un lote con backup y registros QA temporales para CRUD completo.
+
+## 2026-07-06 - Fase 6.4: smoke tests de integracion frontend/backend
+
+Se valido la integracion local mediante solicitudes HTTP controladas, reutilizando el backend activo en `http://127.0.0.1:8000` y Vite en `http://localhost:5173`.
+
+Metodos y rutas revisados:
+
+- estado del backend con `GET /` y `GET /api/public/health`;
+- contratos publicos de `GET /api/public/home`, `GET /api/public/projects` y `GET /api/public/certifications`;
+- validacion segura de contacto con `POST /api/public/contact` y payload vacio, que devolvio 422 sin crear datos;
+- proteccion admin sin credenciales, que devolvio 401;
+- autenticacion Basic con credenciales del entorno sin mostrarlas;
+- lecturas autenticadas de perfil, proyectos, media assets, certificaciones y mensajes;
+- preflight y respuesta CORS desde `http://localhost:5173`;
+- disponibilidad del HTML, entrada React y modulo `publicApi.js` servidos por Vite, con URL local del backend configurada.
+
+Resultado:
+
+- las 16 comprobaciones HTTP resumidas fueron aprobadas;
+- el backend respondio sin errores 500 ni trazas recientes;
+- el proyecto publico devolvio portada y 5 imagenes de galeria ordenadas;
+- el contrato publico devolvio 2 certificaciones y 1 PDF valido;
+- las rutas admin de lectura respondieron 200 con autenticacion;
+- CORS permitio correctamente el origen local del frontend;
+- `npm run lint` finalizo con codigo 0;
+- `npm run build` finalizo con codigo 0 y 68 modulos transformados.
+
+Confirmaciones de seguridad:
+
+- no se realizaron operaciones CRUD reales, uploads ni DELETE;
+- no se envio un contacto valido ni se creo un mensaje;
+- `portfolio.db` conservo el mismo tamano y `LastWriteTimeUtc` antes y despues;
+- no se ejecutaron `reset_db.py`, `update_db.py`, `seed_db.py` ni migraciones;
+- no se modificaron backend funcional, frontend funcional, rutas, contratos ni autenticacion.
+
+Pendientes para Fase 6.5:
+
+- checklist manual en navegador de los flujos publico y administrativo;
+- verificar consola del navegador, galeria, zoom, modal PDF y retorno de foco;
+- completar matriz responsive y de accesibilidad en los viewports definidos;
+- revisar el enlace IPv6 de Vite: la instancia actual responde en `localhost:5173`, pero no en `127.0.0.1:5173`.
+
 ## 2026-07-06 - Fase 6.3: pruebas/checklist tecnico frontend
 
 Se cerro la validacion tecnica del frontend sin tocar backend, base de datos, contratos HTTP ni logica funcional.

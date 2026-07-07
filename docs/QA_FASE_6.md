@@ -105,3 +105,118 @@ Fecha de ejecucion: 2026-07-06.
 - No se ejecutaron `reset_db.py`, `update_db.py` ni `seed_db.py`.
 - No se cambiaron rutas, contratos HTTP, autenticacion ni logica CRUD.
 - No se instalaron dependencias nuevas de testing para frontend.
+
+## Fase 6.4 - Smoke tests de integracion frontend/backend
+
+Fecha de ejecucion: 2026-07-06.
+
+### Entorno y metodo
+
+- Se reutilizaron las instancias locales que ya estaban activas: backend en `http://127.0.0.1:8000` y Vite en `http://localhost:5173`.
+- Se confirmo por proceso y linea de comando que ambas instancias pertenecian a este proyecto.
+- Vite estaba enlazado a `::1`; por ello respondio en `localhost:5173`, no en `127.0.0.1:5173`. El backend permite ambos origenes locales.
+- Las pruebas se realizaron con solicitudes HTTP controladas desde PowerShell. No se uso automatizacion de navegador ni se inspecciono una consola grafica.
+- Las credenciales admin se leyeron en memoria desde el entorno, sin imprimirlas ni persistirlas.
+- El contacto se probo solo con un payload vacio invalido para obtener 422 sin crear un mensaje.
+
+### Resultados
+
+| Area | Prueba | Comando/metodo | Resultado esperado | Resultado obtenido | Estado | Observaciones |
+|---|---|---|---|---|---|---|
+| Backend | Inicio y proceso local | Revision de puerto, proceso y `GET /` | Servicio activo sin traceback y status 200 | Python `-m app.main` activo en `127.0.0.1:8000`; `GET /` devolvio 200 | Aprobado | Se reutilizo la instancia existente. No se inicio otro proceso. |
+| Backend | Log reciente | Busqueda de `Traceback`, `ERROR` y `CRITICAL` en las ultimas 250 lineas | Sin errores inesperados | 0 coincidencias | Aprobado | Las solicitudes HTTP generaron logs normales de ejecucion. |
+| Frontend | Inicio y modulos Vite | `GET /`, `/src/main.jsx` y `/src/services/publicApi.js` | Recursos 200 y API local configurada | Los tres recursos devolvieron 200; el modulo usa `http://127.0.0.1:8000` | Aprobado | Vite escucha en `localhost` mediante `::1`. |
+| Publico | Health | `GET /api/public/health` | Status 200 | Status 200 | Aprobado | Router publico operativo. |
+| Publico | Home | `GET /api/public/home` con `Origin: http://localhost:5173` | Status 200 y estructura JSON completa | Status 200; presentes `profile`, `social_links`, `skills`, `featured_projects`, `experience`, `education` y `certifications` | Aprobado | El perfil real estaba presente; no se evaluo visualmente el DOM. |
+| Publico | Proyectos | `GET /api/public/projects` | Portada y galeria sin romper contrato | 1 proyecto; campos `image` y `gallery_images`; 5 imagenes adicionales ordenadas `0..4` | Aprobado | La portada permanece separada de la galeria. |
+| Publico | Certificaciones/PDF | `GET /api/public/certifications` | `credential_url` y `certificate_file` como capacidades separadas | 2 certificaciones; ambos campos presentes; 1 PDF con contrato valido | Aprobado | Los datos actuales no incluyen una `credential_url` no vacia. No se abrio el PDF en navegador. |
+| Publico | Contacto invalido | `POST /api/public/contact` con `{}` | Status 422 sin escritura | Status 422 | Aprobado | No se envio payload valido ni se creo un mensaje real. |
+| Admin | Proteccion sin credenciales | `GET /api/admin/profile` sin Authorization | Status 401 o 403 | Status 401 | Aprobado | HTTP Basic protege la ruta. |
+| Admin | Autenticacion | `POST /api/admin/auth/login` con credenciales del entorno | Status 200 | Status 200 | Aprobado | Las credenciales no se mostraron en salida. |
+| Admin | Perfil | `GET /api/admin/profile` autenticado | Status 200 de solo lectura | Status 200; 1 perfil | Aprobado | Sin PUT ni cambios de datos. |
+| Admin | Proyectos | `GET /api/admin/projects` autenticado | Status 200 de solo lectura | Status 200; 1 proyecto | Aprobado | Sin CRUD. |
+| Admin | Media assets | `GET /api/admin/media-assets` autenticado | Status 200 de solo lectura | Status 200; 13 assets | Aprobado | Sin uploads ni DELETE. |
+| Admin | Certificaciones | `GET /api/admin/certifications` autenticado | Status 200 de solo lectura | Status 200; 2 certificaciones | Aprobado | Sin edicion. |
+| Admin | Mensajes | `GET /api/admin/contact-messages` autenticado | Status 200 de solo lectura | Status 200; 1 mensaje | Aprobado | No se marco como leido ni se elimino. |
+| CORS | Preflight local | `OPTIONS /api/public/home` desde `http://localhost:5173` | Status 200 y origen permitido | Status 200; `Access-Control-Allow-Origin: http://localhost:5173` | Aprobado | Los metodos solicitados fueron aceptados. |
+| CORS | GET con origen local | `GET /api/public/health` con encabezado Origin | Encabezado CORS correcto | `Access-Control-Allow-Origin: http://localhost:5173` | Aprobado | Confirma el intercambio HTTP esperado por el frontend local. |
+| Integridad de datos | Base real sin cambios | Comparacion de tamano y `LastWriteTimeUtc` antes/despues | Sin modificaciones | 11.018.240 bytes y `2026-07-06T08:22:06.8784562Z` antes y despues | Aprobado | El archivo estaba bloqueado por la instancia activa, por lo que no se calculo SHA-256. |
+| Frontend | Lint | `npm run lint` | Codigo 0 | Codigo 0, sin errores | Aprobado | ESLint estable. |
+| Frontend | Build | `npm run build` | Codigo 0 | Codigo 0; Vite transformo 68 modulos | Aprobado | Build generado correctamente. |
+
+### Resultado general
+
+- Las 16 comprobaciones HTTP resumidas finalizaron aprobadas.
+- No hubo respuestas 500 inesperadas.
+- Se observaron los errores esperados: 401 sin autenticacion admin y 422 para contacto invalido.
+- No se realizaron operaciones CRUD, uploads, DELETE, migraciones ni escrituras intencionales sobre la base real.
+- No se ejecutaron `reset_db.py`, `update_db.py` ni `seed_db.py`.
+
+### Riesgos y pendientes
+
+1. La integracion se valido a nivel HTTP y de modulos servidos por Vite; falta una prueba manual en navegador que confirme renderizado, consola sin errores, modales y navegacion real.
+2. Vite esta enlazado solo a `::1` en la instancia revisada. Es correcto para `localhost`, pero `http://127.0.0.1:5173` no responde con el comando actual sin `--host`.
+3. No se abrio el visor PDF ni la galeria en un navegador; esos flujos quedan para el checklist manual de Fase 6.5.
+4. No se hicieron escrituras admin ni contacto valido para proteger los datos reales; los contratos de escritura permanecen cubiertos por las 20 pruebas con SQLite temporal de Fase 6.2.
+
+## Fase 6.5 - Checklist manual funcional completo
+
+Fecha de ejecucion: 2026-07-07. Entrada de cambios registrada con la fecha solicitada `2026-07-06`.
+
+### Metodo y limites
+
+- Se levantaron backend y frontend con los comandos reales del proyecto.
+- Se uso Chrome 149 headless mediante Chrome DevTools Protocol, sin instalar dependencias de testing.
+- Se validaron DOM real, interacciones de mouse/teclado, solicitudes de red, validaciones nativas y estados React.
+- No se autorizaron escrituras sobre datos reales. Por ello no se creo backup, no se crearon registros `QA_F6_*` y no se probaron PUT/PATCH/DELETE reales.
+- Las capturas se guardaron solo en el directorio temporal del sistema, fuera del repositorio.
+
+### Resultados
+
+| Area | Caso | Datos usados | Resultado esperado | Resultado obtenido | Estado | Evidencia/observacion | Accion pendiente |
+|---|---|---|---|---|---|---|---|
+| Publico | Home y secciones | Datos reales de lectura | Hero, skills, proyectos, experiencia, educacion, certificaciones y contacto visibles | Las 7 secciones existen; 0 errores visibles, 0 imagenes rotas y 0 patrones de mojibake visibles | Aprobado | No aparecio `correo@example.com` ni identidad ficticia | Corregir en una fase futura la tilde ausente en `formacion` del titulo de certificaciones |
+| Publico | Header y navegacion | Enlaces reales del header | Anclas existentes y no ocultas por header sticky | Inicio, Skills, Proyectos, Experiencia, Educacion, Certificaciones y Contacto navegaron a destinos validos | Aprobado | Posicion de destino igual o inferior al alto del header | Matriz responsive queda para Fase 6.6 |
+| Publico | Proyecto con portada y galeria | Proyecto real existente | Modal estable, portada sin duplicacion y galeria navegable | Modal abierto con imagen; 5 miniaturas, una activa; Siguiente cambio imagen; Zoom/Ajustar funciono | Aprobado | Cierre confirmado con Escape, boton y fondo | Ninguna |
+| Publico | Proyecto sin imagen | Dataset actual | Mostrar fallback sin romper | No existe un proyecto publico sin imagen en los datos actuales | No aplica | El contrato y pruebas temporales ya cubren el caso | Agregar dato temporal solo con autorizacion de escritura |
+| Publico | Certificacion PDF | PDF real existente | Blob valido, iframe y acciones alternativas | Blob `application/pdf` de 90.492 bytes; modal, Abrir, Descargar y Escape disponibles | Aprobado | No se descargo fisicamente el archivo; se valido Blob y atributos de las acciones | Probar descarga manual visible si se requiere evidencia de sistema operativo |
+| Publico | Credential URL | Dataset actual | Enlace separado cuando exista | El contrato esta presente, pero ninguna certificacion publica tiene URL no vacia | No aplica | PDF y URL permanecen capacidades separadas | Crear certificacion QA solo con autorizacion |
+| Publico | Contacto vacio | Formulario sin datos | Error local visible y sin escritura | Mostro `El nombre es obligatorio.` | Aprobado | No hubo POST valido | Ninguna |
+| Publico | Email invalido | `correo-invalido` | Bloqueo y mensaje claro | Chrome marco `typeMismatch=true` y pidio incluir `@` | Aprobado | Validacion nativa impidio el submit | Ninguna |
+| Publico | Contacto valido | Ninguno | Crear mensaje y verlo en admin | No ejecutado para no escribir en la DB real | Pendiente autorizado | No se creo `QA_F6_Mensaje` | Requiere autorizacion y backup previo |
+| Admin | Login incorrecto | Credenciales QA invalidas | 401 y mensaje legible | Mostro `Credenciales invalidas para el panel admin.` y mantuvo el login | Aprobado | El 401 esperado fue la unica entrada de error de consola | Ninguna |
+| Admin | Login correcto y dashboard | Credenciales del entorno, solo en memoria | Cargar panel y modulos | Dashboard cargado, 10 stats, 8 opciones y sin errores visibles | Aprobado | Credenciales no impresas ni persistidas | Ninguna |
+| Admin | Selector de modulos | Viewport 390 x 844 | Mostrar un modulo a la vez | Perfil, Redes, Skills, Proyectos, Experiencia, Educacion, Certificaciones y Mensajes mostraron exactamente un panel | Aprobado | Validacion funcional puntual; no sustituye matriz responsive | Completar matriz en Fase 6.6 |
+| Admin | Listados | Datos reales de solo lectura | Modulos cargados independientemente | Redes, skills, proyectos, certificaciones y mensajes mostraron registros; todos los modulos alternaron sin error | Aprobado | No se editaron ni eliminaron registros | Ninguna |
+| Admin | Perfil y avatar | Perfil real en lectura | Perfil cargado y avatar conservado al guardar | El perfil y `Asset ID` asociado cargaron; no se detecto preview de imagen y no se ejecuto PUT | Pendiente autorizado | La conservacion contractual esta cubierta por Fase 6.2, no por escritura manual en DB real | Revisar preview y ejecutar doble guardado solo con autorizacion y backup |
+| Admin | Validacion de proyecto | Formulario vacio | Errores legibles y sin POST | Mostro errores para titulo, slug y descripciones; no aparecio `[object Object]` | Aprobado | No se creo `QA_F6_Proyecto` | CRUD completo requiere autorizacion |
+| Admin | Validacion de skill/color | Nombre QA local, categoria QA y color `rojo` | Bloquear color invalido | Mostro error hexadecimal y campo nivel obligatorio; no hubo POST | Aprobado | No se creo `QA_F6_Skill` | CRUD/icono real requiere autorizacion |
+| Admin | Validacion de certificacion | Nombre QA local y `url-invalida` | Bloquear URL invalida | Mostro error exigiendo `http://` o `https://`; no hubo POST | Aprobado | No se creo `QA_F6_Certificacion` ni se asocio PDF | CRUD completo requiere autorizacion |
+| Admin | Upload invalido | `README.md` local | Rechazo antes de upload | Mostro que `text/markdown` no es valido para avatar | Aprobado | No se creo MediaAsset | Cancelacion y limites con archivos QA requieren lote autorizado |
+| Admin | Mensajes y refresco | Mensajes reales en lectura | Refresco correcto; error de red no debe cerrar sesion | Refresco GET aprobado; bloqueo de red simulado mostro error claro y mantuvo sesion | Aprobado | No se marco leido ni se elimino mensaje real | Flujo mutante requiere mensaje QA autorizado |
+| Admin | Logout | Sesion admin en memoria | Volver al login | El boton Cerrar sesion limpio el panel y mostro login | Aprobado | Sin storage persistente | Ninguna |
+| Admin | Recarga de `/admin` | Login valido previo | Exigir login nuevamente | Tras recargar, el login reaparecio y el panel no permanecio autenticado | Aprobado | Confirma credenciales solo en memoria | Ninguna |
+| Admin | Error no autenticativo | GET de mensajes bloqueado desde CDP | Mensaje claro sin logout | La UI mostro error de conexion y conservo el selector del panel | Aprobado | No se detuvo el backend real | Ninguna |
+| Seguridad | Ausencia de escrituras | Trafico capturado por navegador | Sin mutaciones de datos | No hubo POST/PUT/PATCH/DELETE exitoso fuera de `/api/admin/auth/login` | Aprobado | La DB conservo tamano y fecha de modificacion | Ninguna |
+
+### Resultado general
+
+- Los flujos publicos de lectura, navegacion, proyecto/galeria, PDF y validacion de contacto quedaron aprobados.
+- Los flujos admin de login, carga modular, validaciones locales, upload invalido, refresco, error de red, logout y recarga quedaron aprobados.
+- No se crearon ni eliminaron datos QA y no se tocaron registros reales.
+- El resultado global es **aprobado con pendientes autorizados** para las operaciones que requieren escritura real.
+
+### Hallazgos y riesgos pendientes
+
+1. El titulo publico `Certificaciones y formacion complementaria` aparece sin tilde en `formacion`; no rompe el flujo.
+2. El perfil admin muestra referencia de Asset ID, pero no se detecto preview visual de avatar en este recorrido. Debe verificarse antes de una prueba de guardado real.
+3. El dataset no ofrece proyecto sin imagen ni certificacion con `credential_url`, por lo que esos casos no pudieron probarse visualmente.
+4. CRUD completo, doble guardado de perfil, reordenamiento persistente, retiro de galeria, marcar/eliminar mensajes y contacto valido requieren autorizacion de escritura y backup previo.
+5. La matriz completa responsive/accesible queda fuera de este lote y corresponde a Fase 6.6.
+
+### Confirmaciones de seguridad
+
+- No se ejecutaron `reset_db.py`, `update_db.py`, `seed_db.py` ni migraciones.
+- No se modifico `portfolio.db`; no fue necesario ejecutar `check_db`.
+- No se subieron archivos, no se descargaron documentos y no se hicieron operaciones destructivas.
+- No se cambio codigo funcional, rutas, contratos, autenticacion, uploads, SVG ni PDF.
