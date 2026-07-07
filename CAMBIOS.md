@@ -1,5 +1,38 @@
 # Cambios realizados
 
+## 2026-07-06 - Fase 6.1: línea base técnica y revisión de Git
+
+Se estableció la línea base técnica posterior al cierre de las Fases 1 a 5, sin modificar lógica funcional ni datos.
+
+Comandos ejecutados:
+
+- `python -m app.scripts.check_db` desde `backend`: el Python global no tenía SQLAlchemy y terminó con `ModuleNotFoundError`; no llegó a comprobar ni modificar la base;
+- `.\venv\Scripts\python.exe -m app.scripts.check_db` desde `backend`: código 0, `foreign_keys = 1`, `integrity_check = ok` y `foreign_key_check` sin violaciones;
+- `npm run lint` desde `frontend`: código 0;
+- `npm run build` desde `frontend`: código 0, build Vite generado correctamente;
+- `git status`, `git diff --stat` y `git diff --name-only` desde la raíz: antes de documentar el lote, el árbol estaba limpio y `main` estaba 5 commits por delante de `origin/main`.
+
+Riesgos y archivos revisados:
+
+- `backend/.env`, `backend/portfolio.db`, el backup de SQLite, `backend/logs/`, `frontend/node_modules/` y `frontend/dist/` están ignorados y no rastreados;
+- `backend/venv/` sigue versionado con 1.475 archivos recreables; no se retiró del índice y queda como riesgo pendiente antes de publicar el repositorio;
+- no se detectaron otros archivos rastreados bajo los patrones revisados de secretos, bases, backups, logs o builds generados;
+- el detalle de resultados quedó registrado en `docs/QA_FASE_6.md`.
+
+Confirmaciones:
+
+- no se ejecutaron `reset_db.py`, `update_db.py`, `seed_db.py` ni migraciones;
+- no se modificó deliberadamente `portfolio.db` ni sus backups;
+- no se hicieron CRUD, smoke tests ni pruebas automatizadas;
+- no se cambió backend funcional, frontend funcional, rutas, autenticación, validaciones, uploads, SVG ni PDF.
+
+Pendientes para Fase 6.2:
+
+- crear y ejecutar las pruebas técnicas o smoke tests autorizados;
+- usar un entorno y datos seguros para cualquier prueba que implique escritura;
+- ampliar la matriz manual responsive y de accesibilidad;
+- revisar los cinco commits locales y resolver `backend/venv/` antes de publicación o despliegue.
+
 ## Cierre de Fase 5
 
 La Fase 5 quedo cerrada con la limpieza documental, la revision segura de archivos dudosos y la actualizacion de la documentacion contractual, sin tocar backend funcional, frontend funcional ni base de datos.
