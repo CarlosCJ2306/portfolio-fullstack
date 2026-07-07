@@ -261,8 +261,13 @@ Este bloque resume el estado vigente del proyecto sin borrar el historial del pl
 - Fase 4: cerrada.
 - Fase 5: lote 1 cerrado, lote 2 cerrado, lote 3 cerrado con esta actualizacion documental.
 - Fase 5: lote 4 cerrado con la revisión segura de archivos dudosos; Fase 5 cerrada.
-- Fase 6: pendiente.
+- Fase 6: siguiente fase activa.
 - Fase 7: pendiente.
+
+Notas operativas:
+
+- `backend/venv/` aparece actualmente versionado segun la revision y debe resolverse antes de publicar o subir el repositorio, si aplica.
+- `portfolio.db`, backups, logs y `.env` no deben subirse a Git.
 
 La documentacion contractual, el README y `CAMBIOS.md` deben leerse junto con este estado actualizado para evitar contradicciones.
 

@@ -1,5 +1,35 @@
 # Cambios realizados
 
+## Cierre de Fase 5
+
+La Fase 5 quedo cerrada con la limpieza documental, la revision segura de archivos dudosos y la actualizacion de la documentacion contractual, sin tocar backend funcional, frontend funcional ni base de datos.
+
+Resumen de lo completado:
+
+- se corrigieron textos visibles, mojibake y metadatos basicos del frontend y la documentacion ligera;
+- se retiro `AdminNotice` al quedar obsoleto frente al estado real del panel admin;
+- se revisaron y acotaron estilos compartidos y wrappers para reducir colisiones visuales;
+- se actualizo la documentacion contractual (`README.md`, `backend/docs/API_FRONTEND.md`, `PLAN_TRABAJO_PORTFOLIO.md`) para reflejar el estado real del proyecto;
+- se realizo la revision manual segura de archivos dudosos y se documento el inventario en `docs/REVISION_ARCHIVOS_DUDOSOS.md`;
+- se refuerzo `.gitignore` para proteger `.env`, SQLite, backups, logs, entornos virtuales y artefactos generados.
+
+Confirmaciones:
+
+- no se toco backend funcional ni frontend funcional;
+- no se modifico la base de datos;
+- no se ejecuto `reset_db.py`;
+- no se borraron ni movieron archivos;
+- no se ejecutaron `npm run lint` ni `npm run build` en el cierre documental, porque esta etapa solo ajusto documentacion y reglas de ignorados.
+
+Pendientes inmediatos de Fase 6:
+
+- pruebas tecnicas y smoke tests;
+- pruebas manuales sobre DB segura;
+- `check_db`;
+- `npm run lint` y `npm run build`;
+- matriz responsive y accesibilidad;
+- revision final de `git status` antes de despliegue.
+
 ## 2026-07-06 - Fase 5 - Lote 4: revisión manual de archivos dudosos
 
 Se realizó una revisión documental y segura de scripts antiguos, modelos sin consumidores funcionales, bases de datos, backups, logs, migraciones y artefactos generados.
