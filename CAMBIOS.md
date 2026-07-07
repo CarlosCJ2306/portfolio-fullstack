@@ -1,5 +1,53 @@
 # Cambios realizados
 
+## 2026-07-06 - Cierre de Fase 6: pruebas tecnicas, funcionales y decision de despliegue
+
+Se consolidaron formalmente los lotes 6.1 a 6.7 y se cerro la Fase 6 dentro de su alcance de QA.
+
+Verificaciones finales:
+
+- backend: 20 pruebas aprobadas en 3,08 s;
+- SQLite: `foreign_keys=1`, `integrity_check=ok` y cero violaciones;
+- frontend: `npm run lint` y `npm run build` con codigo 0;
+- Git previo a documentar: limpio, sin staged ni untracked, rama local un commit adelante;
+- `backend/venv` sigue rastreado con 1.475 archivos;
+- `portfolio.db` mantuvo 11.018.240 B y la misma fecha de modificacion.
+
+Resultados consolidados:
+
+- QA tecnico y contratos backend: aprobados;
+- QA funcional en navegador: aprobado sin CRUD real;
+- responsive/accesibilidad en 8 viewports: aprobado;
+- integracion/CORS local: aprobada;
+- payload: `/api/public/projects` 10.233.920 B y `/api/admin/media-assets` 10.858.065 B;
+- carga local inicial: aproximadamente 15.987.057 B;
+- multimedia decodificada estimada: 8.140.462 B.
+
+Decision formal:
+
+**CONDITIONAL GO para preparacion de produccion, NO-GO para despliegue inmediato.**
+
+Bloqueos principales:
+
+- persistencia PostgreSQL y migracion controlada desde SQLite;
+- reduccion/remedicion del payload publico y admin;
+- eliminar duplicacion de portada en el transporte de galeria;
+- retirar `backend/venv` del indice de Git de forma reversible;
+- configurar CORS productivo, SPA Vercel, variables, secretos y comandos Render.
+
+Confirmaciones:
+
+- no se desplego en Vercel, Render ni PostgreSQL;
+- no se implementaron optimizaciones ni cambios de arquitectura;
+- no se hicieron CRUD ni modificaciones de datos;
+- no se ejecutaron `reset_db.py`, `update_db.py`, `seed_db.py` ni migraciones;
+- solo se actualizaron documentos de cierre.
+
+Siguiente etapa recomendada:
+
+- Produccion 1: optimizacion de payload multimedia;
+- despues: PostgreSQL/migracion, limpieza Git, Vercel, Render, staging, smoke remoto y produccion/rollback.
+
 ## 2026-07-06 - Fase 6.7: payload y rendimiento base
 
 Se establecio una linea base local de payload y rendimiento sin cambiar arquitectura, contratos, datos ni logica funcional.

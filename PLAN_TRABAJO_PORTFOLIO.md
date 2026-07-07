@@ -2,7 +2,7 @@
 
 Fecha: 2026-07-05  
 Fuentes: `AUDITORIA_GENERAL.md`, `BACKEND_AUDITORIA.md`, `FRONTEND_PUBLICO_AUDITORIA.md` y `FRONTEND_ADMIN_AUDITORIA.md`.  
-Estado: plan documental; no se implementó código durante su elaboración.
+Estado actual: documento vivo; Fases 1 a 6 cerradas y preparacion de produccion activa bajo Conditional Go. La elaboracion inicial de este plan no modifico codigo.
 
 ## 1. Objetivo y reglas de ejecución
 
@@ -138,6 +138,23 @@ Objetivo: retirar contradicciones y duplicación confirmada sin borrar código d
 
 Objetivo: demostrar los criterios anteriores sobre una copia segura de datos y evitar regresiones.
 
+**Estado vigente: CERRADA en su alcance de QA.**
+
+La tabla original de esta seccion se conserva como backlog conceptual historico. La numeracion operativa realmente ejecutada y usada por `docs/QA_FASE_6.md` y `CAMBIOS.md` es la siguiente:
+
+| Lote operativo | Alcance ejecutado | Estado |
+|---|---|---|
+| 6.1 | Linea base tecnica, check_db, lint/build y revision Git | Cerrado |
+| 6.2 | 20 pruebas backend con SQLite temporal | Cerrado |
+| 6.3 | Checklist tecnico frontend | Cerrado |
+| 6.4 | Smoke tests de integracion frontend/backend | Cerrado |
+| 6.5 | Checklist manual funcional completo | Cerrado con escrituras reales fuera de alcance |
+| 6.6 | Matriz responsive y accesibilidad | Cerrado |
+| 6.7 | Payload y rendimiento base | Cerrado con bloqueos de produccion identificados |
+| 6.8 | Cierre formal y decision de despliegue | Cerrado |
+
+### Backlog conceptual original de Fase 6
+
 | ID | Archivo probable | Descripción | Prioridad | Riesgo | Dependencias | Criterio de aceptación |
 |---|---|---|---|---|---|---|
 | 6.1 | Nueva carpeta `backend/tests/`, `backend/requirements.txt` si falta runner | Crear pruebas de contrato para rutas públicas/admin, perfil con avatar, relaciones multimedia, galería ordenada, PDF y errores de validación. Usar DB temporal, nunca `portfolio.db`. | Alta | Medio: fixtures mal configuradas podrían apuntar a la DB real. | Fases 1–3. | Tests crean/usan una SQLite temporal; comprueban status y campos; la base real no cambia. |
@@ -162,9 +179,21 @@ Objetivo: demostrar los criterios anteriores sobre una copia segura de datos y e
 9. Probar validaciones 422 y archivos inválidos/sobredimensionados.
 10. Verificar login, expiración/error, logout y ausencia de contraseña persistida.
 
+### Cierre operativo de Fase 6
+
+- QA tecnico: aprobado.
+- QA funcional: aprobado sin operaciones CRUD sobre datos reales.
+- Integracion local, responsive y accesibilidad: aprobadas.
+- Integridad SQLite: aprobada.
+- Rendimiento/payload: bloqueante para despliegue inmediato.
+- Decision: **CONDITIONAL GO para preparacion de produccion, NO-GO para despliegue inmediato.**
+- Evidencia consolidada: `docs/QA_FASE_6.md`, seccion Fase 6.8.
+
 ## 8. Fase 7: preparación para despliegue
 
 Objetivo: convertir la configuración local en una operación reproducible y segura.
+
+Esta fase original queda refinada por la seccion **Preparacion de produccion: Vercel + Render + PostgreSQL**. Sus tareas siguen siendo referencia, pero no autorizan un despliegue directo ni consideran SQLite local como persistencia definitiva para Render.
 
 | ID | Archivo probable | Descripción | Prioridad | Riesgo | Dependencias | Criterio de aceptación |
 |---|---|---|---|---|---|---|
@@ -187,6 +216,31 @@ Objetivo: convertir la configuración local en una operación reproducible y seg
 - Base de datos, backups y migraciones tienen procedimiento probado.
 - El primer commit y el artefacto desplegado no contienen secretos.
 - Existe evidencia de smoke test y ruta de rollback.
+
+## Preparación de producción: Vercel + Render + PostgreSQL
+
+Estado: **siguiente etapa autorizada bajo Conditional Go**. No equivale a autorizacion de despliegue inmediato.
+
+Arquitectura objetivo:
+
+- React/Vite en Vercel.
+- FastAPI en Render.
+- PostgreSQL persistente, con proveedor por decidir entre alternativas como Neon o Supabase.
+- El frontend consume exclusivamente FastAPI; nunca se conecta directamente a PostgreSQL.
+- FastAPI obtiene la conexion mediante `DATABASE_URL` y secretos del entorno.
+
+| Lote | Objetivo | Dependencia | Criterio de salida |
+|---|---|---|---|
+| Produccion 1 | Optimizar payload multimedia publico/admin y eliminar transporte duplicado de portada | Metricas Fase 6.7 | `/projects`, `/media-assets` y carga inicial se remiden y dejan de estar en riesgo alto o existe mitigacion aprobada |
+| Produccion 2 | Compatibilidad PostgreSQL y migracion controlada desde SQLite | Produccion 1; backup verificado | Esquema/datos migran en ensayo, integridad pasa y rollback esta documentado |
+| Produccion 3 | Limpieza Git y retirada reversible de `backend/venv` | Working tree revisado | `venv`, DB, backups, logs, `.env`, `dist` y dependencias no aparecen en el indice/publicacion |
+| Produccion 4 | Configuracion Vercel | URL staging del backend | Build usa API HTTPS correcta; fallback SPA permite abrir/recargar `/admin` |
+| Produccion 5 | Configuracion Render | PostgreSQL staging y secretos definidos | Backend inicia con comando productivo, health funciona, CORS permite solo origenes configurados |
+| Produccion 6 | Despliegue de prueba/staging | Produccion 1-5 | Frontend, backend y DB persisten/reinician sin perdida y no exponen secretos |
+| Produccion 7 | Smoke tests remotos | Staging disponible | Publico, admin, CORS, HTTPS, galeria, PDF y persistencia pasan en remoto |
+| Produccion 8 | Produccion final y rollback | Staging aprobado | Despliegue final controlado, monitorizado y con rollback ensayado |
+
+El primer lote siguiente es **Produccion 1: optimizacion de payload multimedia**. No iniciar Vercel, Render ni PostgreSQL de produccion antes de cerrar los bloqueos correspondientes.
 
 ## 9. Orden de ejecución resumido
 
@@ -261,8 +315,10 @@ Este bloque resume el estado vigente del proyecto sin borrar el historial del pl
 - Fase 4: cerrada.
 - Fase 5: lote 1 cerrado, lote 2 cerrado, lote 3 cerrado con esta actualizacion documental.
 - Fase 5: lote 4 cerrado con la revisión segura de archivos dudosos; Fase 5 cerrada.
-- Fase 6: siguiente fase activa.
-- Fase 7: pendiente.
+- Fase 6: cerrada en su alcance de QA; decision formal registrada en Fase 6.8.
+- Preparacion de produccion: siguiente etapa activa bajo Conditional Go.
+- Despliegue inmediato: No-Go hasta resolver persistencia, payload, Git y configuracion productiva.
+- Fase 7 original: refinada en los lotes Produccion 1 a Produccion 8; no se considera completada.
 
 Notas operativas:
 

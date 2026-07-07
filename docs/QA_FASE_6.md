@@ -407,3 +407,89 @@ Son umbrales internos previos al despliegue, no SLA.
 - `portfolio.db` mantuvo 11.018.240 B y `LastWriteTimeUtc=2026-07-06T08:22:06.8784562Z` antes y despues.
 - No hubo CRUD, contacto valido, migraciones ni scripts destructivos.
 - No se cambio arquitectura, Base64, SQLite, contratos, autenticacion, uploads, SVG ni PDF.
+
+## Fase 6.8 - Cierre formal y decision de despliegue
+
+Fecha de ejecucion: 2026-07-07. Entrada de cambios registrada con la fecha solicitada `2026-07-06`.
+
+### Resumen de lotes
+
+| Lote | Alcance | Resultado | Evidencia | Estado |
+|---|---|---|---|---|
+| 6.1 | Linea base tecnica, integridad y Git | check_db, lint y build aprobados; riesgos Git inventariados | `foreign_keys=1`, `integrity_check=ok`, cero violaciones | Cerrado |
+| 6.2 | Pruebas backend aisladas | 20 contratos aprobados con SQLite temporal | Proteccion explicita contra `portfolio.db` | Cerrado |
+| 6.3 | Checklist tecnico frontend | Helpers HTTP, 422, carga parcial, PDF, SVG, validaciones y uploads revisados | lint/build aprobados | Cerrado |
+| 6.4 | Smoke tests integrados | 16 comprobaciones HTTP aprobadas | Publico, admin, CORS y frontend/backend local | Cerrado |
+| 6.5 | QA funcional en navegador | Publico/admin, login/logout, galeria, PDF, validaciones y errores aprobados | Chrome/CDP sin CRUD real | Cerrado con pendientes autorizados de escritura |
+| 6.6 | Responsive y accesibilidad | 8 viewports, teclado, foco, modales, ARIA y reduced motion aprobados | Matriz 320-1440 px | Cerrado |
+| 6.7 | Payload y rendimiento base | Metricas completas; payload multimedia excede umbrales | `/projects` 10,23 MB; `/media-assets` 10,86 MB | Cerrado con bloqueos para produccion |
+
+### Verificaciones finales
+
+| Comando | Resultado esperado | Resultado obtenido | Estado | Observaciones |
+|---|---|---|---|---|
+| `.\venv\Scripts\python.exe -m pytest -q` | Suite backend completa aprobada | 20 passed en 3,08 s | Aprobado | Una advertencia externa de deprecacion Starlette/TestClient |
+| `.\venv\Scripts\python.exe -m app.scripts.check_db` | FK activas, integridad OK, cero violaciones | `foreign_keys=1`, `integrity_check=ok`, `violations=[]` | Aprobado | Script de solo lectura |
+| `npm run lint` | Codigo 0 | Codigo 0, sin errores | Aprobado | ESLint estable |
+| `npm run build` | Build Vite correcto | 68 modulos; JS 357,04 kB y CSS 75,05 kB | Aprobado | Codigo 0 |
+| `git status` previo a documentar | Estado conocido y sin sensibles nuevos | Working tree limpio; 0 staged, 0 untracked; rama 1 commit adelante | Aprobado con observacion | `backend/venv` conserva 1.475 archivos rastreados |
+| Integridad de `portfolio.db` | Tamano y fecha sin cambios | 11.018.240 B y `2026-07-06T08:22:06.8784562Z` antes/despues | Aprobado | No hubo escritura inesperada |
+
+Revision de archivos locales:
+
+- `backend/.env`, `frontend/.env`, `backend/portfolio.db`, logs, `frontend/dist` y `frontend/node_modules` existen y estan ignorados/no rastreados.
+- `backend/venv` existe, no esta ignorado efectivamente para el indice actual y mantiene 1.475 archivos rastreados.
+- No se mostro contenido de secretos, DB, backups ni logs.
+
+### Clasificacion de riesgos
+
+| Riesgo | Categoria | Impacto | Probabilidad | Accion requerida | Bloquea despliegue |
+|---|---|---|---|---|---|
+| Persistencia para Render y PostgreSQL | A - Bloqueante | Perdida de datos o backend no durable | Alta | Definir PostgreSQL persistente y estrategia de conexion/rollback | Si |
+| Migracion segura SQLite -> PostgreSQL | A - Bloqueante | Perdida o inconsistencia de datos | Alta | Diseñar, ensayar y validar migracion con backup | Si |
+| `/api/public/projects` supera 10 MB | A - Bloqueante | Carga inicial lenta y alto consumo movil | Alta | Reducir payload multimedia y remedir | Si |
+| `/api/admin/media-assets` entrega todo Base64 | A - Bloqueante | Memoria/admin degradados al crecer | Alta | Separar metadata/contenido o limitar respuesta | Si |
+| Portada duplicada en transporte de galeria | A - Bloqueante | Bytes redundantes en cada proyecto | Alta | Excluir duplicacion y conservar contrato compatible | Si |
+| `backend/venv` con 1.475 archivos rastreados | A - Bloqueante | Repositorio pesado/no portable | Cierta | Retirar del indice con procedimiento reversible y verificar Git | Si |
+| CORS solo local | A - Bloqueante | Vercel no podra consumir Render o quedara apertura insegura | Cierta | Externalizar origenes de produccion sin wildcard con credenciales | Si |
+| Fallback SPA de Vercel no definido | A - Bloqueante | Recarga directa de `/admin` puede fallar | Cierta | Configurar rewrite/fallback y verificar assets | Si |
+| Variables/comandos de produccion incompletos | A - Bloqueante | Build o proceso Render incorrectos | Cierta | Documentar Vercel/Render, HTTPS, health y secretos | Si |
+| Storage externo de imagenes/PDF | B - Importante | Escalabilidad y costo de DB | Media | Evaluar tras reducir payload; plan compatible | No por si solo |
+| Thumbnails y lazy loading | B - Importante | Experiencia movil y memoria | Alta | Incorporar por fases y remedir | No por si solo |
+| Paginacion del catalogo media | B - Importante | Crecimiento del admin | Alta | Agregar tras separar metadata/contenido | No por si solo |
+| Rate limiting admin/contacto | B - Importante | Abuso y disponibilidad | Media | Definir en backend/proxy antes o inmediatamente despues del primer staging | No para staging controlado |
+| Exposicion de docs FastAPI | B - Importante | Superficie de informacion | Media | Revisar politica y credenciales de produccion | No para staging controlado |
+| Contraste cuantitativo WCAG | B - Importante | Conformidad accesible | Media | Ejecutar auditoria formal | No para staging controlado |
+| Runner automatizado frontend | B - Importante | Riesgo de regresion | Media | Incorporar pruebas ligeras/CI | No para staging controlado |
+| Migrar Basic Auth a sesiones/tokens | C - Deuda futura | Seguridad/escalabilidad del admin | Media al crecer | Planificar si aumenta alcance o usuarios | No ahora |
+| Multiples administradores | C - Deuda futura | Operacion y auditoria | Baja actual | Diseñar roles/usuarios cuando exista necesidad | No |
+| Escalado horizontal | C - Deuda futura | Capacidad futura | Baja actual | Evaluar tras observar trafico real | No |
+| Observabilidad avanzada | C - Deuda futura | Diagnostico operacional | Media futura | Agregar metricas/tracing gradualmente | No |
+| Backups automatizados | C - Deuda futura | Recuperacion operacional | Alta en produccion | Incluir antes de produccion final aunque no bloquee staging | No staging; si produccion final |
+
+### Decision
+
+- QA tecnico: **aprobado**.
+- QA funcional: **aprobado**, con CRUD real pendiente de un lote separado y respaldado.
+- Responsive/accesibilidad: **aprobado** para la matriz ejecutada.
+- Integridad de datos: **aprobada**.
+- Rendimiento/payload: **bloqueante para despliegue inmediato**.
+- Preparacion de produccion: **CONDITIONAL GO**.
+- Despliegue inmediato: **NO-GO**.
+
+Decision formal: **CONDITIONAL GO para preparacion de produccion, NO-GO para despliegue inmediato.**
+
+Esta decision permite iniciar trabajo de remediacion y configuracion, no publicar todavia en Vercel/Render ni tratar SQLite local como persistencia definitiva.
+
+### Siguiente etapa
+
+1. Produccion 1: optimizacion de payload multimedia.
+2. Produccion 2: compatibilidad PostgreSQL y migracion controlada.
+3. Produccion 3: limpieza Git y retirada de `backend/venv`.
+4. Produccion 4: configuracion Vercel.
+5. Produccion 5: configuracion Render.
+6. Produccion 6: despliegue de prueba/staging.
+7. Produccion 7: smoke tests remotos.
+8. Produccion 8: produccion final y rollback.
+
+El siguiente lote exacto es **Produccion 1: optimizacion de payload multimedia**. Debe remedir `/api/public/projects`, `/api/admin/media-assets` y la carga inicial antes de avanzar a infraestructura.
