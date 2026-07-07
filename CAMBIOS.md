@@ -1,5 +1,31 @@
 # Cambios realizados
 
+## 2026-07-06 - Fase 5 · Lote 2: limpieza de CSS compartido y revision de wrappers sin uso
+
+Se realizo una limpieza puntual de deuda tecnica del frontend sin cambiar contratos HTTP, autenticacion, validaciones ni logica funcional.
+
+Cambios aplicados:
+
+- se revisaron `AdminSkillsPanel.css`, `AdminProjectsPanel.css` y `AdminLayout.css` para confirmar duplicaciones reales antes de tocar estilos;
+- no se detectaron bloques duplicados activos en `AdminSkillsPanel.css` ni en `AdminProjectsPanel.css`, por lo que no se hizo una eliminacion ciega;
+- se acotaron selectores compartidos del admin en `AdminLayout.css` para evitar colisiones globales con la parte publica, especialmente en `.badge`, `.section-header` y `.entity-actions`;
+- se acoto `AdminTopbar.css` para que `.admin-actions` quede ligado al topbar administrativo y no como selector generico global;
+- se revisaron exports de `publicApi.js` y `adminApi.js`;
+- no se eliminaron wrappers/exportaciones del servicio porque los no consumidos hoy siguen formando parte de la superficie documentada del frontend (`backend/docs/API_FRONTEND.md`) o de capacidades administrativas previstas, asi que se dejaron como pendiente segura en lugar de borrarlos por suposicion.
+
+Verificaciones:
+
+- `npm run lint` paso correctamente.
+- `npm run build` paso correctamente.
+- no se ejecuto `reset_db.py`.
+- no se tocaron backend, base de datos, autenticacion, uploads, SVG ni PDF.
+
+Archivos tocados:
+
+- `frontend/src/styles/AdminLayout.css`
+- `frontend/src/components/admin/AdminTopbar.css`
+- `CAMBIOS.md`
+
 ## 2026-07-06 - Fase 5 · Lote 1: limpieza de textos visibles, mojibake y metadatos básicos
 
 Se realizo una limpieza puntual de textos visibles y metadatos del frontend sin tocar backend, base de datos, autenticacion ni logica funcional.

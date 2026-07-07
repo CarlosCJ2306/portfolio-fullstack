@@ -6,7 +6,7 @@
   min-width: 0;
 }
 
-.admin-actions {
+.admin-topbar-panel .admin-actions {
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
@@ -15,7 +15,7 @@
 }
 
 .admin-topbar-panel > div:first-child,
-.admin-actions {
+.admin-topbar-panel .admin-actions {
   min-width: 0;
 }
 
@@ -36,7 +36,7 @@
     gap: 16px;
   }
 
-  .admin-actions {
+  .admin-topbar-panel .admin-actions {
     justify-content: flex-start;
     width: 100%;
   }
