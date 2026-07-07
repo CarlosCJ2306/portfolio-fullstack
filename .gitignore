@@ -1,8 +1,21 @@
 # Entorno local y secretos
 backend/.env
 frontend/.env
+.env
+.env.*
+!.env.example
+!**/.env.example
 
 # Bases de datos y respaldos
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-wal
+*.db-shm
+*.backup
+backups/
+backup/
 backend/*.db
 backend/portfolio.db
 backend/portfolio_backup_*.db
@@ -21,7 +34,16 @@ logs/
 __pycache__/
 *.pyc
 
+# Entornos virtuales de Python
+venv/
+.venv/
+backend/venv/
+backend/.venv/
+
 # Frontend generado o local
+dist/
+build/
+node_modules/
 frontend/dist/
 frontend/node_modules/
 *.local

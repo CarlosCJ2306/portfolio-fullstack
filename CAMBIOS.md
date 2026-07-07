@@ -1,5 +1,34 @@
 # Cambios realizados
 
+## 2026-07-06 - Fase 5 - Lote 4: revisión manual de archivos dudosos
+
+Se realizó una revisión documental y segura de scripts antiguos, modelos sin consumidores funcionales, bases de datos, backups, logs, migraciones y artefactos generados.
+
+Cambios aplicados:
+
+- se creó `docs/REVISION_ARCHIVOS_DUDOSOS.md` con inventario, referencias, riesgo, recomendación, motivo y acción futura para cada candidato;
+- se clasificaron como **NO EJECUTAR** sobre la base real `reset_db.py`, `update_db.py` y `seed_db.py`, además de cualquier migración sin backup y autorización;
+- se documentó que `portfolio.db`, su backup y los logs deben permanecer fuera de Git;
+- se confirmó que `backend/venv/` es recreable y contiene 1.475 archivos actualmente versionados; no se retiró del índice y la decisión quedó pendiente del propietario;
+- se conservó la migración idempotente de galería por su valor operativo e histórico;
+- se reforzó `.gitignore` para cubrir entornos virtuales, variantes de `.env`, SQLite y auxiliares, backups y artefactos generados de Node/Vite.
+
+Verificaciones y límites:
+
+- no se eliminó, movió ni renombró ningún archivo;
+- no se ejecutó `reset_db.py` ni otro script destructivo o de migración;
+- no se abrió ni modificó la base de datos real;
+- no se tocó backend ni frontend funcional;
+- no se ejecutaron `npm run lint` ni `npm run build`, porque solo cambiaron documentación y `.gitignore`.
+
+Archivos tocados:
+
+- `.gitignore`
+- `frontend/.gitignore`
+- `docs/REVISION_ARCHIVOS_DUDOSOS.md`
+- `PLAN_TRABAJO_PORTFOLIO.md`
+- `CAMBIOS.md`
+
 ## 2026-07-06 - Fase 5 - Lote 3: actualizacion documental y consistencia contractual
 
 Se actualizo la documentacion para reflejar el estado real del proyecto sin tocar codigo funcional, backend, base de datos ni contratos operativos.

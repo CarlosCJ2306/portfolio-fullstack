@@ -260,7 +260,7 @@ Este bloque resume el estado vigente del proyecto sin borrar el historial del pl
 - Fase 3: cerrada.
 - Fase 4: cerrada.
 - Fase 5: lote 1 cerrado, lote 2 cerrado, lote 3 cerrado con esta actualizacion documental.
-- Fase 5: lote 4 pendiente.
+- Fase 5: lote 4 cerrado con la revisión segura de archivos dudosos; Fase 5 cerrada.
 - Fase 6: pendiente.
 - Fase 7: pendiente.
 
