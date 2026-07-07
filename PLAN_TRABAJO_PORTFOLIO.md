@@ -221,6 +221,35 @@ Esta fase original queda refinada por la seccion **Preparacion de produccion: Ve
 
 Estado: **siguiente etapa autorizada bajo Conditional Go**. No equivale a autorizacion de despliegue inmediato.
 
+### Lote previo a producción: contenido profesional
+
+Estado: **completado y verificado el 2026-07-07**.
+
+- Se creó un backup SQLite íntegro antes de escribir.
+- Se aplicó una sincronización transaccional e idempotente enfocada únicamente en Fofimatic S.A.S.
+- Quedaron activos el perfil profesional, tres redes, una experiencia, seis proyectos textuales sin multimedia, 41 skills y una educación.
+- Las certificaciones provisionales se desactivaron sin borrar registros, documentos ni assets.
+- `MediaAsset` y mensajes conservaron sus conteos.
+- Pasaron 23 pruebas backend, `check_db`, lint, build y smoke tests de lectura.
+- Se documentó el contenido en `docs/CONTENIDO_PROFESIONAL_PORTAFOLIO.md` y el plan futuro en `docs/PLAN_MIGRACION_SQLITE_POSTGRESQL.md`.
+- No se migró a PostgreSQL, no se desplegó y no se ejecutaron scripts destructivos.
+
+El **Conditional Go** se mantiene. Este lote no resuelve los bloqueos de payload, persistencia PostgreSQL, Git ni configuración productiva.
+
+### Actualización profesional C0–C4
+
+La hoja de vida actualizada incorpora dos experiencias documentadas y exige una revisión editorial y de confidencialidad antes de Producción 1.
+
+| Lote | Estado | Alcance | Criterio de salida |
+|---|---|---|---|
+| C0 Auditoría y planificación | **Completado 2026-07-07** | Inventario read-only de DB/código/API/UI, propuesta editorial, matriz de capacidades y plan PostgreSQL | DB intacta; documentos creados; discrepancias y decisiones del propietario registradas |
+| C1 Modelo y contratos | Pendiente | Campos aditivos de confidencialidad de proyecto y expiración de certificación, solo tras aprobación | Migración segura y contratos/tests aprobados; sin romper multimedia existente |
+| C2 Admin y frontend público | Pendiente | Controles de confidencialidad, permiso de imágenes, alias genérico y expiración | Admin y público respetan la política; lint/build y accesibilidad aprobados |
+| C3 Actualización controlada de contenido | Pendiente | Backup, dry-run, actualización idempotente con Fofimatic, Kodland y contenido aprobado | Datos respaldados, fechas confirmadas, assets/mensajes preservados y `check_db` aprobado |
+| C4 QA y confidencialidad | Pendiente | Tests, navegador, búsqueda de nombres protegidos, revisión autorizada de multimedia y go/no-go editorial | Cero exposición confidencial y QA integral aprobada por el propietario |
+
+Documentos rectores: `docs/PLAN_ACTUALIZACION_CONTENIDO_PROFESIONAL.md`, `docs/INVENTARIO_CONTENIDO_PORTFOLIO.md` y `PLAN_MIGRACION_POSTGRESQL.md`.
+
 Arquitectura objetivo:
 
 - React/Vite en Vercel.
@@ -231,7 +260,8 @@ Arquitectura objetivo:
 
 | Lote | Objetivo | Dependencia | Criterio de salida |
 |---|---|---|---|
-| Produccion 1 | Optimizar payload multimedia publico/admin y eliminar transporte duplicado de portada | Metricas Fase 6.7 | `/projects`, `/media-assets` y carga inicial se remiden y dejan de estar en riesgo alto o existe mitigacion aprobada |
+| Preproducción 0 (completado) | Reemplazar contenido provisional por contenido profesional verificado y documentar la migración futura | Backup SQLite válido | Sincronización idempotente, QA aprobada, assets/mensajes intactos y cero operaciones en el dry-run posterior |
+| Produccion 1 | Optimizar payload multimedia publico/admin y eliminar transporte duplicado de portada | C4 aprobado; métricas Fase 6.7 | `/projects`, `/media-assets` y carga inicial se remiden y dejan de estar en riesgo alto o existe mitigacion aprobada |
 | Produccion 2 | Compatibilidad PostgreSQL y migracion controlada desde SQLite | Produccion 1; backup verificado | Esquema/datos migran en ensayo, integridad pasa y rollback esta documentado |
 | Produccion 3 | Limpieza Git y retirada reversible de `backend/venv` | Working tree revisado | `venv`, DB, backups, logs, `.env`, `dist` y dependencias no aparecen en el indice/publicacion |
 | Produccion 4 | Configuracion Vercel | URL staging del backend | Build usa API HTTPS correcta; fallback SPA permite abrir/recargar `/admin` |
@@ -240,7 +270,7 @@ Arquitectura objetivo:
 | Produccion 7 | Smoke tests remotos | Staging disponible | Publico, admin, CORS, HTTPS, galeria, PDF y persistencia pasan en remoto |
 | Produccion 8 | Produccion final y rollback | Staging aprobado | Despliegue final controlado, monitorizado y con rollback ensayado |
 
-El primer lote siguiente es **Produccion 1: optimizacion de payload multimedia**. No iniciar Vercel, Render ni PostgreSQL de produccion antes de cerrar los bloqueos correspondientes.
+Completado C0, el siguiente lote es **C1: modelo y contratos**, condicionado a decisiones explícitas del propietario. **Producción 1** queda pendiente después de C4 y continúa siendo la optimización del payload multimedia. **Producción 2** continúa siendo la compatibilidad PostgreSQL y la migración controlada. No iniciar Vercel, Render ni PostgreSQL de producción antes de cerrar los bloqueos correspondientes.
 
 ## 9. Orden de ejecución resumido
 
@@ -316,6 +346,8 @@ Este bloque resume el estado vigente del proyecto sin borrar el historial del pl
 - Fase 5: lote 1 cerrado, lote 2 cerrado, lote 3 cerrado con esta actualizacion documental.
 - Fase 5: lote 4 cerrado con la revisión segura de archivos dudosos; Fase 5 cerrada.
 - Fase 6: cerrada en su alcance de QA; decision formal registrada en Fase 6.8.
+- Lote previo a producción de contenido profesional: completado y verificado el 2026-07-07.
+- Actualización profesional C0: auditoría y planificación completadas; C1–C4 pendientes antes de Producción 1.
 - Preparacion de produccion: siguiente etapa activa bajo Conditional Go.
 - Despliegue inmediato: No-Go hasta resolver persistencia, payload, Git y configuracion productiva.
 - Fase 7 original: refinada en los lotes Produccion 1 a Produccion 8; no se considera completada.

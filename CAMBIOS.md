@@ -1,5 +1,61 @@
 # Cambios realizados
 
+## 2026-07-07 - C0: auditoría y planificación de actualización profesional
+
+Se inició una nueva revisión editorial basada en la hoja de vida actualizada y en reglas estrictas de confidencialidad. Este lote fue exclusivamente documental y de solo lectura.
+
+- Se inventarió el contenido vigente de perfil, redes, skills, proyectos, experiencias, educación, certificaciones, assets y relaciones sin reproducir Base64, SVG, PDFs ni mensajes privados.
+- Se contrastaron modelos, schemas, repositorios, servicios, routers, scripts, API, frontend público, panel admin y documentación existente.
+- Se documentó la incorporación futura de Fofimatic y Kodland, sin insertar ni modificar registros.
+- Se registró el conflicto entre la fecha final de Fofimatic (marzo de 2026) y la expresión “actualmente”; requiere confirmación del propietario.
+- Se propuso presentar la formación como “Egresado de Ingeniería de Sistemas” hasta la ceremonia prevista para octubre de 2026.
+- Se identificaron como candidatos aditivos `Project.is_confidential`, `confidentiality_note`, `client_display_name`, `allow_public_images` y `Certification.expiration_date`.
+- Se confirmó que `certificate_file_id` ya sirve para PDF y que la categoría string de skills es suficiente.
+- Se crearon `docs/PLAN_ACTUALIZACION_CONTENIDO_PROFESIONAL.md`, `docs/INVENTARIO_CONTENIDO_PORTFOLIO.md` y `PLAN_MIGRACION_POSTGRESQL.md`.
+- Se actualizaron el plan general y referencias documentales que exponían una entidad histórica, usando una denominación reservada.
+- `portfolio.db` conservó exactamente 11.026.432 bytes y `LastWriteTimeUtc=2026-07-07T07:18:23.6300185Z` antes y después; la comprobación read-only mantuvo `integrity_check=ok` y cero violaciones de FK.
+- No se ejecutaron POST, PUT, PATCH, DELETE, migraciones, seeds, resets ni scripts de actualización.
+- No se modificaron código funcional, contratos, autenticación, multimedia ni la base de datos.
+
+Decisiones pendientes: vigencia y cargo de Fofimatic, cargo y publicación de Kodland, encabezado como egresado, estructura final de proyectos, tecnologías y niveles verificables, certificaciones publicables, imágenes permitidas y texto de confidencialidad.
+
+## 2026-07-07 - Actualización del contenido profesional
+
+Se sustituyó el contenido provisional por una línea profesional enfocada exclusivamente en Carlos Andrés Jiménez Sarmiento y su experiencia en Fofimatic S.A.S.
+
+Contenido aplicado:
+
+- perfil, ubicación, correo y resumen profesional actualizados; teléfono retirado de la publicación y avatar/CV existentes conservados;
+- GitHub, LinkedIn y correo como únicas redes activas;
+- una única experiencia activa: Fofimatic S.A.S.; una entidad anterior quedó histórica/inactiva y Kodland no se incorporó;
+- seis proyectos empresariales confidenciales y textuales, sin portada, galería, demo, repositorio, cliente ni métricas inventadas;
+- 41 skills activas organizadas por categoría y nivel prudente, incluyendo Power BI, DAX y Power Query;
+- una única educación activa en la Universidad de Pamplona;
+- certificaciones provisionales desactivadas; no se crearon credenciales sin respaldo ni se retiraron PDFs.
+
+Estrategia de seguridad:
+
+- backup SQLite verificado: `backend/backups/portfolio_before_content_20260707_021131.db` (ignorado por Git);
+- sincronizador idempotente `app.scripts.sync_professional_portfolio`, con dry-run predeterminado, `--apply` explícito, validación de backup, una transacción y rollback;
+- dry-run previo: 77 operaciones previstas, sin cambiar tamaño ni fecha de la base;
+- aplicación: 77 operaciones; dry-run posterior: 0 operaciones;
+- `MediaAsset` permaneció en 13 registros y mensajes en 1; no se eliminó ni modificó su contenido;
+- no se ejecutaron `reset_db.py`, `update_db.py`, `seed_db.py` ni migraciones.
+
+Verificaciones:
+
+- backend: 23 pruebas aprobadas; existe cobertura de SQLite temporal, idempotencia, rollback, preservación de assets/mensajes, proyectos sin imágenes y experiencia activa única;
+- SQLite: `foreign_keys=1`, `integrity_check=ok` y cero violaciones;
+- integración local: home, seis proyectos, CORS, protección admin, lecturas admin y contacto inválido 422 aprobados;
+- frontend: `npm run lint` y `npm run build` con código 0;
+- QA visual básica: escritorio público y login admin móvil cargaron; la captura pública a 390 px mostró un posible recorte del título del hero que debe reconfirmarse en la siguiente revisión responsive y no se corrigió fuera de alcance.
+
+Documentación:
+
+- se creó `docs/CONTENIDO_PROFESIONAL_PORTAFOLIO.md`;
+- se creó `docs/PLAN_MIGRACION_SQLITE_POSTGRESQL.md` como plan únicamente documental;
+- no se conectó a PostgreSQL, no se migró y no se desplegó.
+
 ## 2026-07-06 - Cierre de Fase 6: pruebas tecnicas, funcionales y decision de despliegue
 
 Se consolidaron formalmente los lotes 6.1 a 6.7 y se cerro la Fase 6 dentro de su alcance de QA.
