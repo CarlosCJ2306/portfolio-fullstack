@@ -1,12 +1,10 @@
-# Contrato API para Frontend React
+# Contrato API para el frontend
 
-Proyecto: Portfolio Full Stack  
-Backend: FastAPI + SQLite + SQLAlchemy  
-Frontend previsto: React + Vite  
+Proyecto: Portfolio Full Stack
+Backend: FastAPI + SQLite + SQLAlchemy
+Frontend: React + Vite
 
----
-
-## URL base del backend
+## URL base
 
 En desarrollo local:
 
@@ -14,37 +12,29 @@ En desarrollo local:
 http://127.0.0.1:8000
 ```
 
-En React se usará esta variable de entorno:
+En el frontend se usa:
 
 ```env
 VITE_API_BASE_URL=http://127.0.0.1:8000
 ```
 
-La aplicacion actual del frontend consume esta URL base desde `frontend/.env` y la documenta en `frontend/.env.example`.
+El frontend consume esta variable desde `frontend/.env` y la documenta en `frontend/.env.example`.
 
-Ademas de `GET /api/public/home`, la portada publica carga `GET /api/public/projects` para mostrar todos los proyectos activos.
+## Estado actual del contrato
 
----
+- La portada publica usa `GET /api/public/home` como carga principal.
+- La lista completa de proyectos usa `GET /api/public/projects`.
+- El panel admin usa rutas separadas para dashboard, CRUD, mensajes y media assets.
 
-## Endpoints públicos disponibles
+## Endpoints publicos
 
-Estos endpoints serán consumidos por el frontend React.
-
----
-
-## 1. Health check público
-
-### Endpoint
+### Salud
 
 ```http
 GET /api/public/health
 ```
 
-### Uso
-
-Verifica que el módulo público del backend está funcionando.
-
-### Respuesta esperada
+Respuesta esperada:
 
 ```json
 {
@@ -54,48 +44,17 @@ Verifica que el módulo público del backend está funcionando.
 }
 ```
 
----
-
-## 2. Información principal del portafolio
-
-### Endpoint recomendado para cargar la página principal
+### Home publica
 
 ```http
 GET /api/public/home
 ```
 
-### Uso
-
-Este endpoint carga en una sola petición la mayoría de información necesaria para la página principal del portafolio.
-
-Alimenta estas secciones:
-
-```txt
-Hero
-Sobre mí
-Redes sociales
-Skills
-Proyectos destacados
-Experiencia
-Educación
-Certificaciones
-```
-
-### Estructura general de respuesta
+Carga en una sola respuesta:
 
 ```json
 {
-  "profile": {
-    "id": 1,
-    "full_name": "Carlos Andrés Jiménez Sarmiento",
-    "professional_title": "Desarrollador de Software",
-    "summary": "Texto descriptivo del perfil profesional.",
-    "location": "Colombia",
-    "email": "correo@example.com",
-    "phone": null,
-    "cv_url": null,
-    "avatar": null
-  },
+  "profile": {},
   "social_links": [],
   "skills": [],
   "featured_projects": [],
@@ -105,21 +64,18 @@ Certificaciones
 }
 ```
 
----
+Notas:
 
-## 3. Perfil principal
+- `profile.avatar` contiene el asset de avatar cuando existe.
+- Si el home falla, el frontend puede seguir mostrando otras secciones si la carga de proyectos responde.
 
-### Endpoint
+### Perfil publico
 
 ```http
 GET /api/public/profile
 ```
 
-### Uso
-
-Carga solamente la información principal del perfil profesional.
-
-### Campos importantes
+Campos clave:
 
 ```txt
 full_name
@@ -132,74 +88,26 @@ cv_url
 avatar
 ```
 
----
-
-## 4. Enlaces sociales
-
-### Endpoint
+### Redes sociales publicas
 
 ```http
 GET /api/public/social-links
 ```
 
-### Uso
-
-Carga enlaces como GitHub, LinkedIn, correo u otros canales.
-
-### Ejemplo de respuesta
-
-```json
-[
-  {
-    "id": 1,
-    "platform": "GitHub",
-    "url": "https://github.com/",
-    "icon_name": "github",
-    "display_order": 1
-  }
-]
-```
-
----
-
-## 5. Skills
-
-### Endpoint
+### Skills publicas
 
 ```http
 GET /api/public/skills
 ```
 
-### Uso
-
-Carga las habilidades técnicas del portafolio.
-
-### Campos importantes
-
-```txt
-name
-category
-level
-color
-display_order
-icon
-```
-
----
-
-## 6. Proyectos
-
-### Endpoint
+### Proyectos publicos
 
 ```http
 GET /api/public/projects
+GET /api/public/projects/featured
 ```
 
-### Uso
-
-Carga todos los proyectos activos del portafolio.
-
-### Campos importantes
+Campos relevantes:
 
 ```txt
 title
@@ -209,47 +117,26 @@ description
 repository_url
 demo_url
 is_featured
+is_active
 image
 gallery_images
 skills
+display_order
 ```
 
-### Notas del contrato actual
+Notas del contrato:
 
 - `image` sigue siendo la portada principal del card.
 - `gallery_images` contiene las imagenes adicionales ordenadas.
-- Cada item de `gallery_images` expone el `media_asset_id`, el orden y el objeto `image`.
-- El detalle publico de proyectos abre un modal/carrusel con estas imagenes adicionales.
+- El detalle publico de proyectos abre un modal/carrusel con la portada y la galeria.
 
----
-
-## 7. Proyectos destacados
-
-### Endpoint
-
-```http
-GET /api/public/projects/featured
-```
-
-### Uso
-
-Carga únicamente los proyectos marcados como destacados.
-
----
-
-## 8. Experiencia laboral
-
-### Endpoint
+### Experiencia publica
 
 ```http
 GET /api/public/experience
 ```
 
-### Uso
-
-Carga la experiencia laboral activa.
-
-### Campos importantes
+Campos clave:
 
 ```txt
 position
@@ -261,173 +148,201 @@ end_date
 is_current
 description
 bullets
+display_order
 ```
 
----
-
-## 9. Educación
-
-### Endpoint
+### Educacion publica
 
 ```http
 GET /api/public/education
 ```
 
-### Uso
+Campos clave:
 
-Carga la formación académica.
+```txt
+institution
+degree
+field_of_study
+start_year
+end_year
+description
+display_order
+```
 
----
-
-## 10. Certificaciones
-
-### Endpoint
+### Certificaciones publicas
 
 ```http
 GET /api/public/certifications
 ```
 
-### Uso
+Campos clave:
 
-Carga cursos, certificaciones o credenciales.
+```txt
+name
+issuer
+issue_date
+credential_url
+certificate_file
+display_order
+```
 
-### Notas del contrato actual
+Notas:
 
-- `credential_url` se mantiene como enlace externo separado.
-- `certificate_file` puede incluir un PDF en base64 con `mime_type` `application/pdf`.
-- El frontend abre ese PDF en un modal simple cuando el contenido corresponde a un documento valido.
+- `credential_url` es un enlace externo independiente.
+- `certificate_file` puede incluir `mime_type`, `data_base64` y, si aplica, PDF en `application/pdf`.
+- El frontend puede abrir el PDF en un modal simple o usar un fallback de abrir/descargar.
 
----
-
-## 11. Formulario de contacto
-
-### Endpoint
+### Contacto publico
 
 ```http
 POST /api/public/contact
 ```
 
-### Uso
-
-Guarda en la base de datos un mensaje enviado desde el formulario de contacto del frontend.
-
-### Body esperado
+Body esperado:
 
 ```json
 {
   "name": "Cliente de prueba",
   "email": "cliente@test.com",
-  "subject": "Consulta desde el portafolio",
-  "message": "Hola Carlos, estoy interesado en contactarte para un proyecto."
+  "subject": "Consulta",
+  "message": "Hola, estoy interesado en un proyecto."
 }
 ```
 
-### Validaciones
+Validaciones principales:
 
-```txt
-name:
-- mínimo 2 caracteres
-- máximo 150 caracteres
+- `name`: obligatorio, longitud razonable.
+- `email`: obligatorio, formato valido.
+- `subject`: opcional.
+- `message`: obligatorio, longitud minima y maxima.
 
-email:
-- mínimo 5 caracteres
-- máximo 150 caracteres
-- debe contener @ y punto
+## Endpoints admin
 
-subject:
-- opcional
-- máximo 180 caracteres
+Todos estos endpoints requieren autenticacion HTTP Basic en memoria desde el frontend.
 
-message:
-- mínimo 10 caracteres
-- máximo 3000 caracteres
-```
-
-### Respuesta exitosa
-
-```json
-{
-  "success": true,
-  "message": "Mensaje enviado correctamente.",
-  "contact_message_id": 1
-}
-```
-
----
-
-## Rutas de documentación del backend
-
-Estas rutas son solo para desarrollo o revisión técnica.
+### Login
 
 ```http
-GET /docs
-GET /redoc
-GET /openapi.json
+POST /api/admin/auth/login
 ```
 
-Actualmente están protegidas con usuario y contraseña.
-
-El frontend React no debe consumir estas rutas.
-
----
-
-## Ruta interna de desarrollo
-
-### Endpoint
+### Dashboard
 
 ```http
-GET /api/routes
+GET /api/admin/dashboard
 ```
 
-### Uso
+Devuelve conteos generales y estado resumido del panel.
 
-Lista las rutas registradas actualmente en FastAPI.
-
-Sirve para verificar el mapeo de endpoints.
-
----
-
-## Estrategia recomendada para React
-
-Para cargar la página principal del portafolio, React debería usar principalmente:
+### Perfil admin
 
 ```http
-GET /api/public/home
+GET /api/admin/profile
+PUT /api/admin/profile
 ```
 
-Para enviar mensajes del formulario de contacto:
+Contrato relevante:
+
+- el perfil admin conserva `avatar_asset_id`;
+- el frontend mantiene respaldo con `avatar.id` si hace falta.
+
+### Mensajes
 
 ```http
-POST /api/public/contact
+GET /api/admin/contact-messages
+POST /api/admin/contact-messages/{id}/read
+DELETE /api/admin/contact-messages/{id}
 ```
 
----
+### Skills
 
-## Variable necesaria en el frontend
-
-Archivo actual:
-
-```txt
-frontend/.env.example
+```http
+GET /api/admin/skills
+POST /api/admin/skills
+PUT /api/admin/skills/{id}
+DELETE /api/admin/skills/{id}
 ```
 
-Contenido:
+### Proyectos
 
-```env
-VITE_API_BASE_URL=http://127.0.0.1:8000
+```http
+GET /api/admin/projects
+POST /api/admin/projects
+PUT /api/admin/projects/{id}
+DELETE /api/admin/projects/{id}
 ```
 
----
+Contrato relevante:
+
+- `image_asset_id` sigue siendo la portada.
+- `gallery_image_ids` representa imagenes adicionales ordenadas.
+
+### Experiencia
+
+```http
+GET /api/admin/experience
+POST /api/admin/experience
+PUT /api/admin/experience/{id}
+DELETE /api/admin/experience/{id}
+```
+
+### Educacion
+
+```http
+GET /api/admin/education
+POST /api/admin/education
+PUT /api/admin/education/{id}
+DELETE /api/admin/education/{id}
+```
+
+### Certificaciones
+
+```http
+GET /api/admin/certifications
+POST /api/admin/certifications
+PUT /api/admin/certifications/{id}
+DELETE /api/admin/certifications/{id}
+```
+
+Contrato relevante:
+
+- `credential_url` y `certificate_file_id` son capacidades separadas.
+
+### Redes sociales
+
+```http
+GET /api/admin/social-links
+POST /api/admin/social-links
+PUT /api/admin/social-links/{id}
+DELETE /api/admin/social-links/{id}
+```
+
+### Media assets
+
+```http
+GET /api/admin/media-assets
+POST /api/admin/media-assets
+DELETE /api/admin/media-assets/{id}
+```
+
+Reglas de assets:
+
+- `avatar` para avatar de perfil.
+- `image` para portada y galeria de proyectos.
+- `icon` e `icon_svg` para iconos historicos o actuales de skills.
+- `document` para certificados PDF.
+
+Validaciones principales:
+
+- MIME permitido segun tipo de asset.
+- tamano maximo segun tipo.
+- Base64 valido antes de persistir.
+- SVG seguro antes de persistir y antes de renderizar.
+- PDF solo cuando `mime_type` es `application/pdf`.
 
 ## Servicio frontend sugerido
 
-Archivo futuro:
-
-```txt
-frontend/src/services/publicApi.js
-```
-
-Funciones recomendadas:
+El frontend usa wrappers como:
 
 ```txt
 getHomeData()
@@ -442,29 +357,60 @@ getCertifications()
 sendContactMessage(data)
 ```
 
----
-
-## Estado actual del backend
-
-Backend público listo para frontend:
+Y para admin:
 
 ```txt
-GET  /api/public/health
-GET  /api/public/home
-GET  /api/public/profile
-GET  /api/public/social-links
-GET  /api/public/skills
-GET  /api/public/projects
-GET  /api/public/projects/featured
-GET  /api/public/experience
-GET  /api/public/education
-GET  /api/public/certifications
-POST /api/public/contact
+loginAdmin()
+getAdminDashboard()
+getAdminProfile()
+updateAdminProfile()
+getAdminContactMessages()
+markAdminContactMessageAsRead()
+deleteAdminContactMessage()
+getAdminSkills()
+createAdminSkill()
+updateAdminSkill()
+deleteAdminSkill()
+getAdminProjects()
+createAdminProject()
+updateAdminProject()
+deleteAdminProject()
+getAdminExperience()
+createAdminExperience()
+updateAdminExperience()
+deleteAdminExperience()
+getAdminEducation()
+createAdminEducation()
+updateAdminEducation()
+deleteAdminEducation()
+getAdminCertifications()
+createAdminCertification()
+updateAdminCertification()
+deleteAdminCertification()
+getAdminSocialLinks()
+createAdminSocialLink()
+updateAdminSocialLink()
+deleteAdminSocialLink()
+listMediaAssets()
+uploadMediaAsset()
+deleteMediaAsset()
 ```
 
-## Contrato vigente resumido
+## Rutas de documentacion
 
-- La portada actual usa `/api/public/home` para perfil, skills, experiencia, educación, certificaciones y proyectos destacados.
-- La lista completa de proyectos se obtiene con `/api/public/projects`.
-- Las certificaciones pueden incluir `certificate_file` y `credential_url` al mismo tiempo.
-- Los proyectos mantienen una sola portada mediante `image` y una galeria adicional en `gallery_images`.
+```http
+GET /docs
+GET /redoc
+GET /openapi.json
+```
+
+Estas rutas estan protegidas con usuario y contrasena de documentacion.
+
+## Resumen vigente
+
+- `GET /api/public/home` sigue siendo la carga principal de la portada.
+- `GET /api/public/projects` entrega la lista completa con portada y galeria ordenada.
+- Las certificaciones pueden usar `credential_url` y `certificate_file` al mismo tiempo.
+- El admin trabaja con `avatar_asset_id`, `image_asset_id`, `gallery_image_ids`, `icon_asset_id` y `certificate_file_id`.
+- `MediaAsset` se valida por tipo, MIME, tamano, Base64 y SVG seguro antes de persistir.
+

@@ -1,5 +1,29 @@
 # Cambios realizados
 
+## 2026-07-06 - Fase 5 - Lote 3: actualizacion documental y consistencia contractual
+
+Se actualizo la documentacion para reflejar el estado real del proyecto sin tocar codigo funcional, backend, base de datos ni contratos operativos.
+
+Cambios aplicados:
+
+- se reescribio `README.md` con el stack real, comandos de desarrollo y notas de seguridad actuales;
+- se actualizo `backend/docs/API_FRONTEND.md` para alinear los endpoints publicos y administrativos con los contratos que hoy consume el frontend;
+- se agrego en `PLAN_TRABAJO_PORTFOLIO.md` un bloque de estado real actual que marca las Fases 1 a 5 como cerradas en sus partes ya completadas y deja visibles los lotes y fases pendientes;
+- se mantuvo el historial anterior de `CAMBIOS.md` sin borrar entradas utiles.
+
+Verificaciones:
+
+- no se ejecuto `reset_db.py`;
+- no se tocaron backend funcional, frontend funcional, base de datos, autenticacion, uploads, SVG ni PDF;
+- no se ejecutaron `npm run lint` ni `npm run build` porque este lote fue documental.
+
+Archivos tocados:
+
+- `README.md`
+- `backend/docs/API_FRONTEND.md`
+- `PLAN_TRABAJO_PORTFOLIO.md`
+- `CAMBIOS.md`
+
 ## 2026-07-06 - Fase 5 · Lote 2: limpieza de CSS compartido y revision de wrappers sin uso
 
 Se realizo una limpieza puntual de deuda tecnica del frontend sin cambiar contratos HTTP, autenticacion, validaciones ni logica funcional.
@@ -952,3 +976,4 @@ Pendientes para fases posteriores:
 ## Historial detallado
 
 El historial extenso de cambios, limpieza y fases previas quedo archivado en [docs/HISTORIAL_CAMBIOS_DETALLADO.md](docs/HISTORIAL_CAMBIOS_DETALLADO.md).
+

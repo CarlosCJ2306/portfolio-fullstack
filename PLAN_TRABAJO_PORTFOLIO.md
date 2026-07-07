@@ -251,4 +251,18 @@ El portfolio estará listo para despliegue cuando:
 - no haya foreign keys huérfanas ni borrado inseguro de assets;
 - CORS, HTTPS, SPA fallback, secretos, backups y rollback estén probados;
 - Git y artefactos no incluyan `.env`, DB, backups, logs o dependencias locales.
+## 12. Estado real actual
+
+Este bloque resume el estado vigente del proyecto sin borrar el historial del plan:
+
+- Fase 1: cerrada.
+- Fase 2: cerrada.
+- Fase 3: cerrada.
+- Fase 4: cerrada.
+- Fase 5: lote 1 cerrado, lote 2 cerrado, lote 3 cerrado con esta actualizacion documental.
+- Fase 5: lote 4 pendiente.
+- Fase 6: pendiente.
+- Fase 7: pendiente.
+
+La documentacion contractual, el README y `CAMBIOS.md` deben leerse junto con este estado actualizado para evitar contradicciones.
 
