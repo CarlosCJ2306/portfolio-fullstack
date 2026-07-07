@@ -1,5 +1,48 @@
 # Cambios realizados
 
+## 2026-07-06 - Fase 6.3: pruebas/checklist tecnico frontend
+
+Se cerro la validacion tecnica del frontend sin tocar backend, base de datos, contratos HTTP ni logica funcional.
+
+Decision tomada:
+
+- no se agregaron pruebas frontend automatizadas;
+- `frontend/package.json` no incluye infraestructura previa de testing (`test`, Vitest, Jest o Testing Library);
+- para este lote se priorizo un checklist tecnico reproducible con revision de codigo dirigida y validacion tecnica por comandos.
+
+Casos cubiertos:
+
+- helpers HTTP de `publicApi.js` y `adminApi.js` para confirmar que `GET`/`DELETE` sin body no envian `Content-Type` JSON y que `POST`/`PUT`/`PATCH` con body si lo conservan;
+- diferenciacion entre errores de red, abort y errores HTTP;
+- parseo legible de errores 422 en `adminApi.js`, evitando `[object Object]`;
+- carga parcial de `HomePage.jsx` con reintentos separados para `/api/public/home` y `/api/public/projects`;
+- formulario de contacto con exito, validacion 422, error de red y conservacion del formulario en fallo;
+- construccion de portada y galeria de proyectos sin duplicar la portada;
+- flujo de certificaciones/PDF con `credential_url` separado del archivo PDF, creacion de Blob URL y revocacion al cerrar/cambiar;
+- politica SVG segura sin `dangerouslySetInnerHTML`;
+- validaciones admin y limpieza de errores locales en `AdminPage.jsx`;
+- validacion temprana y estados criticos de uploads en `AdminImagePicker.jsx` y `AdminProjectGalleryPicker.jsx`.
+
+Comandos ejecutados:
+
+- `npm run lint` desde `frontend`: codigo 0.
+- `npm run build` desde `frontend`: codigo 0; Vite compilo 68 modulos y genero `dist` correctamente.
+
+Resultado y observaciones:
+
+- se actualizo `docs/QA_FASE_6.md` con la seccion `Fase 6.3 - Pruebas/checklist tecnico frontend`;
+- no se tocaron backend ni base de datos;
+- no se ejecutaron `reset_db.py`, `update_db.py` ni `seed_db.py`;
+- no se instalaron dependencias nuevas;
+- quedaron documentados riesgos pendientes: ausencia de runner de pruebas frontend y persistencia de mojibake en varios textos del codigo fuente revisado.
+
+Pendientes para Fase 6.4:
+
+- smoke tests de integracion frontend/backend;
+- pruebas manuales completas de flujos publicos y administrativos;
+- matriz responsive/accesibilidad;
+- decidir si conviene incorporar pruebas frontend automatizadas ligeras.
+
 ## 2026-07-06 - Fase 6.2: pruebas backend con SQLite temporal
 
 Se creó la estructura inicial de pruebas backend para validar contratos del API sin usar la base real.
