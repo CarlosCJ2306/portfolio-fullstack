@@ -359,3 +359,6 @@ El problema está en los literales del frontend, no en el renderizado de React. 
 - La responsividad se evaluó a partir de breakpoints y reglas CSS; requiere confirmación visual manual en navegador/dispositivos.
 - No se evaluaron datos privados ni se alteró SQLite.
 - Los problemas se clasificaron por impacto potencial en seguridad, disponibilidad, visualización pública y accesibilidad.
+> Estado: documento histórico.
+> No representa el diagnóstico o plan vigente.
+> Se conserva únicamente para trazabilidad.

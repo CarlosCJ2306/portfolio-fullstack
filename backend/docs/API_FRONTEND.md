@@ -114,6 +114,10 @@ title
 slug
 short_description
 description
+is_confidential
+confidentiality_note
+client_display_name
+allow_public_images
 repository_url
 demo_url
 is_featured
@@ -128,6 +132,9 @@ Notas del contrato:
 
 - `image` sigue siendo la portada principal del card.
 - `gallery_images` contiene las imagenes adicionales ordenadas.
+- `is_confidential` informa que el contenido corresponde a información reservada; no oculta imágenes por sí solo.
+- `client_display_name` y `confidentiality_note` contienen únicamente texto público/genérico.
+- Cuando `allow_public_images=false`, la API pública devuelve `image=null` y `gallery_images=[]`. No elimina ni desasocia los assets almacenados.
 - El detalle publico de proyectos abre un modal/carrusel con la portada y la galeria.
 
 ### Experiencia publica
@@ -181,6 +188,7 @@ Campos clave:
 name
 issuer
 issue_date
+expiration_date
 credential_url
 certificate_file
 display_order
@@ -189,6 +197,7 @@ display_order
 Notas:
 
 - `credential_url` es un enlace externo independiente.
+- `expiration_date` es opcional y, cuando existe junto a `issue_date`, no puede ser anterior.
 - `certificate_file` puede incluir `mime_type`, `data_base64` y, si aplica, PDF en `application/pdf`.
 - El frontend puede abrir el PDF en un modal simple o usar un fallback de abrir/descargar.
 
@@ -276,6 +285,11 @@ Contrato relevante:
 
 - `image_asset_id` sigue siendo la portada.
 - `gallery_image_ids` representa imagenes adicionales ordenadas.
+- `is_confidential` usa `false` por defecto.
+- `confidentiality_note` acepta texto público opcional de hasta 500 caracteres.
+- `client_display_name` acepta un alias público opcional de hasta 180 caracteres.
+- `allow_public_images` usa `true` por defecto para compatibilidad histórica.
+- El admin siempre recibe `image` y `gallery_images` asociados, incluso cuando `allow_public_images=false`.
 
 ### Experiencia
 
@@ -307,6 +321,8 @@ DELETE /api/admin/certifications/{id}
 Contrato relevante:
 
 - `credential_url` y `certificate_file_id` son capacidades separadas.
+- `expiration_date` es `date | null`; no se calcula automáticamente.
+- Si `issue_date` y `expiration_date` existen, el vencimiento debe ser igual o posterior a la emisión. La regla también se aplica a actualizaciones parciales.
 
 ### Redes sociales
 
@@ -413,4 +429,3 @@ Estas rutas estan protegidas con usuario y contrasena de documentacion.
 - Las certificaciones pueden usar `credential_url` y `certificate_file` al mismo tiempo.
 - El admin trabaja con `avatar_asset_id`, `image_asset_id`, `gallery_image_ids`, `icon_asset_id` y `certificate_file_id`.
 - `MediaAsset` se valida por tipo, MIME, tamano, Base64 y SVG seguro antes de persistir.
-

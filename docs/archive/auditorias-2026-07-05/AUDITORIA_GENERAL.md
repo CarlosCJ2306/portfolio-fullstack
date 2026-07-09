@@ -321,4 +321,7 @@ No se confirmó ningún duplicado de código funcional que pueda eliminarse con 
 - No se ejecutaron `reset_db.py`, `seed_db.py`, `create_db.py`, `update_db.py` ni la migración.
 - La base y sus backups no fueron modificados.
 - El estado de Git muestra todos los elementos como no rastreados (`??`); antes de publicar debe verificarse cuidadosamente qué se añade al primer commit, aunque `.gitignore` ya cubre secretos, bases y artefactos principales.
+> Estado: documento histórico.
+> No representa el diagnóstico o plan vigente.
+> Se conserva únicamente para trazabilidad.
 

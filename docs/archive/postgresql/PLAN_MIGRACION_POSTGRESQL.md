@@ -2,6 +2,8 @@
 
 Estado: planificación únicamente. No se ejecutó una migración ni se abrió conexión PostgreSQL.
 
+Estado C1: las columnas `projects.is_confidential`, `confidentiality_note`, `client_display_name`, `allow_public_images` y `certifications.expiration_date` fueron incorporadas primero en SQLite mediante una migración aditiva e idempotente. Deben formar parte del baseline objetivo de PostgreSQL.
+
 ## 1. Objetivo
 
 Migrar de manera reproducible el esquema, los datos y las relaciones del portfolio desde SQLite a PostgreSQL, ensayando primero en desarrollo/testing y staging, con preservación de IDs, validación de multimedia y rollback documentado.
@@ -22,18 +24,18 @@ Migrar de manera reproducible el esquema, los datos y las relaciones del portfol
 | `profile` | Perfil público | `id` entero |
 | `social_links` | Redes/canales | `id` entero |
 | `skills` | Catálogo técnico | `id` entero |
-| `projects` | Proyectos | `id` entero |
+| `projects` | Proyectos, confidencialidad y política pública de imágenes | `id` entero |
 | `project_skills` | Proyecto ↔ skill | PK compuesta (`project_id`, `skill_id`) |
 | `project_images` | Galería ordenada | PK compuesta (`project_id`, `media_asset_id`) |
 | `experiences` | Experiencias | `id` entero |
 | `experience_bullets` | Bullets de experiencia | `id` entero |
 | `education` | Educación | `id` entero |
-| `certifications` | Certificaciones | `id` entero |
+| `certifications` | Certificaciones con emisión y vencimiento opcional | `id` entero |
 | `media_assets` | Multimedia/Base64/SVG | `id` entero |
 | `contact_messages` | Mensajes privados | `id` entero |
 | `users` | Modelo histórico no usado por HTTP Basic | `id` entero |
 
-Antes de migrar se debe incorporar cualquier campo aprobado en C1 mediante esquema versionado, tanto en SQLite como en la definición PostgreSQL.
+El esquema PostgreSQL objetivo debe incluir los cinco campos C1 ya presentes en SQLite y registrarlos en el baseline de Alembic.
 
 ## 4. Claves foráneas y relaciones
 
@@ -55,20 +57,29 @@ La migración debe recrear explícitamente las acciones `ON DELETE`, índices, c
 - `VARCHAR(n)`: nombres, títulos, URLs, MIME y metadatos cortos.
 - `TEXT`: descripciones, mensajes, Base64 y SVG.
 - `BOOLEAN`: publicación, destacado, actual, leído.
-- `DATE`: periodos profesionales y certificaciones.
+- `DATE`: periodos profesionales, emisión y vencimiento opcional de certificaciones.
 - `DATETIME`: auditoría `created_at`/`updated_at`.
 
 Mapeo PostgreSQL recomendado: `INTEGER`, `VARCHAR`, `TEXT`, `BOOLEAN`, `DATE` y `TIMESTAMP WITH TIME ZONE` cuando los modelos realmente produzcan datetimes conscientes. Verificar los valores históricos antes de convertir zona horaria.
 
+Campos C1 objetivo:
+
+- `projects.is_confidential BOOLEAN NOT NULL DEFAULT false`.
+- `projects.confidentiality_note TEXT NULL`.
+- `projects.client_display_name VARCHAR(180) NULL`.
+- `projects.allow_public_images BOOLEAN NOT NULL DEFAULT true`.
+- `certifications.expiration_date DATE NULL`.
+
 ## 6. Booleanos
 
-SQLite almacena booleanos con afinidad entera; PostgreSQL exige valores booleanos. El exportador debe convertir `0/1` a `false/true`, rechazar valores fuera del dominio y comparar conteos por estado.
+SQLite almacena booleanos con afinidad entera; PostgreSQL exige valores booleanos. El exportador debe convertir `0/1` a `false/true`, rechazar valores fuera del dominio y comparar conteos por estado. Para registros históricos C1, `is_confidential=0` pasa a `false` y `allow_public_images=1` pasa a `true`; valores editoriales posteriores deben conservarse exactamente.
 
 ## 7. Fechas y timestamps
 
 - Fechas `DATE` deben transferirse como ISO `YYYY-MM-DD`, sin conversión de zona horaria.
 - Timestamps deben normalizarse a UTC y conservar precisión compatible.
 - Valores nulos se mantienen nulos.
+- `expiration_date` permanece nula cuando la certificación no expira o no se ha confirmado; nunca se calcula durante la migración.
 - No corregir fechas profesionales durante la migración; las correcciones editoriales pertenecen a C3.
 
 ## 8. Textos y codificación
@@ -269,4 +280,6 @@ No eliminar SQLite ni backups hasta validar producción y su restauración.
 5. Ensayar export/import en PostgreSQL temporal.
 6. Staging, QA y rollback.
 7. Cutover productivo autorizado.
-
+> Estado: documento histórico.
+> No representa el diagnóstico o plan vigente.
+> Se conserva únicamente para trazabilidad.

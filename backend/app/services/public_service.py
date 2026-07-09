@@ -17,7 +17,7 @@ from sqlalchemy.orm import Session
 
 from app.core.log import log_error, log_info, log_success
 from app.repositories.public_repository import PublicRepository
-from app.schemas.public_schema import ContactMessageCreate
+from app.schemas.public_schema import ContactMessageCreate, ProjectRead
 
 
 # -----------------------------------------------------------------------------
@@ -37,6 +37,24 @@ class PublicService:
             db: Sesión activa de SQLAlchemy.
         """
         self.repository = PublicRepository(db)
+
+    @staticmethod
+    def _serialize_project(project) -> ProjectRead:
+        """Aplica la política pública de imágenes sin alterar el ORM."""
+        public_project = ProjectRead.model_validate(project)
+
+        if not public_project.allow_public_images:
+            return public_project.model_copy(
+                update={
+                    "image": None,
+                    "gallery_images": [],
+                }
+            )
+
+        return public_project
+
+    def _serialize_projects(self, projects) -> list[ProjectRead]:
+        return [self._serialize_project(project) for project in projects]
 
     def get_profile(self):
         """
@@ -96,7 +114,7 @@ class PublicService:
             total=len(projects)
         )
 
-        return projects
+        return self._serialize_projects(projects)
 
     def get_featured_projects(self):
         """
@@ -113,7 +131,7 @@ class PublicService:
             total=len(projects)
         )
 
-        return projects
+        return self._serialize_projects(projects)
 
     def get_experience(self):
         """
@@ -173,7 +191,9 @@ class PublicService:
             "profile": self.repository.get_profile(),
             "social_links": self.repository.get_social_links(),
             "skills": self.repository.get_skills(),
-            "featured_projects": self.repository.get_projects(only_featured=True),
+            "featured_projects": self._serialize_projects(
+                self.repository.get_projects(only_featured=True)
+            ),
             "experience": self.repository.get_experience(),
             "education": self.repository.get_education(),
             "certifications": self.repository.get_certifications(),

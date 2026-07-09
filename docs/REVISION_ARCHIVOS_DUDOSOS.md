@@ -84,6 +84,30 @@ Importante: `.gitignore` no deja de rastrear archivos ya versionados. `backend/v
 4. Definir almacenamiento, cifrado, prueba de restauración y retención de backups SQLite.
 5. Definir rotación y retención de logs.
 
+## Decisión documental 7.0
+
+Esta decisión reorganiza documentación histórica y no modifica código funcional, base de datos, assets, mensajes ni contratos API.
+
+| Archivo/Ruta | Decisión | Motivo | Acción futura sugerida |
+|---|---|---|---|
+| `docs/PLAN_MIGRACION_SQLITE_POSTGRESQL.md` | Eliminado del árbol de trabajo | Duplicaba planes de migración y PostgreSQL salió del alcance activo | Recuperar desde Git solo si se necesita trazabilidad exacta |
+| `PLAN_MIGRACION_POSTGRESQL.md` | Archivado en `docs/archive/postgresql/PLAN_MIGRACION_POSTGRESQL.md` | Documento histórico; PostgreSQL no es ruta activa | Conservar como referencia histórica, no como plan operativo |
+| Auditorías 2026-07-05 | Archivadas en `docs/archive/auditorias-2026-07-05/` | Diagnósticos históricos de estados ya corregidos | Consultar solo para trazabilidad |
+| `docs/QA_FASE_6.md` | Conservado | Evidencia de QA cerrada | No reescribir resultados; actualizar solo con notas históricas si aplica |
+| Scripts SQLite actuales | Conservados | Son verificaciones/migraciones históricas o herramientas de diagnóstico | Ejecutar solo en lotes autorizados y con backup cuando escriban |
+| `backend/app/scripts/migrate_professional_content_fields.py` | Conservado | Migración histórica C1, idempotente y documentada | No ejecutar sobre DB real sin lote explícito y backup |
+| `backend/app/scripts/sync_professional_portfolio.py` | Conservado hasta C3 | Puede ser útil para la actualización controlada de contenido | Revisar tras C3 si sigue siendo necesario |
+| `backend/app/scripts/check_db.py` | Conservado | Herramienta segura de integridad | Mantener como verificación estándar |
+| `backend/app/scripts/reset_db.py` | Conservar marcado como peligroso; **NO EJECUTAR** | Script destructivo, excluido de despliegue | Considerar archivado futuro con autorización |
+| `backend/venv` | Pendiente para 7.2 | Artefacto recreable que aparece versionado según revisión previa | Retirar del índice de forma reversible antes de publicar |
+
+Confirmaciones 7.0:
+
+- SQLite permanece como motor vigente.
+- PostgreSQL queda fuera del alcance activo.
+- No se ejecutaron migraciones ni scripts de datos.
+- No se eliminaron datos, DB, backups, logs ni assets.
+
 ## Confirmaciones de seguridad del lote
 
 - No se ejecutó `reset_db.py`.

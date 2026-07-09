@@ -85,6 +85,10 @@ const initialProjectForm = {
   demo_url: "",
   image_asset_id: "",
   gallery_image_ids: [],
+  is_confidential: false,
+  confidentiality_note: "",
+  client_display_name: "",
+  allow_public_images: true,
   display_order: 0,
   is_featured: false,
   is_active: true,
@@ -120,6 +124,7 @@ const initialCertificationForm = {
   name: "",
   issuer: "",
   issue_date: "",
+  expiration_date: "",
   credential_url: "",
   description: "",
   display_order: 0,
@@ -501,6 +506,20 @@ function validateProjectForm(values) {
     required: false,
     maxLength: 255,
   });
+  validateOptionalTextField(
+    errors,
+    "client_display_name",
+    "nombre público del cliente",
+    values.client_display_name,
+    180
+  );
+  validateOptionalTextField(
+    errors,
+    "confidentiality_note",
+    "nota pública de confidencialidad",
+    values.confidentiality_note,
+    500
+  );
   validateDisplayOrderField(errors, "display_order", "orden", values.display_order);
 
   const galleryImageIds = Array.isArray(values.gallery_image_ids)
@@ -593,6 +612,18 @@ function validateCertificationForm(values) {
   });
   validateDisplayOrderField(errors, "display_order", "orden", values.display_order);
 
+  if (
+    getTrimmedString(values.issue_date)
+    && getTrimmedString(values.expiration_date)
+    && values.expiration_date < values.issue_date
+  ) {
+    addValidationError(
+      errors,
+      "expiration_date",
+      "La fecha de vencimiento no puede ser anterior a la fecha de expedición."
+    );
+  }
+
   return errors;
 }
 
@@ -676,6 +707,7 @@ function normalizeCertificationForm(certification) {
     issue_date: certification?.issue_date || "",
     credential_url: certification?.credential_url || "",
     description: certification?.description || "",
+    expiration_date: certification?.expiration_date || "",
     display_order:
       certification?.display_order !== undefined && certification?.display_order !== null
         ? certification.display_order
@@ -761,6 +793,7 @@ export default function AdminPage() {
   const [socialLinkForm, setSocialLinkForm] = useState(initialSocialLinkForm);
   const [skillForm, setSkillForm] = useState(initialSkillForm);
   const [projectForm, setProjectForm] = useState(initialProjectForm);
+  const [projectConfidentialImagesConfirmed, setProjectConfidentialImagesConfirmed] = useState(false);
   const [experienceForm, setExperienceForm] = useState(initialExperienceForm);
   const [educationForm, setEducationForm] = useState(initialEducationForm);
   const [certificationForm, setCertificationForm] = useState(initialCertificationForm);
@@ -1242,7 +1275,26 @@ export default function AdminPage() {
     setProjectForm((currentData) => ({
       ...currentData,
       [name]: type === "checkbox" ? checked : value,
+      ...(name === "is_confidential" && checked && currentData.allow_public_images
+        ? { allow_public_images: false }
+        : {}),
     }));
+
+    if (name === "is_confidential" && checked) {
+      setProjectConfidentialImagesConfirmed(false);
+
+      if (projectForm.allow_public_images) {
+        showNotice(
+          "warning",
+          "Imágenes públicas desactivadas",
+          "Al marcar el proyecto como confidencial se sugirió ocultar portada y galería pública. Las asociaciones administrativas se conservan."
+        );
+      }
+    }
+
+    if (name === "allow_public_images" && checked) {
+      setProjectConfidentialImagesConfirmed(false);
+    }
   }
 
   function handleProjectSkillToggle(skillId) {
@@ -1348,6 +1400,7 @@ export default function AdminPage() {
 
   function handleImageAssetChange(assetId) {
     clearValidationField("project", "image_asset_id");
+    setProjectConfidentialImagesConfirmed(false);
     setProjectForm((currentData) => ({
       ...currentData,
       image_asset_id: assetId,
@@ -1356,6 +1409,7 @@ export default function AdminPage() {
 
   function handleProjectGalleryChange(galleryImageIds) {
     clearValidationField("project", "gallery_image_ids");
+    setProjectConfidentialImagesConfirmed(false);
     setProjectForm((currentData) => ({
       ...currentData,
       gallery_image_ids: Array.isArray(galleryImageIds) ? galleryImageIds : [],
@@ -1383,6 +1437,7 @@ export default function AdminPage() {
 
   function resetProjectForm() {
     setProjectForm(initialProjectForm);
+    setProjectConfidentialImagesConfirmed(false);
     setEditingProjectId(null);
     clearValidationErrors("project");
   }
@@ -1454,6 +1509,7 @@ export default function AdminPage() {
   function openProjectEditor(project) {
     setEditingProjectId(project.id);
     clearValidationErrors("project");
+    setProjectConfidentialImagesConfirmed(false);
     setProjectForm({
       title: project.title || "",
       slug: project.slug || "",
@@ -1468,6 +1524,13 @@ export default function AdminPage() {
             .filter((assetId) => Number.isFinite(Number(assetId)))
             .map((assetId) => Number(assetId))
         : [],
+      is_confidential: Boolean(project.is_confidential),
+      confidentiality_note: project.confidentiality_note || "",
+      client_display_name: project.client_display_name || "",
+      allow_public_images:
+        project.allow_public_images !== undefined && project.allow_public_images !== null
+          ? Boolean(project.allow_public_images)
+          : true,
       display_order: project.display_order ?? 0,
       is_featured: Boolean(project.is_featured),
       is_active: Boolean(project.is_active),
@@ -1761,6 +1824,22 @@ export default function AdminPage() {
       return;
     }
 
+    if (
+      projectForm.is_confidential
+      && projectForm.allow_public_images
+      && !projectConfidentialImagesConfirmed
+    ) {
+      const confirmed = window.confirm(
+        "Este proyecto está marcado como confidencial y permitirá imágenes públicas. Confirma que la portada y la galería no contienen nombres, logos, datos, dashboards, documentos, usuarios, rutas internas ni archivos sensibles."
+      );
+
+      if (!confirmed) {
+        return;
+      }
+
+      setProjectConfidentialImagesConfirmed(true);
+    }
+
     clearValidationErrors("project");
     setSavingProject(true);
 
@@ -1772,6 +1851,10 @@ export default function AdminPage() {
       repository_url: toNullableValue(projectForm.repository_url),
       demo_url: toNullableValue(projectForm.demo_url),
       image_asset_id: toNumberOrNull(projectForm.image_asset_id),
+      is_confidential: Boolean(projectForm.is_confidential),
+      confidentiality_note: toNullableValue(projectForm.confidentiality_note),
+      client_display_name: toNullableValue(projectForm.client_display_name),
+      allow_public_images: Boolean(projectForm.allow_public_images),
       display_order: Number(projectForm.display_order || 0),
       is_featured: Boolean(projectForm.is_featured),
       is_active: Boolean(projectForm.is_active),
@@ -1869,6 +1952,10 @@ export default function AdminPage() {
   function handleCertificationChange(event) {
     const { name, value, type, checked } = event.target;
     clearValidationField("certification", name);
+    if (name === "issue_date" || name === "expiration_date") {
+      clearValidationField("certification", "issue_date");
+      clearValidationField("certification", "expiration_date");
+    }
 
     setCertificationForm((currentData) => ({
       ...currentData,
@@ -2123,6 +2210,7 @@ export default function AdminPage() {
       name: certificationForm.name.trim(),
       issuer: toNullableValue(certificationForm.issuer),
       issue_date: certificationForm.issue_date || null,
+      expiration_date: certificationForm.expiration_date || null,
       credential_url: toNullableValue(certificationForm.credential_url),
       description: toNullableValue(certificationForm.description),
       display_order: Number(certificationForm.display_order || 0),
@@ -2653,6 +2741,8 @@ export default function AdminPage() {
           projects={projects}
           skills={skills}
           projectForm={projectForm}
+          confidentialImagesConfirmed={projectConfidentialImagesConfirmed}
+          onConfidentialImagesConfirmedChange={setProjectConfidentialImagesConfirmed}
           savingProject={savingProject}
           deletingProjectIds={deletingProjectIds}
           editingProjectId={editingProjectId}

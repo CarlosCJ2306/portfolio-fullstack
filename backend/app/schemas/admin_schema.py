@@ -35,6 +35,29 @@ def _strip_text(value):
     return value
 
 
+def _strip_optional_text(value):
+    value = _strip_text(value)
+
+    if value == "":
+        return None
+
+    return value
+
+
+def _validate_date_range(
+    issue_date: date | None,
+    expiration_date: date | None,
+) -> None:
+    if (
+        issue_date is not None
+        and expiration_date is not None
+        and expiration_date < issue_date
+    ):
+        raise ValueError(
+            "La fecha de vencimiento no puede ser anterior a la fecha de emisión."
+        )
+
+
 _FORBIDDEN_SVG_ELEMENTS = {
     "a",
     "animate",
@@ -270,6 +293,10 @@ class ProjectCreate(BaseModel):
     slug: str = Field(..., min_length=2, max_length=180)
     short_description: str = Field(..., min_length=2, max_length=255)
     description: str
+    is_confidential: bool = False
+    confidentiality_note: str | None = Field(default=None, max_length=500)
+    client_display_name: str | None = Field(default=None, max_length=180)
+    allow_public_images: bool = True
     image_asset_id: int | None = None
     repository_url: str | None = Field(default=None, max_length=255)
     demo_url: str | None = Field(default=None, max_length=255)
@@ -283,6 +310,11 @@ class ProjectCreate(BaseModel):
     @classmethod
     def clean_text_fields(cls, value):
         return _strip_text(value)
+
+    @field_validator("confidentiality_note", "client_display_name", mode="before")
+    @classmethod
+    def clean_optional_public_fields(cls, value):
+        return _strip_optional_text(value)
 
     @field_validator("gallery_image_ids")
     @classmethod
@@ -300,6 +332,10 @@ class ProjectUpdate(BaseModel):
     slug: str | None = Field(default=None, max_length=180)
     short_description: str | None = Field(default=None, max_length=255)
     description: str | None = None
+    is_confidential: bool | None = None
+    confidentiality_note: str | None = Field(default=None, max_length=500)
+    client_display_name: str | None = Field(default=None, max_length=180)
+    allow_public_images: bool | None = None
     image_asset_id: int | None = None
     repository_url: str | None = Field(default=None, max_length=255)
     demo_url: str | None = Field(default=None, max_length=255)
@@ -313,6 +349,11 @@ class ProjectUpdate(BaseModel):
     @classmethod
     def clean_text_fields(cls, value):
         return _strip_text(value)
+
+    @field_validator("confidentiality_note", "client_display_name", mode="before")
+    @classmethod
+    def clean_optional_public_fields(cls, value):
+        return _strip_optional_text(value)
 
     @field_validator("gallery_image_ids")
     @classmethod
@@ -421,6 +462,7 @@ class CertificationCreate(BaseModel):
     name: str = Field(..., min_length=2, max_length=180)
     issuer: str | None = Field(default=None, max_length=180)
     issue_date: date | None = None
+    expiration_date: date | None = None
     credential_url: str | None = Field(default=None, max_length=255)
     description: str | None = None
     certificate_file_id: int | None = None
@@ -432,6 +474,11 @@ class CertificationCreate(BaseModel):
     def clean_text_fields(cls, value):
         return _strip_text(value)
 
+    @model_validator(mode="after")
+    def validate_certification_dates(self):
+        _validate_date_range(self.issue_date, self.expiration_date)
+        return self
+
 
 class CertificationUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -439,6 +486,7 @@ class CertificationUpdate(BaseModel):
     name: str | None = Field(default=None, max_length=180)
     issuer: str | None = Field(default=None, max_length=180)
     issue_date: date | None = None
+    expiration_date: date | None = None
     credential_url: str | None = Field(default=None, max_length=255)
     description: str | None = None
     certificate_file_id: int | None = None
@@ -449,6 +497,11 @@ class CertificationUpdate(BaseModel):
     @classmethod
     def clean_text_fields(cls, value):
         return _strip_text(value)
+
+    @model_validator(mode="after")
+    def validate_certification_dates(self):
+        _validate_date_range(self.issue_date, self.expiration_date)
+        return self
 
 
 class ContactMessageRead(BaseModel):

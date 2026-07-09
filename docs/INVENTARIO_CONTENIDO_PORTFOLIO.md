@@ -1,6 +1,11 @@
 # Inventario seguro del contenido del portfolio
 
+> Estado: snapshot seguro previo a C3.
+> Debe actualizarse realmente durante C3, no en la limpieza documental 7.0.
+
 Fecha de auditoría: 2026-07-07. Fuente: SQLite abierta con `mode=ro&immutable=1`. No se consultaron ni reproducen Base64, SVG, PDFs, mensajes privados, credenciales ni nombres de archivos multimedia.
+
+Actualización C1: el esquema ya incluye los cuatro campos de confidencialidad/política de imágenes de Project y `Certification.expiration_date`. Todos los registros históricos conservaron los defaults compatibles; este inventario editorial no cambió.
 
 ## Resumen por entidad
 
@@ -85,7 +90,7 @@ La experiencia Kodland documentada en la hoja de vida no está registrada en la 
 | 1 | Infraestructura en Azure | No | 1 | Ausente | No | No | Requiere confirmación | Mantener inactiva hasta validar soporte documental, emisor y fecha. |
 | 2 | Conceptualización del lenguaje de programación C++ | No | 1 | 2023-03-06 | No | Sí | Potencialmente pública | Confirmar vigencia editorial y documento con el propietario antes de activar. |
 
-No existe `expiration_date`. `certificate_file_id` está implementado y validado exclusivamente para PDF (`document`, `application/pdf`).
+`expiration_date` existe desde C1 y permanece nula en ambos registros históricos. `certificate_file_id` continúa validado exclusivamente para PDF (`document`, `application/pdf`).
 
 ## Media assets
 
@@ -107,4 +112,3 @@ Los 13 assets están activos. Todos tienen nombre y texto alternativo almacenado
 ## Rastros documentales o de seed
 
 Se encontraron referencias históricas a una entidad reservada en un seed y documentación rastreada. También existen referencias legítimas a Fofimatic y Kodland en el material editorial/pruebas. C1/C3 deben anonimizar cualquier nombre de cliente protegido y decidir qué scripts históricos se conservan; este lote no modifica ni elimina nada.
-

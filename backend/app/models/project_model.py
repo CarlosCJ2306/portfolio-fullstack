@@ -15,7 +15,7 @@ Proyecto: Portfolio Full Stack
 
 from __future__ import annotations
 
-from sqlalchemy import Boolean, Column, ForeignKey, Index, Integer, String, Table, Text
+from sqlalchemy import Boolean, Column, ForeignKey, Index, Integer, String, Table, Text, false, true
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database.base import Base
@@ -120,6 +120,30 @@ class Project(Base, TimestampMixin, ActiveMixin, DisplayOrderMixin):
 
     description: Mapped[str] = mapped_column(
         Text,
+        nullable=False
+    )
+
+    is_confidential: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        server_default=false(),
+        nullable=False
+    )
+
+    confidentiality_note: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True
+    )
+
+    client_display_name: Mapped[str | None] = mapped_column(
+        String(180),
+        nullable=True
+    )
+
+    allow_public_images: Mapped[bool] = mapped_column(
+        Boolean,
+        default=True,
+        server_default=true(),
         nullable=False
     )
 

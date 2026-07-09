@@ -53,6 +53,20 @@
   display: inline-flex;
 }
 
+.certification-admin-hint {
+  display: block;
+  margin-top: 6px;
+  color: #94a3b8;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.admin-certifications-panel .admin-meta-chip.is-muted {
+  color: #94a3b8;
+  border-color: rgba(148, 163, 184, 0.16);
+  background: rgba(148, 163, 184, 0.08);
+}
+
 @media (max-width: 768px) {
   .certification-admin-card {
     grid-template-columns: 1fr;

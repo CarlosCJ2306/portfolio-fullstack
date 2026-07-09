@@ -284,6 +284,7 @@ export default function CertificationsSection({ certifications = [] }) {
                   certification.completed_at ||
                   ""
               );
+              const expirationDate = formatDateValue(certification.expiration_date || "");
 
               const credentialUrl =
                 certification.credential_url ||
@@ -319,6 +320,12 @@ export default function CertificationsSection({ certifications = [] }) {
 
                     {issueDate && (
                       <span className="certification-date">{issueDate}</span>
+                    )}
+
+                    {expirationDate && (
+                      <span className="certification-date certification-date--expiration">
+                        Vence: {expirationDate}
+                      </span>
                     )}
 
                     {description && <p>{description}</p>}

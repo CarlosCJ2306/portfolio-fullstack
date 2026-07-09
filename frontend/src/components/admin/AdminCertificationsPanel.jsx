@@ -96,6 +96,20 @@ export default function AdminCertificationsPanel({
                     disabled={savingCertification}
                   />
                 </label>
+
+                <label>
+                  Fecha de vencimiento
+                  <input
+                    name="expiration_date"
+                    type="date"
+                    value={certificationForm.expiration_date}
+                    onChange={onCertificationChange}
+                    disabled={savingCertification}
+                  />
+                  <span className="certification-admin-hint">
+                    Déjala vacía si la certificación no vence.
+                  </span>
+                </label>
               </div>
 
               <label>
@@ -220,7 +234,12 @@ export default function AdminCertificationsPanel({
                   <p>{certification.issuer}</p>
 
                   <div className="admin-meta-row">
-                    {certification.issue_date && <span className="admin-meta-chip">{certification.issue_date}</span>}
+                    {certification.issue_date && <span className="admin-meta-chip">Expedición: {certification.issue_date}</span>}
+                    {certification.expiration_date ? (
+                      <span className="admin-meta-chip">Vence: {certification.expiration_date}</span>
+                    ) : (
+                      <span className="admin-meta-chip is-muted">Sin vencimiento registrado</span>
+                    )}
                     <span className="admin-meta-chip">Orden {certification.display_order}</span>
                     {certification.certificate_file_id && <span className="admin-meta-chip">PDF asociado</span>}
                   </div>

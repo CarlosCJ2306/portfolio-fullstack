@@ -427,4 +427,7 @@ La base responsiva es razonable, pero requiere validación manual al menos en 32
 - La responsividad se evaluó desde reglas CSS, no mediante capturas en dispositivos.
 - Los contratos se contrastaron con `admin_router.py`, `admin_schema.py` y los servicios existentes.
 - No se ejecutó `reset_db.py` ni ningún script de escritura.
+> Estado: documento histórico.
+> No representa el diagnóstico o plan vigente.
+> Se conserva únicamente para trazabilidad.
 

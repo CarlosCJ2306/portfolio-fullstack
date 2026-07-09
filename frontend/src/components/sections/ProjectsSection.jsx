@@ -171,6 +171,14 @@ function getProjectDescription(project) {
   );
 }
 
+function getProjectConfidentiality(project) {
+  return {
+    isConfidential: Boolean(project?.is_confidential),
+    clientDisplayName: project?.client_display_name || "",
+    note: project?.confidentiality_note || "",
+  };
+}
+
 export default function ProjectsSection({
   projects = [],
   isLoading = false,
@@ -443,6 +451,7 @@ export default function ProjectsSection({
                 "";
 
               const isFeatured = project.is_featured || project.featured || false;
+              const confidentiality = getProjectConfidentiality(project);
 
               const technologies =
                 project.skills ||
@@ -477,9 +486,20 @@ export default function ProjectsSection({
                   )}
 
                   <div className="project-card-top">
-                    {isFeatured && <span className="project-featured">Destacado</span>}
+                    <div className="project-badges">
+                      {isFeatured && <span className="project-featured">Destacado</span>}
+                      {confidentiality.isConfidential && (
+                        <span className="project-confidential-badge">Proyecto confidencial</span>
+                      )}
+                    </div>
                     <h3>{currentProjectTitle}</h3>
+                    {confidentiality.clientDisplayName && (
+                      <span className="project-client-name">{confidentiality.clientDisplayName}</span>
+                    )}
                     <p>{projectDescription}</p>
+                    {confidentiality.note && (
+                      <p className="project-confidential-note">{confidentiality.note}</p>
+                    )}
                   </div>
 
                   {Array.isArray(technologies) && technologies.length > 0 && (
@@ -549,7 +569,9 @@ export default function ProjectsSection({
           >
             <div className="project-modal__header">
               <div>
-                <span className="badge">Proyecto</span>
+                <span className="badge">
+                  {selectedProject.is_confidential ? "Proyecto confidencial" : "Proyecto"}
+                </span>
                 <h3 id={projectModalTitleId}>{projectTitle}</h3>
               </div>
 
@@ -644,6 +666,17 @@ export default function ProjectsSection({
               </div>
 
               <div className="project-modal__content">
+                {(selectedProject.client_display_name || selectedProject.confidentiality_note) && (
+                  <div className="project-modal__confidentiality">
+                    {selectedProject.client_display_name && (
+                      <span>{selectedProject.client_display_name}</span>
+                    )}
+                    {selectedProject.confidentiality_note && (
+                      <p>{selectedProject.confidentiality_note}</p>
+                    )}
+                  </div>
+                )}
+
                 <p className="project-modal__description">
                   {getProjectDescription(selectedProject)}
                 </p>

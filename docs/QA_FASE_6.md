@@ -1,5 +1,8 @@
 # QA Fase 6
 
+> Estado: evidencia histórica de QA cerrada.
+> No representa un plan operativo vigente ni debe reescribirse salvo para agregar notas de estado.
+
 ## Fase 6.1 - Linea base tecnica y Git
 
 Fecha de ejecucion: 2026-07-06.

@@ -157,9 +157,13 @@
 .project-image-container--fallback {
   display: grid;
   place-items: center;
+  height: 128px;
   padding: 18px;
   background:
+    radial-gradient(circle at 24px 24px, rgba(56, 189, 248, 0.14), transparent 24px),
+    linear-gradient(135deg, rgba(148, 163, 184, 0.08) 25%, transparent 25%),
     linear-gradient(145deg, rgba(15, 23, 42, 0.78), rgba(2, 6, 23, 0.88));
+  background-size: auto, 18px 18px, auto;
   border: 1px dashed rgba(148, 163, 184, 0.18);
 }
 
@@ -196,6 +200,43 @@
   letter-spacing: 0.8px;
 }
 
+.project-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.project-badges .project-featured {
+  margin-bottom: 0;
+}
+
+.project-confidential-badge,
+.project-client-name {
+  display: inline-flex;
+  width: fit-content;
+  padding: 7px 11px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.project-confidential-badge {
+  background: rgba(251, 191, 36, 0.12);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  color: #fde68a;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.project-client-name {
+  margin-top: 12px;
+  background: rgba(148, 163, 184, 0.1);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  color: #cbd5e1;
+}
+
 .project-card h3 {
   margin: 0;
   color: #f8fafc;
@@ -213,6 +254,12 @@
   line-height: 1.7;
   word-break: normal;
   overflow-wrap: break-word;
+}
+
+.project-card .project-confidential-note {
+  color: #fde68a;
+  font-size: 14px;
+  line-height: 1.6;
 }
 
 .project-tech-list {
@@ -369,6 +416,9 @@
 .project-modal__viewer--empty {
   display: grid;
   place-items: center;
+  height: auto;
+  min-height: 120px;
+  grid-template-rows: 1fr;
   color: #64748b;
 }
 
@@ -488,6 +538,30 @@
   line-height: 1.8;
   word-break: normal;
   overflow-wrap: anywhere;
+}
+
+.project-modal__confidentiality {
+  display: grid;
+  gap: 8px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(251, 191, 36, 0.22);
+  background: rgba(120, 53, 15, 0.16);
+  color: #fde68a;
+}
+
+.project-modal__confidentiality span {
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.project-modal__confidentiality p {
+  margin: 0;
+  color: #fed7aa;
+  font-size: 14px;
+  line-height: 1.6;
+  word-break: normal;
+  overflow-wrap: break-word;
 }
 
 .project-tech-list--modal {
@@ -618,6 +692,10 @@
   .project-image-container {
     height: 148px;
     margin-bottom: 16px;
+  }
+
+  .project-image-container--fallback {
+    height: 116px;
   }
 
   .project-card h3 {

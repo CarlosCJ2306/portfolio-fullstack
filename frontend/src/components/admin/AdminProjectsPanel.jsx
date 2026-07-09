@@ -6,6 +6,8 @@ export default function AdminProjectsPanel({
   projects,
   skills,
   projectForm,
+  confidentialImagesConfirmed,
+  onConfidentialImagesConfirmedChange,
   savingProject,
   deletingProjectIds,
   editingProjectId,
@@ -173,6 +175,88 @@ export default function AdminProjectsPanel({
 
             <details className="admin-form-section admin-projects-panel__section" open>
               <summary className="admin-projects-panel__section-summary">
+                <span>Confidencialidad y publicación</span>
+                <span aria-hidden="true">v</span>
+              </summary>
+              <div className="admin-form-section__stack admin-projects-panel__section-body">
+                <label className="toggle-row admin-projects-panel__toggle">
+                  <input
+                    name="is_confidential"
+                    type="checkbox"
+                    checked={Boolean(projectForm.is_confidential)}
+                    onChange={onProjectChange}
+                    disabled={savingProject}
+                  />
+                  <span>Proyecto confidencial</span>
+                </label>
+                <p className="admin-form-footer__hint">
+                  Indica que el proyecto corresponde a una empresa cliente cuya identidad o información interna no puede publicarse.
+                </p>
+
+                <label>
+                  Nombre público del cliente
+                  <input
+                    name="client_display_name"
+                    value={projectForm.client_display_name}
+                    onChange={onProjectChange}
+                    disabled={savingProject}
+                    maxLength={180}
+                    placeholder="Empresa privada cliente de Fofimatic"
+                  />
+                  <span className="field-hint">
+                    Utiliza únicamente un alias genérico. No escribas la razón social real de un cliente protegido.
+                  </span>
+                </label>
+
+                <label>
+                  Nota pública de confidencialidad
+                  <textarea
+                    name="confidentiality_note"
+                    rows="4"
+                    value={projectForm.confidentiality_note}
+                    onChange={onProjectChange}
+                    disabled={savingProject}
+                    maxLength={500}
+                    placeholder="Proyecto desarrollado mediante Fofimatic para una empresa cliente. La identidad de la organización y sus recursos internos se reservan por confidencialidad."
+                  />
+                </label>
+
+                <label className="toggle-row admin-projects-panel__toggle">
+                  <input
+                    name="allow_public_images"
+                    type="checkbox"
+                    checked={Boolean(projectForm.allow_public_images)}
+                    onChange={onProjectChange}
+                    disabled={savingProject}
+                  />
+                  <span>Permitir imágenes en la parte pública</span>
+                </label>
+                <p className="admin-form-footer__hint">
+                  Si se desactiva, la API pública oculta portada y galería. El admin conserva los assets asociados.
+                </p>
+
+                {projectForm.is_confidential && projectForm.allow_public_images && (
+                  <div className="admin-projects-panel__confidential-warning" role="alert">
+                    <strong>Revisión obligatoria de imágenes</strong>
+                    <p>
+                      Confirma que portada y galería no contienen nombres, logos, datos, dashboards, documentos, usuarios, rutas internas ni archivos sensibles.
+                    </p>
+                    <label className="toggle-row admin-projects-panel__toggle">
+                      <input
+                        type="checkbox"
+                        checked={Boolean(confidentialImagesConfirmed)}
+                        onChange={(event) => onConfidentialImagesConfirmedChange?.(event.target.checked)}
+                        disabled={savingProject}
+                      />
+                      <span>Confirmo que las imágenes pueden publicarse</span>
+                    </label>
+                  </div>
+                )}
+              </div>
+            </details>
+
+            <details className="admin-form-section admin-projects-panel__section" open>
+              <summary className="admin-projects-panel__section-summary">
                 <span>Skills asociadas</span>
                 <span aria-hidden="true">v</span>
               </summary>
@@ -278,6 +362,7 @@ export default function AdminProjectsPanel({
                       <strong>{project.title}</strong>
                       <div className="admin-meta-row">
                         {project.is_featured && <span className="admin-status-pill is-featured">Destacado</span>}
+                        {project.is_confidential && <span className="admin-status-pill is-warning">Confidencial</span>}
                         <span className={`admin-status-pill ${project.is_active ? "is-active" : "is-inactive"}`}>
                           {project.is_active ? "Activo" : "Inactivo"}
                         </span>
@@ -285,10 +370,19 @@ export default function AdminProjectsPanel({
                     </div>
 
                     {project.slug && <span className="admin-meta-chip admin-text-break-safe">Slug: {project.slug}</span>}
+                    {project.client_display_name && (
+                      <span className="admin-meta-chip admin-text-break-safe">Cliente: {project.client_display_name}</span>
+                    )}
                     {project.short_description && <p>{project.short_description}</p>}
+                    {project.confidentiality_note && (
+                      <p className="admin-projects-panel__confidential-note">{project.confidentiality_note}</p>
+                    )}
 
                     <div className="admin-meta-row">
                       <span className="admin-meta-chip">Orden {project.display_order}</span>
+                      <span className={`admin-meta-chip ${project.allow_public_images === false ? "is-muted" : ""}`}>
+                        {project.allow_public_images === false ? "Imágenes ocultas" : "Imágenes públicas"}
+                      </span>
                       <span className="admin-meta-chip">Galería: {galleryCount} imagen(es)</span>
                     </div>
 

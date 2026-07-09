@@ -377,4 +377,7 @@ Sin implementar cambios en esta auditoría, el orden sugerido es:
 - SQLite se abrió con `mode=ro` exclusivamente para inventario e integridad.
 - No se arrancó FastAPI para evitar escrituras del sistema de logs.
 - Los estados de endpoint se basan en routers, schemas, servicios, repositorios y consumo real del frontend.
+> Estado: documento histórico.
+> No representa el diagnóstico o plan vigente.
+> Se conserva únicamente para trazabilidad.
 

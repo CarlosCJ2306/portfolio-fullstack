@@ -148,6 +148,24 @@ class AdminService:
                 )
             )
 
+    @staticmethod
+    def _validate_certification_dates(
+        issue_date,
+        expiration_date,
+    ) -> None:
+        if (
+            issue_date is not None
+            and expiration_date is not None
+            and expiration_date < issue_date
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                detail=(
+                    "La fecha de vencimiento no puede ser anterior "
+                    "a la fecha de emisión."
+                ),
+            )
+
     def get_dashboard(self) -> AdminDashboardRead:
         log_info("Consultando dashboard administrativo.")
 
@@ -392,6 +410,11 @@ class AdminService:
     def create_certification(self, payload: CertificationCreate):
         certification_data = payload.model_dump()
 
+        self._validate_certification_dates(
+            certification_data.get("issue_date"),
+            certification_data.get("expiration_date"),
+        )
+
         self._validate_media_asset_reference(
             certification_data.get("certificate_file_id"),
             field_label="el archivo de certificacion",
@@ -415,6 +438,11 @@ class AdminService:
     def update_certification(self, certification_id: int, payload: CertificationUpdate):
         certification = self.get_certification(certification_id)
         update_data = payload.model_dump(exclude_unset=True)
+
+        self._validate_certification_dates(
+            update_data.get("issue_date", certification.issue_date),
+            update_data.get("expiration_date", certification.expiration_date),
+        )
 
         if "certificate_file_id" in update_data:
             self._validate_media_asset_reference(

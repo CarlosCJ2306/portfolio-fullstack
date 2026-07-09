@@ -113,6 +113,10 @@ class ProjectRead(BaseModel):
     slug: str
     short_description: str
     description: str
+    is_confidential: bool = False
+    confidentiality_note: str | None = None
+    client_display_name: str | None = None
+    allow_public_images: bool = True
     repository_url: str | None = None
     demo_url: str | None = None
     is_featured: bool
@@ -206,6 +210,7 @@ class CertificationRead(BaseModel):
     name: str
     issuer: str | None = None
     issue_date: date | None = None
+    expiration_date: date | None = None
     credential_url: str | None = None
     description: str | None = None
     display_order: int
