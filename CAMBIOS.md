@@ -4,7 +4,8 @@
 
 - Fases 1-6 cerradas.
 - C0, C1, C2 y C3 cerrados técnicamente.
-- C4 es el siguiente lote.
+- C4 cerrado con decisión editorial GO.
+- Fase 7.1 es el siguiente lote.
 - SQLite es el motor vigente.
 - PostgreSQL queda fuera del alcance activo.
 - Estado: **Conditional Go** para preparación; sin despliegue inmediato.
@@ -46,6 +47,28 @@ Verificaciones:
 No se ejecutaron `reset_db.py`, `update_db.py`, `seed_db.py`, migraciones de esquema, PostgreSQL ni despliegues. No se hizo commit.
 
 Siguiente lote: **C4 — QA visual, editorial, responsive y confidencialidad final**.
+
+## 2026-07-10 - C4: QA visual, editorial, responsive y confidencialidad final
+
+Se realizó el recorrido visual real del contenido profesional definitivo aplicado en C3, sin CRUD real, sin migraciones, sin despliegue y sin modificar datos de `portfolio.db`.
+
+- Navegador/método: Chrome local controlado por DevTools Protocol, con backend FastAPI local y frontend Vite local.
+- Ocho viewports recorridos: 320 x 568, 375 x 667, 390 x 844, 430 x 932, 768 x 1024, 1024 x 768, 1180 x 800 y 1440 x 900.
+- Perfil y contenido público correctos, con teléfono no público.
+- 41 skills visibles en el contenido definitivo.
+- Fofimatic y Kodland finalizadas, sin mostrar “Actualidad” en público.
+- Seis proyectos confidenciales, con tres destacados.
+- Cero imágenes públicas y cero certificaciones públicas.
+- Admin validado solo en lectura, sin guardar ni borrar datos.
+- Confidencialidad aprobada y sin exposición de clientes protegidos.
+- Accesibilidad funcional validada en modales, navegación y foco.
+- Cero errores relevantes de consola y cero respuestas 500.
+- Payload de referencia medido post-C3 para `/api/public/home` y `/api/public/projects`.
+- `pytest`, `check_db`, `lint` y `build` aprobados.
+- `portfolio.db` intacta.
+- GO editorial para iniciar Fase 7.1, sin despliegue inmediato.
+- Sin despliegue.
+- Sin cambios de datos.
 
 ## 2026-07-09 - C2: confidencialidad y vencimiento en admin y vista pública
 

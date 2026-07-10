@@ -5,8 +5,8 @@ Portafolio personal construido con FastAPI en el backend y React + Vite en el fr
 ## Estado del proyecto
 
 - Fases 1-6 cerradas.
-- C0, C1, C2 y C3 cerrados.
-- C4 es el siguiente lote.
+- C0, C1, C2, C3 y C4 cerrados.
+- Fase 7.1 es el siguiente lote.
 - SQLite es el motor vigente.
 - PostgreSQL está fuera del alcance activo.
 - El despliegue continúa condicionado.

@@ -7,7 +7,7 @@ Alcance: validación técnica de frontend, contratos C1 y documentación.
 Motor vigente: SQLite.  
 Base real: sin CRUD real, sin migraciones y sin cambios de contenido.
 
-C2 quedó aprobado técnicamente. La revisión responsive realizada en este lote fue estática y técnica sobre JSX, CSS, contratos, lint y build. No se realizó todavía un recorrido visual completo en navegador sobre todos los viewports. Esa validación se realizará durante C4 con el contenido profesional definitivo.
+C2 quedó aprobado técnicamente. La revisión responsive realizada en este lote fue estática y técnica sobre JSX, CSS, contratos, lint y build. La validación visual completa en navegador sobre todos los viewports quedó cerrada posteriormente en C4 con el contenido profesional definitivo.
 
 | Caso | Viewport | Resultado esperado | Resultado obtenido | Estado | Observaciones |
 |---|---|---|---|---|---|
@@ -75,11 +75,30 @@ Base real: modificada únicamente por el sincronizador C3.
 | Pruebas backend | Suite completa aprobada | `34 passed, 1 warning` | Aprobado | SQLite temporal |
 | Frontend | Lint/build aprobados | `npm run lint` y `npm run build` aprobados | Aprobado | Sin cambios funcionales frontend |
 
-## Pendientes para C4
+## C4 - QA visual, editorial, responsive y confidencialidad final
 
-- Recorrido visual real en navegador con el contenido definitivo.
-- Revisión responsive pública/admin.
-- Revisión editorial final con el propietario.
-- Revisión manual de assets antes de permitir imágenes públicas.
-- Confirmar que no haya exposición de clientes, rutas, usuarios, reportes o documentos internos.
-- Go/no-go editorial antes de Fase 7.
+Fecha: 2026-07-10
+Navegador: Chrome local controlado por DevTools Protocol.
+Alcance: recorrido visual real con el contenido definitivo de C3, validación pública/admin, confidencialidad, responsive, accesibilidad funcional e integridad SQLite.
+
+C4 quedó aprobado con decisión editorial GO para iniciar Fase 7.1, sin despliegue inmediato y sin cambios de datos.
+
+| Área | Resultado | Estado | Observaciones |
+|---|---|---|---|
+| Público | 8 viewports recorridos | Aprobado | 320 x 568, 375 x 667, 390 x 844, 430 x 932, 768 x 1024, 1024 x 768, 1180 x 800 y 1440 x 900 |
+| Perfil | Datos definitivos visibles | Aprobado | Teléfono no público |
+| Skills | 41 skills visibles | Aprobado | Sin cards rotas ni porcentajes |
+| Experiencia | Fofimatic y Kodland visibles | Aprobado | Ninguna experiencia pública muestra “Actualidad” |
+| Proyectos | 6 visibles, todos confidenciales | Aprobado | 3 destacados, sin imágenes públicas |
+| Modal de proyecto | Sin imágenes públicas | Aprobado | Sin miniaturas ni controles innecesarios |
+| Educación | Egresado, sin afirmar graduación | Aprobado | Ceremonia prevista preservada |
+| Certificaciones | 0 públicas | Aprobado | Las 2 existen solo en admin |
+| Admin | Validación en lectura | Aprobado | Sin escrituras ni CRUD real |
+| Confidencialidad | Sin exposición de clientes protegidos | Aprobado | Alias y notas genéricas visibles |
+| Accesibilidad | Foco y modales validados | Aprobado | Escape, retorno de foco y navegación funcionales |
+| Consola/red | Sin errores relevantes | Aprobado | CORS local correcto y cero 500 |
+| Payload | Línea base post-C3 | Aprobado | `/api/public/home` y `/api/public/projects` medidos como referencia |
+| Integridad SQLite | `foreign_keys=1`, `integrity_check=ok` | Aprobado | DB intacta |
+| Pruebas técnicas | `pytest`, `check_db`, `lint`, `build` | Aprobado | Sin cambios de contenido real |
+
+Decisión editorial: **GO** para Fase 7.1.

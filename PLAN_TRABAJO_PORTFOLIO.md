@@ -14,8 +14,8 @@ Este es el único plan operativo vigente del proyecto. Las auditorías y planes 
 - C1: cerrado.
 - C2: cerrado técnicamente.
 - C3: cerrado técnicamente.
-- C4: siguiente lote.
-- Fase 7: pendiente.
+- C4: cerrado.
+- Fase 7.1: siguiente lote.
 - SQLite permanece como motor vigente.
 - PostgreSQL queda fuera del alcance activo.
 - No se deben revertir los cambios C1.
@@ -42,6 +42,7 @@ Campos C1 vigentes:
 | C1 | Cerrado | Migración SQLite y 32 pruebas |
 | C2 | Cerrado técnicamente | Admin, vista pública y QA técnica C2 |
 | C3 | Cerrado técnicamente | Sincronización editorial, backup, idempotencia y QA técnica C3 |
+| C4 | Cerrado | QA visual/editorial real, confidencialidad, responsive, accesibilidad e integridad SQLite |
 
 ## Ruta activa antes de despliegue
 
@@ -87,7 +88,7 @@ Criterio de salida:
 - `check_db` confirma integridad.
 - La sincronización quedó idempotente con segundo dry-run en cero operaciones.
 
-### C4 — QA editorial, confidencialidad y contratos — siguiente lote
+### C4 — QA editorial, confidencialidad y contratos — cerrado
 
 Validar el contenido actualizado antes de producción.
 
@@ -106,6 +107,14 @@ Criterio de salida:
 - Cero exposición de clientes, documentos, rutas, usuarios, reportes o archivos sensibles.
 - Vista pública y admin funcionan con el contenido definitivo.
 - El propietario aprueba go/no-go editorial.
+
+Resultado C4:
+
+- Recorrido real en navegador Chrome sobre 8 viewports.
+- Vista pública validada con 6 proyectos activos confidenciales, sin multimedia pública y 0 certificaciones públicas.
+- Panel administrativo validado en lectura, sin escrituras ni CRUD real.
+- Confidencialidad, accesibilidad funcional, consola/red, payload de referencia e integridad SQLite documentados en `docs/QA_CONTENIDO_PROFESIONAL.md`.
+- Decisión editorial: **GO** para iniciar Fase 7.1, sin despliegue inmediato.
 
 ## Fase 7 — Preparación para despliegue con SQLite
 
@@ -151,7 +160,7 @@ Despliegue final solo con backup, procedimiento de restauración y rollback ensa
 - `docs/CONTENIDO_PROFESIONAL_PORTAFOLIO.md`: fuente editorial vigente post-C3.
 - `docs/INVENTARIO_CONTENIDO_PORTFOLIO.md`: snapshot seguro del contenido post-C3.
 - `docs/QA_FASE_6.md`: evidencia histórica de QA.
-- `docs/QA_CONTENIDO_PROFESIONAL.md`: evidencia técnica y editorial de C2-C3.
+- `docs/QA_CONTENIDO_PROFESIONAL.md`: evidencia técnica, editorial y visual de C2-C4.
 - `docs/REVISION_ARCHIVOS_DUDOSOS.md`: inventario de archivos dudosos y decisión documental.
 - `backend/docs/API_FRONTEND.md`: contrato API vigente.
 
