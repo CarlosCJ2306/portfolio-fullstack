@@ -12,7 +12,7 @@ Este es el único plan operativo vigente del proyecto. Las auditorías y planes 
 - Fases 1 a 6: cerradas.
 - C0: cerrado.
 - C1: cerrado.
-- C2: cerrado.
+- C2: cerrado técnicamente.
 - C3: siguiente lote.
 - C4: pendiente.
 - Fase 7: pendiente.
@@ -40,12 +40,11 @@ Campos C1 vigentes:
 | 6 | Cerrada | `docs/QA_FASE_6.md` |
 | C0 | Cerrado | Documentación e inventario |
 | C1 | Cerrado | Migración SQLite y 32 pruebas |
-
-| C2 | Cerrado | Admin/vista pública C1 y QA C2 |
+| C2 | Cerrado técnicamente | Admin, vista pública y QA técnica C2 |
 
 ## Ruta activa antes de despliegue
 
-### C2 — Admin y frontend público — cerrado
+### C2 — Admin y frontend público — cerrado técnicamente
 
 Se implementó interfaz administrativa y representación pública para los campos incorporados en C1:
 
@@ -62,6 +61,7 @@ Criterio de salida:
 - `allow_public_images=false` mantiene ocultas portada y galería en público, sin borrar relaciones.
 - Proyecto confidencial con imágenes públicas exige confirmación explícita.
 - Pytest, check_db, lint y build quedaron aprobados.
+- La implementación y la verificación técnica quedaron cerradas. La validación visual completa en navegador se realizará durante C4.
 
 ### C3 — Actualización controlada de contenido — siguiente lote
 
@@ -145,9 +145,10 @@ Despliegue final solo con backup, procedimiento de restauración y rollback ensa
 
 - `CAMBIOS.md`: changelog resumido y estado actual.
 - `docs/HISTORIAL_CAMBIOS_DETALLADO.md`: historial largo.
-- `docs/PLAN_ACTUALIZACION_CONTENIDO_PROFESIONAL.md`: reglas editoriales y confidencialidad para C2–C4.
+- `docs/PLAN_ACTUALIZACION_CONTENIDO_PROFESIONAL.md`: reglas editoriales y confidencialidad para C2-C4.
 - `docs/INVENTARIO_CONTENIDO_PORTFOLIO.md`: snapshot seguro del contenido previo a C3.
 - `docs/QA_FASE_6.md`: evidencia histórica de QA.
+- `docs/QA_CONTENIDO_PROFESIONAL.md`: revisión técnica de C2.
 - `docs/REVISION_ARCHIVOS_DUDOSOS.md`: inventario de archivos dudosos y decisión documental.
 - `backend/docs/API_FRONTEND.md`: contrato API vigente.
 

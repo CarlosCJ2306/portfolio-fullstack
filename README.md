@@ -4,12 +4,12 @@ Portafolio personal construido con FastAPI en el backend y React + Vite en el fr
 
 ## Estado del proyecto
 
-- Fases 1–6 cerradas.
-- C0 y C1 cerrados.
-- C2 en preparación.
+- Fases 1-6 cerradas.
+- C0, C1 y C2 cerrados.
+- C3 es el siguiente lote.
 - SQLite es el motor vigente.
-- PostgreSQL está fuera del alcance actual.
-- El despliegue todavía está condicionado.
+- PostgreSQL está fuera del alcance activo.
+- El despliegue continúa condicionado.
 - Estado operativo: **Conditional Go** para preparación, no para despliegue inmediato.
 
 ## Stack real
@@ -38,6 +38,7 @@ Portafolio personal construido con FastAPI en el backend y React + Vite en el fr
 - [PLAN_TRABAJO_PORTFOLIO.md](PLAN_TRABAJO_PORTFOLIO.md)
 - [CAMBIOS.md](CAMBIOS.md)
 - [docs/PLAN_ACTUALIZACION_CONTENIDO_PROFESIONAL.md](docs/PLAN_ACTUALIZACION_CONTENIDO_PROFESIONAL.md)
+- [docs/QA_CONTENIDO_PROFESIONAL.md](docs/QA_CONTENIDO_PROFESIONAL.md)
 - [docs/QA_FASE_6.md](docs/QA_FASE_6.md)
 - [docs/REVISION_ARCHIVOS_DUDOSOS.md](docs/REVISION_ARCHIVOS_DUDOSOS.md)
 - [docs/INVENTARIO_CONTENIDO_PORTFOLIO.md](docs/INVENTARIO_CONTENIDO_PORTFOLIO.md)

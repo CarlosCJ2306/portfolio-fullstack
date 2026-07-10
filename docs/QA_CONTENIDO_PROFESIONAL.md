@@ -7,6 +7,8 @@ Alcance: validación técnica de frontend, contratos C1 y documentación.
 Motor vigente: SQLite.  
 Base real: sin CRUD real, sin migraciones y sin cambios de contenido.
 
+C2 quedó aprobado técnicamente. La revisión responsive realizada en este lote fue estática y técnica sobre JSX, CSS, contratos, lint y build. No se realizó todavía un recorrido visual completo en navegador sobre todos los viewports. Esa validación se realizará durante C4 con el contenido profesional definitivo.
+
 | Caso | Viewport | Resultado esperado | Resultado obtenido | Estado | Observaciones |
 |---|---|---|---|---|---|
 | Formulario nuevo de proyecto | 1440 x 900 | Defaults: `is_confidential=false`, alias/nota vacíos y `allow_public_images=true` | Estado inicial actualizado en React | Aprobado | Sin escritura real |
@@ -15,9 +17,9 @@ Base real: sin CRUD real, sin migraciones y sin cambios de contenido.
 | Proyecto confidencial con imágenes públicas | 390 x 844 | Exige confirmación explícita antes de guardar | Checkbox visible y `window.confirm` de seguridad antes del submit | Aprobado | Confirmación no se persiste |
 | Guardar proyecto | 1440 x 900 | Payload incluye `is_confidential`, `client_display_name`, `confidentiality_note`, `allow_public_images` | Payload create/update actualizado | Aprobado | Validado por lint/build; sin POST real |
 | Editar nuevamente | 1440 x 900 | No se pierden valores C1 | Estado de edición y respuesta local conservan campos | Aprobado | Depende de contrato C1 ya probado |
-| Proyecto público sin imágenes | 320 x 568 | Card y modal funcionan sin contenedor vacío grande | Fallback neutral compacto y modal sin controles de carrusel si no hay imágenes | Aprobado | Responsive CSS actualizado |
-| Proyecto confidencial sin imágenes | 375 x 667 | Badge, alias y nota visibles | Vista pública renderiza badge, alias y nota desde API | Aprobado | No inventa datos |
-| Proyecto confidencial con imágenes permitidas | 768 x 1024 | Imágenes se muestran normalmente si backend las entrega | Frontend respeta `image`/`gallery_images` existentes; no bloquea por `is_confidential` | Aprobado | Requiere confirmación admin previa |
+| Proyecto público sin imágenes | 320 x 568 | Card y modal funcionan sin contenedor vacío grande | Fallback neutral compacto y modal sin controles de carrusel si no hay imágenes | Aprobado por revisión técnica; pendiente de validación visual en navegador durante C4. | Responsive CSS actualizado |
+| Proyecto confidencial sin imágenes | 375 x 667 | Badge, alias y nota visibles | Vista pública renderiza badge, alias y nota desde API | Aprobado por revisión técnica; pendiente de validación visual en navegador durante C4. | No inventa datos |
+| Proyecto confidencial con imágenes permitidas | 768 x 1024 | Imágenes se muestran normalmente si backend las entrega | Frontend respeta `image`/`gallery_images` existentes; no bloquea por `is_confidential` | Aprobado por revisión técnica; pendiente de validación visual en navegador durante C4. | Requiere confirmación admin previa |
 | Certificación sin `expiration_date` | 390 x 844 | Guarda/renderiza sin vencimiento obligatorio | Form admin permite vacío; público no muestra vencimiento | Aprobado | Sin CRUD real |
 | Certificación con `expiration_date` válida | 1440 x 900 | Guarda/renderiza fecha de vencimiento | Payload incluye `expiration_date`; público muestra “Vence: …” | Aprobado | Contrato backend probado en C1 |
 | Fecha anterior a `issue_date` | 1440 x 900 | Error cliente y no se envía | Validación frontend bloquea `expiration_date < issue_date` | Aprobado | Backend mantiene 422 como respaldo |

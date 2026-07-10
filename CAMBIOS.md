@@ -2,7 +2,7 @@
 
 ## Estado actual
 
-- Fases 1–6 cerradas.
+- Fases 1-6 cerradas.
 - C0, C1 y C2 cerrados.
 - C3 es el siguiente lote.
 - SQLite es el motor vigente.
@@ -35,6 +35,8 @@ Verificaciones:
 - Frontend `npm run lint`: aprobado.
 - Frontend `npm run build`: aprobado.
 - `portfolio.db` conservó tamaño, fecha y hash SHA-256 iniciales del lote.
+
+La validación técnica de C2 quedó aprobada. La comprobación visual completa en navegador, utilizando el contenido profesional definitivo, se realizará durante C4.
 
 Siguiente lote: **C3 — actualización controlada de contenido profesional**.
 
@@ -126,4 +128,4 @@ Confirmaciones:
 
 ## Resumen histórico
 
-El historial detallado de Fases 1–5, galería de proyectos, visor PDF, responsividad, UX admin, limpieza documental, pruebas y decisiones previas se conserva en [docs/HISTORIAL_CAMBIOS_DETALLADO.md](docs/HISTORIAL_CAMBIOS_DETALLADO.md).
+El historial detallado de Fases 1-5, galería de proyectos, visor PDF, responsividad, UX admin, limpieza documental, pruebas y decisiones previas se conserva en [docs/HISTORIAL_CAMBIOS_DETALLADO.md](docs/HISTORIAL_CAMBIOS_DETALLADO.md).
