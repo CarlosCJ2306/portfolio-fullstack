@@ -40,10 +40,46 @@ C2 quedó aprobado técnicamente. La revisión responsive realizada en este lote
 
 La revisión fue estática/técnica sobre CSS/JS y build. No se hicieron operaciones de escritura en `portfolio.db`.
 
-## Pendientes para C3
+## Pendientes C2 resueltos en C3
 
-- Ejecutar actualización controlada de contenido con backup.
-- Incorporar Kodland.
-- Mantener Fofimatic junio 2024 a marzo 2026 con `is_current=false`.
-- Validar manualmente texto final, alias, notas y permisos de imágenes con el propietario.
-- Repetir QA editorial y confidencialidad con datos reales aprobados.
+- Se ejecutó actualización controlada de contenido con backup.
+- Se incorporó Kodland.
+- Se mantuvo Fofimatic junio 2024 a marzo 2026 con `is_current=false`.
+- Se aplicaron alias, notas y permisos de imágenes según reglas C3.
+- La validación visual/editorial final queda para C4.
+
+## C3 - Actualización controlada y definitiva del contenido profesional
+
+Fecha: 2026-07-10
+Alcance: sincronización editorial real sobre SQLite, con backup, dry-run, apply, idempotencia, API de lectura e integridad.
+Motor vigente: SQLite.
+Base real: modificada únicamente por el sincronizador C3.
+
+| Caso | Resultado esperado | Resultado obtenido | Estado | Observaciones |
+|---|---|---|---|---|
+| Backup C3 | Backup creado con SQLite Backup API y verificado | `portfolio_before_c3_content_20260710_011041.db` creado, íntegro, con conteos y hashes de assets equivalentes | Aprobado | Ignorado por Git |
+| Dry-run inicial | Operaciones solo de C3 | 61 operaciones previstas | Aprobado | Sin escritura |
+| Apply | Actualización transaccional con backup verificado | 61 operaciones aplicadas | Aprobado | Sin migración de esquema |
+| Segundo dry-run | Cero operaciones | 0 operaciones | Aprobado | Idempotencia real confirmada |
+| Perfil | Título y resumen C3 aplicados | Perfil actualizado y avatar/CV preservados | Aprobado | Teléfono no público |
+| Experiencia | Fofimatic y Kodland visibles, ninguna actual | 2 experiencias públicas, ambas con `is_current=false` | Aprobado | Experiencia histórica quedó inactiva |
+| Proyectos | 6 activos, confidenciales y sin imágenes públicas | 6 proyectos activos, `allow_public_images=false`, `image=null`, `gallery_images=[]` en público | Aprobado | Proyecto histórico inactivo conserva multimedia |
+| Skills | 41 skills activas | 41 activas y 50 asociaciones `project_skills` | Aprobado | Sin iconos asociados |
+| Educación | Egresado, sin afirmar título otorgado | Educación activa como egresado | Aprobado | Ceremonia prevista documentada |
+| Certificaciones | Permanecen inactivas | 2 certificaciones inactivas | Aprobado | PDF y datos preservados |
+| Assets y mensajes | No modificar contenido sensible | 13 assets y 1 mensaje preservados | Aprobado | No se leyó mensaje privado |
+| API pública | Home/proyectos/experiencia/educación/certificaciones responden | Endpoints públicos 200, 6 proyectos, 3 destacados, 2 experiencias, 0 certificaciones públicas | Aprobado | Sin POST |
+| API admin | Lecturas admin responden | Perfil, proyectos, experiencia, educación y certificaciones admin respondieron 200 | Aprobado | Sin CRUD |
+| Referencias protegidas | Cero coincidencias en campos públicos y archivos rastreados | 0 coincidencias | Aprobado | Un seed fue saneado |
+| Integridad SQLite | `foreign_keys=1`, `integrity_check=ok`, 0 violaciones | Confirmado por `check_db` | Aprobado | DB modificada solo por C3 |
+| Pruebas backend | Suite completa aprobada | `34 passed, 1 warning` | Aprobado | SQLite temporal |
+| Frontend | Lint/build aprobados | `npm run lint` y `npm run build` aprobados | Aprobado | Sin cambios funcionales frontend |
+
+## Pendientes para C4
+
+- Recorrido visual real en navegador con el contenido definitivo.
+- Revisión responsive pública/admin.
+- Revisión editorial final con el propietario.
+- Revisión manual de assets antes de permitir imágenes públicas.
+- Confirmar que no haya exposición de clientes, rutas, usuarios, reportes o documentos internos.
+- Go/no-go editorial antes de Fase 7.

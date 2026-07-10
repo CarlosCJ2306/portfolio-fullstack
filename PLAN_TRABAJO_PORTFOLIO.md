@@ -13,8 +13,8 @@ Este es el único plan operativo vigente del proyecto. Las auditorías y planes 
 - C0: cerrado.
 - C1: cerrado.
 - C2: cerrado técnicamente.
-- C3: siguiente lote.
-- C4: pendiente.
+- C3: cerrado técnicamente.
+- C4: siguiente lote.
 - Fase 7: pendiente.
 - SQLite permanece como motor vigente.
 - PostgreSQL queda fuera del alcance activo.
@@ -41,6 +41,7 @@ Campos C1 vigentes:
 | C0 | Cerrado | Documentación e inventario |
 | C1 | Cerrado | Migración SQLite y 32 pruebas |
 | C2 | Cerrado técnicamente | Admin, vista pública y QA técnica C2 |
+| C3 | Cerrado técnicamente | Sincronización editorial, backup, idempotencia y QA técnica C3 |
 
 ## Ruta activa antes de despliegue
 
@@ -63,20 +64,20 @@ Criterio de salida:
 - Pytest, check_db, lint y build quedaron aprobados.
 - La implementación y la verificación técnica quedaron cerradas. La validación visual completa en navegador se realizará durante C4.
 
-### C3 — Actualización controlada de contenido — siguiente lote
+### C3 — Actualización controlada de contenido — cerrado técnicamente
 
 Actualizar datos profesionales con backup, dry-run, ejecución idempotente y QA de integridad.
 
 Alcance:
 
-- incorporar Kodland;
-- conservar Fofimatic de junio de 2024 a marzo de 2026;
-- mantener Fofimatic con `is_current=false`;
-- actualizar perfil;
-- actualizar skills;
-- actualizar educación;
-- actualizar proyectos;
-- actualizar certificaciones autorizadas.
+- incorporó Kodland;
+- conservó Fofimatic de junio de 2024 a marzo de 2026;
+- mantuvo Fofimatic con `is_current=false`;
+- actualizó perfil;
+- actualizó skills;
+- actualizó educación;
+- actualizó proyectos;
+- mantuvo certificaciones existentes inactivas.
 
 Criterio de salida:
 
@@ -84,8 +85,9 @@ Criterio de salida:
 - Los datos editoriales quedan respaldados por fuentes del propietario.
 - Assets, mensajes, IDs y relaciones no autorizadas permanecen intactos.
 - `check_db` confirma integridad.
+- La sincronización quedó idempotente con segundo dry-run en cero operaciones.
 
-### C4 — QA editorial, confidencialidad y contratos
+### C4 — QA editorial, confidencialidad y contratos — siguiente lote
 
 Validar el contenido actualizado antes de producción.
 
@@ -145,10 +147,11 @@ Despliegue final solo con backup, procedimiento de restauración y rollback ensa
 
 - `CAMBIOS.md`: changelog resumido y estado actual.
 - `docs/HISTORIAL_CAMBIOS_DETALLADO.md`: historial largo.
-- `docs/PLAN_ACTUALIZACION_CONTENIDO_PROFESIONAL.md`: reglas editoriales y confidencialidad para C2-C4.
-- `docs/INVENTARIO_CONTENIDO_PORTFOLIO.md`: snapshot seguro del contenido previo a C3.
+- `docs/PLAN_ACTUALIZACION_CONTENIDO_PROFESIONAL.md`: reglas editoriales y confidencialidad para C4.
+- `docs/CONTENIDO_PROFESIONAL_PORTAFOLIO.md`: fuente editorial vigente post-C3.
+- `docs/INVENTARIO_CONTENIDO_PORTFOLIO.md`: snapshot seguro del contenido post-C3.
 - `docs/QA_FASE_6.md`: evidencia histórica de QA.
-- `docs/QA_CONTENIDO_PROFESIONAL.md`: revisión técnica de C2.
+- `docs/QA_CONTENIDO_PROFESIONAL.md`: evidencia técnica y editorial de C2-C3.
 - `docs/REVISION_ARCHIVOS_DUDOSOS.md`: inventario de archivos dudosos y decisión documental.
 - `backend/docs/API_FRONTEND.md`: contrato API vigente.
 

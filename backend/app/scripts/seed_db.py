@@ -388,7 +388,7 @@ def create_experience(db: Session) -> Experience:
     """
     experience = Experience(
         position="Desarrollador de Soluciones Empresariales",
-        company="CIPROBA",
+        company="Entidad reservada",
         country="Colombia",
         city="Pamplona",
         start_date=date(2024, 1, 1),

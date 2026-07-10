@@ -3,12 +3,49 @@
 ## Estado actual
 
 - Fases 1-6 cerradas.
-- C0, C1 y C2 cerrados.
-- C3 es el siguiente lote.
+- C0, C1, C2 y C3 cerrados técnicamente.
+- C4 es el siguiente lote.
 - SQLite es el motor vigente.
 - PostgreSQL queda fuera del alcance activo.
 - Estado: **Conditional Go** para preparación; sin despliegue inmediato.
 - Historial extenso: [docs/HISTORIAL_CAMBIOS_DETALLADO.md](docs/HISTORIAL_CAMBIOS_DETALLADO.md).
+
+## 2026-07-10 - C3: actualización definitiva del contenido profesional
+
+Se aplicó la sincronización editorial C3 sobre SQLite real, con backup verificado, dry-run previo, ejecución transaccional e idempotencia posterior.
+
+- Perfil actualizado como “Egresado de Ingeniería de Sistemas | Desarrollador Python y Full Stack”.
+- Fofimatic quedó activo/publicable, finalizado en marzo de 2026 y con `is_current=false`.
+- Kodland quedó incorporado como experiencia activa/publicable, finalizada en febrero de 2026 y con `is_current=false`.
+- Seis proyectos profesionales quedaron activos, confidenciales, sin imágenes públicas, sin demo y sin repositorio.
+- Tres proyectos quedaron destacados: CRM empresarial modular, automatización de flujo de caja y centros de costos, e inteligencia de negocio y reportería empresarial.
+- 41 skills quedaron activas con niveles Principal, Intermedio y Complementario.
+- Educación quedó como “Egresado de Ingeniería de Sistemas”, sin afirmar título otorgado.
+- Las dos certificaciones existentes permanecieron inactivas y preservaron sus datos/documentos.
+- Assets, mensajes, PDFs, SVG y Base64 fueron preservados.
+- Se saneó una referencia protegida en un seed rastreado sin ejecutar el script.
+
+Ejecución:
+
+- Backup C3: `backend/backups/portfolio_before_c3_content_20260710_011041.db`, ignorado por Git.
+- Dry-run inicial: 61 operaciones C3 previstas.
+- Apply: 61 operaciones aplicadas.
+- Segundo dry-run: 0 operaciones.
+- Conteos finales: 1 perfil, 3 redes, 41 skills, 7 proyectos, 3 experiencias, 17 bullets, 1 educación, 2 certificaciones, 13 assets, 1 mensaje, 5 `project_images` y 50 `project_skills`.
+
+Verificaciones:
+
+- Backend `pytest -q`: aprobado.
+- `check_db`: `foreign_keys=1`, `integrity_check=ok` y cero violaciones.
+- API pública/admin de lectura: aprobada sin operaciones CRUD.
+- Búsqueda de referencias protegidas en archivos rastreados y campos públicos: cero coincidencias.
+- Frontend `npm run lint`: aprobado.
+- Frontend `npm run build`: aprobado.
+- `git diff --check`: aprobado.
+
+No se ejecutaron `reset_db.py`, `update_db.py`, `seed_db.py`, migraciones de esquema, PostgreSQL ni despliegues. No se hizo commit.
+
+Siguiente lote: **C4 — QA visual, editorial, responsive y confidencialidad final**.
 
 ## 2026-07-09 - C2: confidencialidad y vencimiento en admin y vista pública
 

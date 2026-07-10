@@ -1,130 +1,195 @@
-# Contenido profesional del portafolio
+# Contenido profesional vigente del portafolio
 
-> Estado histórico: registra la actualización aplicada antes de recibir la hoja de vida ampliada. No debe usarse como fuente vigente para C1–C4. La planificación actual está en `docs/PLAN_ACTUALIZACION_CONTENIDO_PROFESIONAL.md` e incorpora también la experiencia documentada en Kodland.
+Fecha de aplicación C3: 2026-07-10.
+Motor vigente: SQLite.
+Estado: fuente editorial vigente después de la actualización controlada C3.
 
-Este documento define la línea editorial aplicada inicialmente el 7 de julio de 2026, enfocada entonces en la experiencia profesional confirmada en Fofimatic S.A.S.
+Este documento describe el contenido profesional aplicado en la base real. No incluye Base64, SVG, PDF, mensajes privados, credenciales ni nombres de clientes protegidos.
 
 ## Perfil
 
 - Nombre: Carlos Andrés Jiménez Sarmiento.
-- Título: Desarrollador Fullstack y Automatización de Soluciones Empresariales.
+- Título público: Egresado de Ingeniería de Sistemas | Desarrollador Python y Full Stack.
 - Ubicación: Pamplona, Norte de Santander, Colombia.
 - Correo: carloscjdev@gmail.com.
 - Teléfono: no público.
-- Avatar y CV: se conservan los valores existentes; el proceso editorial no reemplaza ni elimina archivos.
+- Avatar: se conserva el asset existente.
+- CV: se conserva el valor existente, actualmente sin URL pública.
 
-Resumen:
+Resumen vigente:
 
-> Desarrollador de software con experiencia en el análisis, diseño e implementación de soluciones empresariales para procesos administrativos, financieros, comerciales y operativos. Trabajo con Python, Flask, automatización RPA, Power Platform, Power BI, bases de datos SQL e integraciones mediante APIs. Me enfoco en transformar necesidades del negocio en módulos funcionales, mantenibles y escalables, participando desde el levantamiento de requerimientos y diseño de la solución hasta su desarrollo, validación, documentación y soporte.
+> Egresado de Ingeniería de Sistemas con experiencia práctica en desarrollo de aplicaciones web, automatización de procesos, integración de sistemas y análisis de datos. He trabajado con Python, Flask, JavaScript, HTML, CSS, APIs REST, bases de datos SQL, Power Platform y Power BI para construir y mantener soluciones empresariales internas. También cuento con experiencia en levantamiento de requerimientos, documentación técnica, soporte de aplicaciones y acompañamiento formativo. Mi perfil está orientado a oportunidades de desarrollo Python, backend, full stack junior, automatización y datos.
 
-## Redes activas
+## Redes públicas
 
 - GitHub: <https://github.com/CarlosCJ2306>
 - LinkedIn: <https://www.linkedin.com/in/carlos-cj/>
 - Email: <mailto:carloscjdev@gmail.com>
 
-Los enlaces provisionales, duplicados o distintos de estos tres se desactivan, no se eliminan.
+No se crearon redes adicionales.
 
-## Experiencia activa
+## Experiencia
 
-**Ingeniero de Desarrollo y Automatización de Soluciones Empresariales — Fofimatic S.A.S.**  
-Pamplona, Colombia · junio de 2024 a marzo de 2026.
+### Fofimatic S.A.S.
 
-Participación en el análisis, diseño, desarrollo, integración y mejora de soluciones tecnológicas orientadas a optimizar procesos administrativos, financieros, comerciales y operativos. Desarrollo de módulos backend con Python y Flask, interfaces internas con HTML, CSS y JavaScript, automatizaciones con RPA Framework y Power Automate, soluciones con Power Apps, reportes en Power BI e integraciones con bases de datos y servicios empresariales.
+- Cargo: Ingeniero de Desarrollo y Automatización de Soluciones Empresariales.
+- Periodo: junio de 2024 a marzo de 2026.
+- Estado: activa/publicable, no actual.
+- Ubicación pública: Pamplona, Colombia.
+- Orden: 0.
 
-Responsabilidades documentadas:
+Descripción:
 
-1. Desarrollo de soluciones backend con Python y Flask, incorporando lógica de negocio, validaciones, consultas, reportes y trazabilidad.
-2. Construcción de interfaces y módulos administrativos con HTML, CSS, JavaScript y componentes de tablas interactivas.
-3. Implementación de automatizaciones con RPA Framework, Power Automate y Power Automate Desktop.
-4. Creación y adaptación de soluciones dentro del ecosistema Power Platform, incluyendo Power Apps.
-5. Desarrollo de reportes y análisis con Power BI, Power Query y medidas DAX.
-6. Integración con PostgreSQL, SQL Server, Oracle, MySQL, SQLite, APIs REST, JSON, webhooks, Excel y SharePoint.
-7. Levantamiento de requerimientos, creación de mockups, diseño funcional, pruebas, documentación técnica y soporte.
-8. Implementación de procesos ETL, transformación de datos, generación documental y automatización de reportes.
+> Participé en el análisis, diseño, desarrollo, integración y mantenimiento de soluciones tecnológicas para procesos administrativos, financieros, comerciales y operativos. Mi trabajo incluyó desarrollo backend con Python y Flask, interfaces web internas, automatización de procesos, integración de datos, reportería empresarial, documentación técnica y soporte de aplicaciones.
 
-En esa actualización anterior no se publicó Kodland ni la entidad histórica reservada. La revisión C0 posterior propone incorporar Kodland con la información de la hoja de vida y mantener anonimizados los nombres de clientes protegidos.
+Responsabilidades:
+
+1. Desarrollé módulos backend con Python y Flask, incorporando lógica de negocio, validaciones, consultas e integración con bases de datos.
+2. Construí interfaces internas con HTML, CSS y JavaScript para formularios, consultas, módulos administrativos y herramientas empresariales.
+3. Implementé automatizaciones con RPA Framework, Power Automate y Power Automate Desktop.
+4. Participé en la creación y adaptación de soluciones mediante Power Apps y otras herramientas de Power Platform.
+5. Desarrollé reportes y tableros mediante Power BI, Power Query y DAX, sin publicar información o indicadores internos.
+6. Integré soluciones con APIs REST, JSON, Excel, SharePoint y bases de datos SQL.
+7. Apoyé el levantamiento de requerimientos, diseño funcional, elaboración de mockups, pruebas y documentación técnica.
+8. Realicé soporte, mantenimiento y mejora continua sobre aplicaciones y procesos empresariales.
+
+### Kodland
+
+- Cargo: Tutor de Programación Remoto.
+- Periodo: mayo de 2024 a febrero de 2026.
+- Estado: activa/publicable, no actual.
+- Ubicación pública: Remoto.
+- Orden: 1.
+
+Descripción:
+
+> Orienté a estudiantes en fundamentos de programación y lógica computacional mediante clases remotas de Python básico. Preparé y adapté actividades teórico-prácticas, realicé seguimiento individual y mantuve comunicación con estudiantes, familias y equipos internos.
+
+Responsabilidades:
+
+1. Orienté a estudiantes en fundamentos de programación, lógica computacional y resolución de problemas mediante Python básico.
+2. Preparé clases teórico-prácticas utilizando el material académico definido por la organización.
+3. Adapté explicaciones y actividades a diferentes ritmos y niveles de aprendizaje.
+4. Realicé seguimiento individual del progreso técnico y académico de los estudiantes.
+5. Mantuve comunicación con estudiantes, padres de familia, coordinadores y equipos internos, sin publicar información personal.
 
 ## Proyectos profesionales
 
-### CRM empresarial modular
+Los seis proyectos activos son confidenciales, usan el alias público “Empresa privada cliente de Fofimatic”, no exponen imágenes públicas, no tienen repositorio ni demo y no publican clientes, capturas, documentos, URLs internas ni métricas.
 
-`crm-empresarial-modular` — Solución modular para centralizar la gestión de proveedores, productos y clientes.
+Nota pública común:
 
-Participación en el análisis funcional, modelado de datos y construcción de módulos para administrar información comercial y operativa. La solución integró formularios, validaciones, consultas y flujos administrativos dentro de una arquitectura mantenible.
+> Proyecto desarrollado mediante Fofimatic para una empresa cliente. La identidad de la organización y sus recursos internos se reservan por confidencialidad.
 
-Tecnologías: Python, Flask, JavaScript, HTML5, CSS3, SQL, PostgreSQL, APIs REST y JSON.
+### 1. CRM empresarial modular
 
-### Gestión de reintegros y asociación documental
+- Slug: `crm-empresarial-modular`.
+- Destacado: sí.
+- Descripción corta: Solución modular para organizar información comercial y operativa mediante formularios, validaciones, consultas y módulos administrativos.
+- Descripción: Participación en el análisis funcional, modelado de datos y desarrollo de módulos para gestionar información de proveedores, productos y clientes dentro de una solución empresarial interna.
+- Skills: Python, Flask, JavaScript, HTML5, CSS3, SQL, PostgreSQL, APIs REST, JSON.
 
-`gestion-reintegros-asociacion-documental` — Solución para centralizar, procesar y relacionar información financiera y documental.
+### 2. Gestión de reintegros y documentación DEX
 
-Desarrollo de funcionalidades para gestionar reintegros, asociar documentos de exportación con facturas, consultar tasas, realizar cálculos automáticos y mantener trazabilidad sobre los registros procesados.
+- Slug: `gestion-reintegros-asociacion-documental`.
+- Destacado: no.
+- Descripción corta: Solución para organizar, consultar y relacionar información de reintegros con documentación asociada a procesos de exportación.
+- Descripción: Desarrollo de funcionalidades de registro, consulta, validación, asociación documental y trazabilidad general, sin publicar datos financieros, documentos o información interna.
+- Skills: Python, Flask, JavaScript, SQL, PostgreSQL, Excel, SharePoint, ETL, APIs REST.
 
-Tecnologías: Python, Flask, JavaScript, SQL, PostgreSQL, Excel, SharePoint, ETL y APIs REST.
+### 3. Tracking de exportaciones
 
-### Tracking de exportaciones
+- Slug: `tracking-exportaciones`.
+- Destacado: no.
+- Descripción corta: Módulo de seguimiento general de estados, fechas y documentación relacionada con procesos de exportación.
+- Descripción: Desarrollo de una solución interna para centralizar información operativa, facilitar consultas y mantener trazabilidad sobre diferentes etapas del proceso.
+- Skills: Python, Flask, JavaScript, SQL, APIs REST, JSON, Excel, Automatización de procesos.
 
-`tracking-exportaciones` — Módulo para el seguimiento documental y operativo de procesos de exportación.
+### 4. Automatización de flujo de caja y centros de costos
 
-Construcción de una solución para centralizar estados, documentos, fechas y datos relacionados con operaciones de exportación, facilitando la consulta y trazabilidad de información entre diferentes procesos internos.
+- Slug: `automatizacion-flujo-caja-centros-costos`.
+- Destacado: sí.
+- Descripción corta: Automatización de tareas de recolección, validación, transformación y consolidación de información financiera y operativa.
+- Descripción: Implementación de flujos para procesar información procedente de formularios, archivos y fuentes empresariales, reduciendo trabajo manual sin publicar montos, formatos internos o métricas no verificadas.
+- Skills: Python, RPA Framework, Power Automate, Power Automate Desktop, Excel, OpenPyXL, SQL, ETL.
 
-Tecnologías: Python, Flask, JavaScript, SQL, APIs REST, JSON, Excel y Automatización de procesos.
+### 5. Inteligencia de negocio y reportería empresarial
 
-### Automatización de flujo de caja y centros de costos
+- Slug: `inteligencia-negocio-reportes-operativos`.
+- Destacado: sí.
+- Descripción corta: Creación de modelos, transformaciones, indicadores y visualizaciones para el análisis de información empresarial.
+- Descripción: Desarrollo de reportes y tableros orientados al seguimiento de procesos administrativos, financieros y operativos, manteniendo reservados los datos, indicadores y diseños internos.
+- Skills: Power BI, DAX, Power Query, Excel, SQL, Transformación de datos, Modelado de información.
 
-`automatizacion-flujo-caja-centros-costos` — Automatización de procesos financieros y consolidación de información operativa.
+### 6. Ecosistema de automatización e integración empresarial
 
-Implementación de flujos para recolectar, validar, transformar y consolidar datos financieros. Se integraron formularios, archivos de Excel, procesos automatizados y reportes para reducir tareas manuales y mejorar la trazabilidad.
+- Slug: `ecosistema-automatizacion-integracion`.
+- Destacado: no.
+- Descripción corta: Integración de aplicaciones, automatizaciones, formularios y fuentes de datos dentro de un ecosistema empresarial.
+- Descripción: Participación en la centralización de accesos y soluciones mediante Power Platform, aplicaciones Python, APIs y fuentes corporativas, facilitando la interoperabilidad entre procesos.
+- Skills: Power Apps, Power Automate, Python, Flask, RPA Framework, SharePoint, APIs REST, JSON, SQL.
 
-Tecnologías: Python, RPA Framework, Power Automate, Power Automate Desktop, Excel, OpenPyXL, SQL y ETL.
+## Skills activas
 
-### Inteligencia de negocio y reportes operativos
+### Lenguajes
 
-`inteligencia-negocio-reportes-operativos` — Reportes para el análisis de indicadores administrativos, logísticos y financieros.
+Python, JavaScript, SQL, HTML5, CSS3.
 
-Desarrollo de modelos, transformaciones y medidas para analizar estados de procesos, cantidades, distribución por categorías, comportamiento acumulado, indicadores de facturación y diagramas de Pareto.
+### Backend e integraciones
 
-Tecnologías: Power BI, DAX, Power Query, Excel, SQL, Transformación de datos y Modelado de información.
+Flask, FastAPI, APIs REST, JSON, Webhooks.
 
-### Ecosistema de automatización e integración empresarial
+### Frontend
 
-`ecosistema-automatizacion-integracion` — Centralización de soluciones, automatizaciones y accesos dentro de un ecosistema corporativo.
+React, Vite, Handsontable.
 
-Participación en la integración de módulos empresariales, automatizaciones, formularios y fuentes de datos. Se utilizaron herramientas de Power Platform junto con aplicaciones Python para conectar procesos y facilitar el acceso a distintas soluciones internas.
+### Automatización y Power Platform
 
-Tecnologías: Power Apps, Power Automate, Python, Flask, RPA Framework, SharePoint, APIs REST, JSON y SQL.
+RPA Framework, Power Automate, Power Automate Desktop, Power Apps, Scripting, Automatización de procesos.
 
-Todos se presentan solo con título, descripción funcional, descripción detallada y tecnologías. `image_asset_id`, galería, `demo_url` y `repository_url` quedan vacíos. No se crean asociaciones `ProjectImage` ni se reasignan assets existentes.
+### Inteligencia de negocio y datos
 
-> Por acuerdos de confidencialidad, estos proyectos se presentan mediante descripciones funcionales y tecnológicas. No se publican capturas, datos internos, nombres de clientes, repositorios, URLs privadas ni documentación propietaria.
+Power BI, DAX, Power Query, Pandas, ETL, Excel, OpenPyXL, Transformación de datos, Modelado de información.
 
-## Habilidades activas
+### Bases de datos
 
-- Backend e integraciones: Python, Flask, FastAPI, APIs REST, JSON y Webhooks.
-- Frontend: HTML5, CSS3, JavaScript, React, Vite y Handsontable.
-- Automatización y Power Platform: RPA Framework, Power Automate, Power Automate Desktop, Power Apps, Scripting y Automatización de procesos.
-- Inteligencia de negocio y datos: Power BI, DAX, Power Query, Pandas, ETL, Excel, OpenPyXL, Transformación de datos y Modelado de información.
-- Bases de datos: SQL, PostgreSQL, SQL Server, Oracle, MySQL y SQLite.
-- Documentos, colaboración e infraestructura: SharePoint, ReportLab, WeasyPrint, Git, IIS, Logging, Validación de datos y Generación de reportes PDF.
+PostgreSQL, SQL Server, Oracle, MySQL, SQLite.
 
-Niveles: Principal, Intermedio y Complementario. No se publican porcentajes. Los iconos y colores quedan vacíos hasta que el propietario seleccione assets autorizados.
+### Herramientas e infraestructura
 
-Normalizaciones editoriales: HTML se representa como HTML5; CSS como CSS3; “automatización” como “Automatización de procesos”. Se incorporó “Modelado de información” como habilidad complementaria porque está indicada expresamente en el proyecto de inteligencia de negocio.
+Git, SharePoint, IIS, Logging, Validación de datos, Generación de reportes PDF, ReportLab, WeasyPrint.
 
-## Educación activa
+Niveles usados: Principal, Intermedio y Complementario. No se usan porcentajes ni nivel Experto. Las skills quedan sin iconos asociados.
 
-**Ingeniería de Sistemas — Universidad de Pamplona**  
-Desarrollo de software y sistemas de información · 2020–2026.
+## Educación
 
-Formación académica finalizada en Ingeniería de Sistemas, con énfasis en desarrollo de software, bases de datos, automatización, sistemas de información, redes e integración tecnológica. Ceremonia de grado prevista para octubre de 2026.
+- Institución: Universidad de Pamplona.
+- Grado público: Egresado de Ingeniería de Sistemas.
+- Área: Desarrollo de software y sistemas de información.
+- Periodo: 2020-2026.
+- Estado: activa/publicable.
 
-## Certificaciones pendientes
+Descripción:
 
-No se crean certificaciones sin evidencia. Las certificaciones provisionales se desactivan sin eliminar sus registros, PDFs o `MediaAsset`. El propietario podrá agregar certificaciones verificadas desde el panel administrativo.
+> Programa de Ingeniería de Sistemas finalizado académicamente. Formación en desarrollo de software, bases de datos, automatización, sistemas de información, redes e integración tecnológica. Ceremonia de grado prevista para octubre de 2026.
 
-## Exclusiones y conservación
+## Certificaciones
 
-- Excluido: Kodland, otros empleadores, nombres de clientes, métricas no verificadas, capturas, repositorios privados, URLs internas, credenciales y documentación propietaria.
-- Sin imagen/PDF nuevo: proyectos, skills y certificaciones.
-- Conservado sin modificación destructiva: `MediaAsset`, mensajes de contacto, PDFs existentes, avatar existente, backups y registros históricos desactivables.
+No se activaron certificaciones en C3. Las dos certificaciones existentes permanecen inactivas y conservan sus IDs, fechas, URL, `certificate_file_id`, PDF y metadata existentes. El propietario podrá activar o cargar certificaciones posteriormente desde el panel administrativo.
+
+## Reglas de confidencialidad
+
+- No publicar nombres reales de clientes protegidos.
+- No publicar capturas, logotipos, documentos, rutas, usuarios, dashboards, reportes internos, archivos privados ni métricas no verificadas.
+- No asociar imágenes a los seis proyectos profesionales activos.
+- Mantener `allow_public_images=false` en proyectos confidenciales hasta que el propietario revise explícitamente cada recurso.
+- No alterar contenido Base64, SVG, PDF, mensajes ni assets desde el sincronizador editorial.
+
+## Exclusiones
+
+- No se incorporaron métricas cuantitativas.
+- No se crearon certificaciones nuevas.
+- No se subieron imágenes, CVs ni PDFs.
+- No se modificaron mensajes de contacto.
+- No se migró a PostgreSQL.
+- No se realizó despliegue.
