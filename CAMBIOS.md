@@ -8,11 +8,43 @@
 - Fase 7.1 cerrada técnicamente.
 - Fase 7.2 cerrada técnicamente.
 - Fase 7.3 cerrada técnicamente.
-- Fase 7.4 es el siguiente lote.
+- Fase 7.4 cerrada técnicamente.
+- Fase 7.5 es el siguiente lote.
 - SQLite es el motor vigente.
 - PostgreSQL queda fuera del alcance activo.
 - Estado: **Conditional Go** para preparación; sin despliegue inmediato.
 - Historial extenso: [docs/HISTORIAL_CAMBIOS_DETALLADO.md](docs/HISTORIAL_CAMBIOS_DETALLADO.md).
+
+## 2026-07-10 - Fase 7.4: preparación de Azure Static Web Apps
+
+Se preparó el frontend React/Vite para un despliegue futuro en Azure Static Web Apps, sin crear recursos Azure, sin despliegue, sin modificar backend funcional y sin tocar `portfolio.db`.
+
+- Se creó `frontend/public/staticwebapp.config.json` para SPA con fallback a `/index.html`.
+- `/admin` queda cubierto por `navigationFallback`; la seguridad real continúa en el backend mediante HTTP Basic.
+- Los assets versionados bajo `/assets/*` usan caché larga e immutable.
+- Se agregaron headers mínimos: `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy` y `X-Frame-Options`.
+- No se configuró CORS en Static Web Apps; CORS pertenece al backend App Service.
+- No se agregó CSP definitiva porque depende de los dominios reales de staging/producción.
+- Se agregó `npm run validate:azure-static-config`.
+- Se agregó `npm run build:azure`, que valida `VITE_API_BASE_URL`, valida la configuración SWA, ejecuta Vite y verifica `staticwebapp.config.json` en `dist`.
+- Se creó una plantilla inactiva de workflow en `docs/deployment/azure-static-web-apps.workflow.yml.example`.
+- La plantilla usa `app_location: "frontend"`, `api_location: ""`, `output_location: "dist"` y `app_build_command: "npm run build:azure"`.
+- No se crearon workflows activos en `.github/workflows`.
+- Se creó `docs/AZURE_STATIC_WEB_APPS_FASE_7_4.md`.
+
+Verificaciones:
+
+- Frontend `npm run lint`: aprobado.
+- Frontend `npm run build`: aprobado.
+- `npm run validate:azure-static-config`: aprobado.
+- `npm run validate:production-env`: falla controlada sin variable y aprueba con `https://api.example.invalid`.
+- `npm run build:azure`: aprobado con `https://api.example.invalid`.
+- Backend `pytest -q`: aprobado.
+- `check_db`: aprobado.
+- `portfolio.db` conserva tamaño, timestamp y SHA-256 esperados.
+- `git diff --check`: aprobado.
+
+Siguiente lote: **Fase 7.5 - configuración de Azure App Service con SQLite persistente**.
 
 ## 2026-07-10 - Fase 7.3: configuracion productiva, CORS, secretos y variables
 

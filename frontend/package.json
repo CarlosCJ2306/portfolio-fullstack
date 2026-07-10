@@ -8,7 +8,9 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "validate:production-env": "node scripts/validate-production-env.mjs"
+    "validate:production-env": "node scripts/validate-production-env.mjs",
+    "validate:azure-static-config": "node scripts/validate-static-web-app-config.mjs",
+    "build:azure": "npm run validate:production-env && npm run validate:azure-static-config && vite build && node scripts/validate-static-web-app-config.mjs --dist"
   },
   "dependencies": {
     "react": "^19.2.7",

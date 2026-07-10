@@ -9,7 +9,8 @@ Portafolio personal construido con FastAPI en el backend y React + Vite en el fr
 - Fase 7.1 cerrada técnicamente.
 - Fase 7.2 cerrada técnicamente.
 - Fase 7.3 cerrada técnicamente.
-- Fase 7.4 es el siguiente lote.
+- Fase 7.4 cerrada técnicamente.
+- Fase 7.5 es el siguiente lote.
 - SQLite es el motor vigente.
 - PostgreSQL está fuera del alcance activo.
 - El despliegue continúa condicionado.
@@ -47,6 +48,7 @@ Portafolio personal construido con FastAPI en el backend y React + Vite en el fr
 - [docs/PAYLOAD_FASE_7_1.md](docs/PAYLOAD_FASE_7_1.md)
 - [docs/GIT_FASE_7_2.md](docs/GIT_FASE_7_2.md)
 - [docs/CONFIG_FASE_7_3.md](docs/CONFIG_FASE_7_3.md)
+- [docs/AZURE_STATIC_WEB_APPS_FASE_7_4.md](docs/AZURE_STATIC_WEB_APPS_FASE_7_4.md)
 - [docs/QA_FASE_6.md](docs/QA_FASE_6.md)
 - [docs/REVISION_ARCHIVOS_DUDOSOS.md](docs/REVISION_ARCHIVOS_DUDOSOS.md)
 - [docs/INVENTARIO_CONTENIDO_PORTFOLIO.md](docs/INVENTARIO_CONTENIDO_PORTFOLIO.md)
@@ -96,7 +98,20 @@ cd frontend
 npm run validate:production-env
 ```
 
-El valor productivo de `VITE_API_BASE_URL` se inyectara durante la configuracion de Azure Static Web Apps en Fase 7.4.
+Build preparado para Azure Static Web Apps:
+
+```powershell
+cd frontend
+$env:VITE_API_BASE_URL="https://api.example.invalid"
+npm run build:azure
+Remove-Item Env:VITE_API_BASE_URL
+```
+
+`npm run build:azure` valida `VITE_API_BASE_URL`, valida `frontend/public/staticwebapp.config.json`, ejecuta Vite y confirma que `staticwebapp.config.json` llegue a `frontend/dist/`.
+
+El valor productivo real de `VITE_API_BASE_URL` se inyectará como variable pública de build cuando exista el backend en Azure App Service. No debe incluir secretos.
+
+La plantilla de GitHub Actions para Azure Static Web Apps vive en `docs/deployment/azure-static-web-apps.workflow.yml.example`. Es intencionalmente inactiva y no despliega hasta moverla/configurarla en una fase posterior.
 
 ## Comandos del frontend
 
@@ -105,6 +120,7 @@ cd frontend
 npm install
 npm run lint
 npm run build
+npm run validate:azure-static-config
 npm run dev
 ```
 

@@ -18,7 +18,8 @@ Este es el único plan operativo vigente del proyecto. Las auditorías y planes 
 - Fase 7.1: cerrada técnicamente.
 - Fase 7.2: cerrada técnicamente.
 - Fase 7.3: cerrada técnicamente.
-- Fase 7.4: siguiente lote.
+- Fase 7.4: cerrada técnicamente.
+- Fase 7.5: siguiente lote.
 - SQLite permanece como motor vigente.
 - PostgreSQL queda fuera del alcance activo.
 - No se deben revertir los cambios C1.
@@ -49,6 +50,7 @@ Campos C1 vigentes:
 | 7.1 | Cerrada técnicamente | Optimización segura de payload multimedia, `content_url`, endpoints de contenido y mediciones antes/después |
 | 7.2 | Cerrada técnicamente | `backend/venv` retirado del índice, conservado localmente, `.gitignore` reforzado y auditoría Git documentada |
 | 7.3 | Cerrada técnicamente | Configuración centralizada por entorno, CORS explícito, health/readiness, validación de secretos y contrato Azure documentado |
+| 7.4 | Cerrada técnicamente | Azure Static Web Apps preparado con fallback SPA, build Azure, validadores y workflow inactivo |
 
 ## Ruta activa antes de despliegue
 
@@ -167,10 +169,22 @@ Resultado:
 - No se crearon recursos Azure, no se desplegó y no se modificó `portfolio.db`.
 - Evidencia documentada en `docs/CONFIG_FASE_7_3.md`.
 
-### 7.4 Azure Static Web Apps — siguiente lote
-Configurar el frontend en Azure Static Web Apps con build de React/Vite, `VITE_API_BASE_URL` productivo y fallback SPA para rutas como `/admin`.
+### 7.4 Azure Static Web Apps — cerrada técnicamente
 
-### 7.5 Azure App Service con SQLite persistente
+Preparar el frontend en Azure Static Web Apps con build de React/Vite, `VITE_API_BASE_URL` productivo futuro y fallback SPA para rutas como `/admin`.
+
+Resultado:
+
+- Se creó `frontend/public/staticwebapp.config.json` con `navigationFallback` a `/index.html`.
+- `/admin` queda como ruta cliente; la seguridad real sigue en el backend con HTTP Basic.
+- Se configuraron headers mínimos y caché larga únicamente para assets versionados.
+- Se agregó `npm run validate:azure-static-config`.
+- Se agregó `npm run build:azure`.
+- Se creó una plantilla inactiva en `docs/deployment/azure-static-web-apps.workflow.yml.example`.
+- No se creó recurso Azure, no se activó workflow y no hubo despliegue.
+- Evidencia documentada en `docs/AZURE_STATIC_WEB_APPS_FASE_7_4.md`.
+
+### 7.5 Azure App Service con SQLite persistente — siguiente lote
 Configurar el backend en Azure App Service para Linux/Python usando SQLite en almacenamiento persistente compatible con Azure. No usar filesystem efímero para `portfolio.db`.
 
 ### 7.6 Staging
@@ -194,6 +208,7 @@ Despliegue final solo con backup, procedimiento de restauración y rollback ensa
 - `docs/PAYLOAD_FASE_7_1.md`: optimización multimedia, endpoints de contenido y mediciones antes/después.
 - `docs/GIT_FASE_7_2.md`: limpieza segura del índice Git, retiro local-preservado de `backend/venv` y auditoría de sensibles.
 - `docs/CONFIG_FASE_7_3.md`: contrato de configuración, CORS, secretos, SQLite persistente, health/readiness y preparación Azure.
+- `docs/AZURE_STATIC_WEB_APPS_FASE_7_4.md`: preparación de Azure Static Web Apps, fallback SPA, build Azure y workflow inactivo.
 - `docs/INVENTARIO_CONTENIDO_PORTFOLIO.md`: snapshot seguro del contenido post-C3.
 - `docs/QA_FASE_6.md`: evidencia histórica de QA.
 - `docs/QA_CONTENIDO_PROFESIONAL.md`: evidencia técnica, editorial y visual de C2-C4.
