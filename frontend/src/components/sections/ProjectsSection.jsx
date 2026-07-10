@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getSafeSvgDataUrl } from "../../utils/svgSecurity";
+import { buildLegacyAssetDataUrl, resolveMediaContentUrl } from "../../utils/mediaContent";
 import "./ProjectsSection.css";
 
 const FOCUSABLE_SELECTOR = [
@@ -59,6 +60,16 @@ function getAssetDisplayInfo(asset, fallbackAltText) {
   }
 
   const alt = asset.alt_text || fallbackAltText;
+  const contentUrl = resolveMediaContentUrl(asset);
+
+  if (contentUrl) {
+    return {
+      src: contentUrl,
+      alt,
+      hasAsset: true,
+    };
+  }
+
   const safeSvgSrc =
     getSafeSvgDataUrl(asset.svg_content)
     || getSafeSvgDataUrl(decodeBase64ToText(asset.data_base64));
@@ -82,9 +93,11 @@ function getAssetDisplayInfo(asset, fallbackAltText) {
     };
   }
 
-  if (asset.data_base64 && asset.mime_type) {
+  const legacyDataUrl = buildLegacyAssetDataUrl(asset);
+
+  if (legacyDataUrl) {
     return {
-      src: `data:${asset.mime_type};base64,${asset.data_base64}`,
+      src: legacyDataUrl,
       alt,
       hasAsset: true,
     };

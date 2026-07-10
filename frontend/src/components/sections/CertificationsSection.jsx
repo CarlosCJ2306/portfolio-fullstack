@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { buildLegacyAssetDataUrl, resolveMediaContentUrl } from "../../utils/mediaContent";
 import "./CertificationsSection.css";
 
 const FOCUSABLE_SELECTOR = [
@@ -23,11 +24,46 @@ function getFocusableElements(container) {
   );
 }
 
-function createPdfPreviewResource(certificateFile) {
+async function createPdfPreviewResource(certificateFile) {
   if (
-    !certificateFile?.data_base64 ||
+    !certificateFile ||
     certificateFile?.mime_type !== "application/pdf"
   ) {
+    return {
+      url: "",
+      error: "El archivo PDF no esta disponible para vista previa.",
+    };
+  }
+
+  const contentUrl = resolveMediaContentUrl(certificateFile);
+
+  if (contentUrl) {
+    try {
+      const response = await fetch(contentUrl);
+
+      if (!response.ok) {
+        return {
+          url: "",
+          error: "El PDF no esta disponible para vista previa.",
+        };
+      }
+
+      const blob = await response.blob();
+
+      return {
+        url: URL.createObjectURL(blob),
+        error: "",
+      };
+    } catch {
+      return {
+        url: "",
+        error:
+          "No se pudo preparar el PDF para mostrarlo. Intenta abrirlo o descargarlo nuevamente.",
+      };
+    }
+  }
+
+  if (!certificateFile?.data_base64) {
     return {
       url: "",
       error: "El archivo PDF no esta disponible para vista previa.",
@@ -76,9 +112,7 @@ function buildPdfDataUrl(certificateFile) {
     return "";
   }
 
-  return certificateFile.data_base64.startsWith("data:")
-    ? certificateFile.data_base64
-    : `data:application/pdf;base64,${certificateFile.data_base64}`;
+  return buildLegacyAssetDataUrl(certificateFile);
 }
 
 function formatDateValue(value) {
@@ -161,14 +195,14 @@ export default function CertificationsSection({ certifications = [] }) {
     restoreTriggerFocus();
   }
 
-  function openPdfModal(certification, triggerElement) {
+  async function openPdfModal(certification, triggerElement) {
     const certificationName =
       certification?.name ||
       certification?.title ||
       certification?.certification_name ||
       "Certificacion";
 
-    const previewResource = createPdfPreviewResource(
+    const previewResource = await createPdfPreviewResource(
       certification?.certificate_file
     );
 
@@ -182,7 +216,7 @@ export default function CertificationsSection({ certifications = [] }) {
     setSelectedPdf({
       name: certificationName,
       url: previewResource.url,
-      downloadUrl: buildPdfDataUrl(certification?.certificate_file),
+      downloadUrl: previewResource.url || buildPdfDataUrl(certification?.certificate_file),
       fileName: `${certificationName}.pdf`,
     });
   }
@@ -300,7 +334,10 @@ export default function CertificationsSection({ certifications = [] }) {
               const hasPdf =
                 certification.certificate_file?.mime_type ===
                   "application/pdf" &&
-                Boolean(certification.certificate_file?.data_base64);
+                Boolean(
+                  certification.certificate_file?.content_url
+                  || certification.certificate_file?.data_base64
+                );
 
               const pdfDataUrl = hasPdf
                 ? buildPdfDataUrl(certification.certificate_file)

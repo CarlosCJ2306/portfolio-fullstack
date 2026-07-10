@@ -14,7 +14,7 @@ Proyecto: Portfolio Full Stack
 """
 
 from datetime import date
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator
 
 
 # -----------------------------------------------------------------------------
@@ -32,9 +32,13 @@ class MediaAssetRead(BaseModel):
     asset_type: str
     file_name: str | None = None
     mime_type: str | None = None
-    data_base64: str | None = None
-    svg_content: str | None = None
     alt_text: str | None = None
+    is_active: bool | None = None
+
+    @computed_field
+    @property
+    def content_url(self) -> str:
+        return f"/api/public/media-assets/{self.id}/content"
 
 
 # -----------------------------------------------------------------------------

@@ -4,6 +4,8 @@ import {
   getSafeSvgDataUrl,
   validateSafeSvgContent,
 } from "../../utils/svgSecurity";
+import { buildLegacyAssetDataUrl } from "../../utils/mediaContent";
+import { useAdminMediaObjectUrl } from "../../utils/useAdminMediaObjectUrl";
 import "./AdminProjectGalleryPicker.css";
 
 const MB = 1024 * 1024;
@@ -89,11 +91,7 @@ function validateGalleryFileBeforeRead(file) {
 }
 
 function getAssetPreviewSrc(asset) {
-  if (!asset?.data_base64 || !asset?.mime_type) {
-    return null;
-  }
-
-  return `data:${asset.mime_type};base64,${asset.data_base64}`;
+  return buildLegacyAssetDataUrl(asset) || null;
 }
 
 function createAbortLikeError() {
@@ -127,6 +125,32 @@ function getStatusLabel(status) {
     default:
       return "Pendiente";
   }
+}
+
+function AdminGalleryAssetImage({
+  asset,
+  className,
+  placeholderClassName,
+}) {
+  const { objectUrl } = useAdminMediaObjectUrl(asset, {
+    enabled: Boolean(asset?.content_url),
+  });
+  const legacySrc = getAssetPreviewSrc(asset);
+  const safeSvgSrc = getSafeSvgDataUrl(asset?.svg_content);
+  const src = objectUrl || legacySrc || safeSvgSrc;
+
+  if (!src) {
+    return <div className={placeholderClassName}>?</div>;
+  }
+
+  return (
+    <img
+      src={src}
+      alt={asset.alt_text || asset.file_name || `Asset ${asset.id}`}
+      className={className}
+      loading="lazy"
+    />
+  );
 }
 
 export default function AdminProjectGalleryPicker({
@@ -623,29 +647,17 @@ export default function AdminProjectGalleryPicker({
       ) : (
         <div className="project-gallery-picker__list" aria-label="Imágenes adicionales seleccionadas">
           {selectedAssets.map((asset, index) => {
-            const previewSrc = getAssetPreviewSrc(asset);
-            const safeSvgSrc = getSafeSvgDataUrl(asset.svg_content);
             const isFirst = index === 0;
             const isLast = index === selectedAssets.length - 1;
 
             return (
               <article className="project-gallery-picker__item" key={asset.id}>
                 <div className="project-gallery-picker__thumb">
-                  {previewSrc ? (
-                    <img
-                      src={previewSrc}
-                      alt={asset.alt_text || asset.file_name || `Asset ${asset.id}`}
-                      className="project-gallery-picker__thumb-img"
-                    />
-                  ) : safeSvgSrc ? (
-                    <img
-                      src={safeSvgSrc}
-                      alt={asset.alt_text || asset.file_name || `Asset ${asset.id}`}
-                      className="project-gallery-picker__thumb-img"
-                    />
-                  ) : (
-                    <div className="project-gallery-picker__thumb-placeholder">?</div>
-                  )}
+                  <AdminGalleryAssetImage
+                    asset={asset}
+                    className="project-gallery-picker__thumb-img"
+                    placeholderClassName="project-gallery-picker__thumb-placeholder"
+                  />
                 </div>
 
                 <div className="project-gallery-picker__meta">
@@ -841,8 +853,6 @@ export default function AdminProjectGalleryPicker({
             {filteredAssets.length > 0 && (
               <div className="project-gallery-picker__grid">
                 {filteredAssets.map((asset) => {
-                  const previewSrc = getAssetPreviewSrc(asset);
-                  const safeSvgSrc = getSafeSvgDataUrl(asset.svg_content);
                   const isSelected = selectedAssetIds.includes(asset.id);
 
                   return (
@@ -854,21 +864,11 @@ export default function AdminProjectGalleryPicker({
                       title={asset.alt_text || asset.file_name || `Asset #${asset.id}`}
                       disabled={hasActiveUpload}
                     >
-                      {previewSrc ? (
-                        <img
-                          src={previewSrc}
-                          alt={asset.alt_text || ""}
-                          className="project-gallery-picker__grid-img"
-                        />
-                      ) : safeSvgSrc ? (
-                        <img
-                          src={safeSvgSrc}
-                          alt={asset.alt_text || asset.file_name || ""}
-                          className="project-gallery-picker__grid-img"
-                        />
-                      ) : (
-                        <div className="project-gallery-picker__grid-placeholder">?</div>
-                      )}
+                      <AdminGalleryAssetImage
+                        asset={asset}
+                        className="project-gallery-picker__grid-img"
+                        placeholderClassName="project-gallery-picker__grid-placeholder"
+                      />
 
                       <span className="project-gallery-picker__grid-name admin-file-name">
                         {asset.file_name || `#${asset.id}`}

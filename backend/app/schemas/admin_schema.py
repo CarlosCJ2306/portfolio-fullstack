@@ -14,7 +14,14 @@ from pathlib import Path
 from typing import ClassVar
 from xml.etree import ElementTree
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    computed_field,
+    field_validator,
+    model_validator,
+)
 
 from app.schemas.public_schema import (
     CertificationRead,
@@ -530,9 +537,31 @@ class AdminDashboardRead(BaseModel):
     unread_contact_messages: int
 
 
+class MediaAssetAdminRead(BaseModel):
+    """
+    Schema ligero de respuesta para assets multimedia en el panel admin.
+    """
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    asset_type: str
+    file_name: str | None = None
+    mime_type: str | None = None
+    alt_text: str | None = None
+    is_active: bool
+    created_at: datetime
+
+    @computed_field
+    @property
+    def content_url(self) -> str:
+        return f"/api/admin/media-assets/{self.id}/content"
+
+
 class AdminProfileRead(ProfileRead):
     model_config = ConfigDict(from_attributes=True)
 
+    avatar: MediaAssetAdminRead | None = None
     avatar_asset_id: int | None = None
 
 
@@ -545,15 +574,23 @@ class SocialLinkAdminRead(SocialLinkRead):
 class SkillAdminRead(SkillRead):
     model_config = ConfigDict(from_attributes=True)
 
+    icon: MediaAssetAdminRead | None = None
     icon_asset_id: int | None = None
     is_active: bool
+
+
+class ProjectGalleryImageAdminRead(ProjectGalleryImageRead):
+    model_config = ConfigDict(from_attributes=True)
+
+    image: MediaAssetAdminRead | None = None
 
 
 class ProjectAdminRead(ProjectRead):
     model_config = ConfigDict(from_attributes=True)
 
+    image: MediaAssetAdminRead | None = None
     image_asset_id: int | None = None
-    gallery_images: list[ProjectGalleryImageRead] = Field(default_factory=list)
+    gallery_images: list[ProjectGalleryImageAdminRead] = Field(default_factory=list)
     is_active: bool
 
 
@@ -572,6 +609,7 @@ class EducationAdminRead(EducationRead):
 class CertificationAdminRead(CertificationRead):
     model_config = ConfigDict(from_attributes=True)
 
+    certificate_file: MediaAssetAdminRead | None = None
     certificate_file_id: int | None = None
     is_active: bool
 
@@ -848,24 +886,6 @@ class MediaAssetCreate(BaseModel):
         return self
 
 
-class MediaAssetAdminRead(BaseModel):
-    """
-    Schema de respuesta para assets multimedia en el panel admin.
-    """
-
-    model_config = ConfigDict(from_attributes=True)
-
-    id: int
-    asset_type: str
-    file_name: str | None = None
-    mime_type: str | None = None
-    data_base64: str | None = None
-    svg_content: str | None = None
-    alt_text: str | None = None
-    is_active: bool
-    created_at: datetime
-
-
 __all__ = [
     "ProfileUpdate",
     "SocialLinkCreate",
@@ -886,6 +906,7 @@ __all__ = [
     "AdminProfileRead",
     "SocialLinkAdminRead",
     "SkillAdminRead",
+    "ProjectGalleryImageAdminRead",
     "ProjectAdminRead",
     "ExperienceAdminRead",
     "EducationAdminRead",

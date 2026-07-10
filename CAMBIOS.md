@@ -5,11 +5,53 @@
 - Fases 1-6 cerradas.
 - C0, C1, C2 y C3 cerrados técnicamente.
 - C4 cerrado con decisión editorial GO.
-- Fase 7.1 es el siguiente lote.
+- Fase 7.1 cerrada técnicamente.
+- Fase 7.2 es el siguiente lote.
 - SQLite es el motor vigente.
 - PostgreSQL queda fuera del alcance activo.
 - Estado: **Conditional Go** para preparación; sin despliegue inmediato.
 - Historial extenso: [docs/HISTORIAL_CAMBIOS_DETALLADO.md](docs/HISTORIAL_CAMBIOS_DETALLADO.md).
+
+## 2026-07-10 - Fase 7.1: optimización segura del payload multimedia
+
+Se separó la metadata de multimedia del contenido pesado para evitar transportar Base64, SVG y PDF dentro de respuestas JSON generales, sin modificar `portfolio.db`, sin CRUD real, sin migraciones, sin despliegue y sin commit.
+
+- Schemas públicos y administrativos de `MediaAsset` ahora entregan metadata ligera y `content_url`.
+- Nuevos endpoints de contenido bajo demanda:
+  - `GET /api/public/media-assets/{asset_id}/content`;
+  - `GET /api/admin/media-assets/{asset_id}/content`.
+- La ruta pública solo permite descargar assets activos referenciados por contenido público autorizado.
+- `allow_public_images=false` mantiene ocultas portada/galería en JSON público y también bloquea su contenido por endpoint público.
+- La ruta admin requiere Basic Auth y permite obtener el contenido de los assets para su gestión.
+- Frontend público actualizado para usar `content_url` en avatar, skills, proyectos y PDF/certificaciones cuando exista.
+- Frontend admin actualizado para usar fetch autenticado y Blob URLs en previews, galería, iconos y PDF.
+- Las respuestas generales ya no incluyen `data_base64` ni `svg_content`.
+
+Mediciones:
+
+- `/api/public/home`: 379.794 B -> 16.386 B.
+- `/api/public/profile`: 364.532 B -> 1.124 B.
+- `/api/admin/media-assets`: 10.858.065 B -> 3.203 B.
+- `/api/admin/projects`: 10.245.867 B -> 13.992 B.
+- `/api/admin/certifications`: 121.420 B -> 837 B.
+- Preview de build: 8 requests, 1.005.446 B, cero fallos y cero errores relevantes de consola.
+
+Verificaciones:
+
+- Backend `pytest -q`: 37 pruebas aprobadas.
+- `check_db`: `foreign_keys=1`, `integrity_check=ok` y cero violaciones.
+- Frontend `npm run lint`: aprobado.
+- Frontend `npm run build`: aprobado.
+- `git diff --check`: aprobado.
+- `portfolio.db` conservó tamaño y fecha; hash final registrado sin abrir ni modificar datos.
+
+Documentación:
+
+- Se creó `docs/PAYLOAD_FASE_7_1.md`.
+- Se actualizó `backend/docs/API_FRONTEND.md`.
+- Se actualizó README y plan vigente.
+
+Siguiente lote: **Fase 7.2 — limpieza Git y retirada de `backend/venv` del índice**.
 
 ## 2026-07-10 - C3: actualización definitiva del contenido profesional
 

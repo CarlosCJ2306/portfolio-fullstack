@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { uploadMediaAsset } from "../../services/adminApi";
+import { fetchAdminMediaBlob, uploadMediaAsset } from "../../services/adminApi";
 import {
   getSafeSvgDataUrl,
   validateSafeSvgContent,
 } from "../../utils/svgSecurity";
+import { buildLegacyAssetDataUrl } from "../../utils/mediaContent";
+import { useAdminMediaObjectUrl } from "../../utils/useAdminMediaObjectUrl";
 import "./AdminImagePicker.css";
 
 const MB = 1024 * 1024;
@@ -220,6 +222,10 @@ function getApproximateBase64Size(base64Value) {
   return Math.max(0, Math.floor((normalizedValue.length * 3) / 4) - padding);
 }
 
+function getLegacyAssetPreviewSrc(asset) {
+  return buildLegacyAssetDataUrl(asset) || null;
+}
+
 function formatBytes(byteCount) {
   if (!Number.isFinite(byteCount) || byteCount <= 0) {
     return null;
@@ -307,6 +313,58 @@ function getAssetStateLabel(assetType, asset) {
   }
 
   return "Imagen seleccionada";
+}
+
+function AdminImagePickerGalleryPreview({ asset }) {
+  const isPdf = asset.mime_type === "application/pdf";
+  const {
+    objectUrl,
+    errorMessage: objectUrlError,
+    isLoading,
+  } = useAdminMediaObjectUrl(asset, { enabled: Boolean(asset?.content_url) && !isPdf });
+  const src = objectUrl || getLegacyAssetPreviewSrc(asset);
+  const safeSvgSrc = getSafeSvgDataUrl(asset.svg_content);
+
+  if (isPdf) {
+    return (
+      <div className="image-picker__gallery-placeholder" style={{ fontSize: "2rem" }}>
+        📄
+      </div>
+    );
+  }
+
+  if (src) {
+    return (
+      <img
+        src={src}
+        alt={asset.alt_text || ""}
+        className="image-picker__gallery-img"
+      />
+    );
+  }
+
+  if (safeSvgSrc) {
+    return (
+      <img
+        src={safeSvgSrc}
+        alt={asset.alt_text || asset.file_name || ""}
+        className="image-picker__gallery-img"
+      />
+    );
+  }
+
+  if (isLoading) {
+    return <div className="image-picker__gallery-placeholder">...</div>;
+  }
+
+  return (
+    <div
+      className="image-picker__gallery-placeholder"
+      title={objectUrlError || "Vista previa no disponible"}
+    >
+      ?
+    </div>
+  );
 }
 
 export default function AdminImagePicker({
@@ -398,19 +456,17 @@ export default function AdminImagePicker({
     );
   }
 
-  function getAssetPreviewSrc(asset) {
-    if (!asset) {
-      return null;
+  const { objectUrl: selectedAssetObjectUrl } = useAdminMediaObjectUrl(
+    selectedAsset,
+    {
+      enabled: Boolean(
+        selectedAsset?.content_url
+        && selectedAsset?.mime_type !== "application/pdf"
+      ),
     }
-
-    if (asset.data_base64 && asset.mime_type) {
-      return `data:${asset.mime_type};base64,${asset.data_base64}`;
-    }
-
-    return null;
-  }
-
-  const previewSrc = getAssetPreviewSrc(selectedAsset);
+  );
+  const previewSrc =
+    selectedAssetObjectUrl || getLegacyAssetPreviewSrc(selectedAsset);
   const previewSvgSrc = getSafeSvgDataUrl(selectedAsset?.svg_content);
   const isPdf = selectedAsset?.mime_type === "application/pdf";
   const selectedAssetSize = formatBytes(
@@ -422,24 +478,27 @@ export default function AdminImagePicker({
   const selectedAssetName = selectedAsset?.file_name || pickerCopy.emptyText;
   const selectedAssetStateLabel = getAssetStateLabel(assetType, selectedAsset);
 
-  function handleOpenPdf() {
+  async function handleOpenPdf() {
     if (
       assetType !== "document"
       || !isPdf
-      || !selectedAsset?.data_base64
       || typeof Uint8Array === "undefined"
     ) {
       return;
     }
 
     try {
-      const binaryString = atob(selectedAsset.data_base64);
-      const bytes = Uint8Array.from(binaryString, (character) =>
-        character.charCodeAt(0)
-      );
-      const pdfBlob = new Blob([bytes], {
-        type: selectedAsset.mime_type || "application/pdf",
-      });
+      const pdfBlob = selectedAsset.content_url
+        ? await fetchAdminMediaBlob(selectedAsset.content_url)
+        : (() => {
+            const binaryString = atob(selectedAsset.data_base64 || "");
+            const bytes = Uint8Array.from(binaryString, (character) =>
+              character.charCodeAt(0)
+            );
+            return new Blob([bytes], {
+              type: selectedAsset.mime_type || "application/pdf",
+            });
+          })();
       const objectUrl = URL.createObjectURL(pdfBlob);
       window.open(objectUrl, "_blank", "noopener,noreferrer");
       window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
@@ -833,7 +892,7 @@ export default function AdminImagePicker({
               </button>
             )}
 
-            {assetType === "document" && isPdf && selectedAsset?.data_base64 && (
+            {assetType === "document" && isPdf && (selectedAsset?.content_url || selectedAsset?.data_base64) && (
               <button
                 type="button"
                 className="admin-button ghost image-picker__pdf-btn"
@@ -1023,10 +1082,7 @@ export default function AdminImagePicker({
               {filteredAssets.length > 0 && (
                 <div className="image-picker__gallery">
                   {filteredAssets.map((asset) => {
-                    const src = getAssetPreviewSrc(asset);
-                    const safeSvgSrc = getSafeSvgDataUrl(asset.svg_content);
                     const isSelected = asset.id === value;
-                    const isItemPdf = asset.mime_type === "application/pdf";
 
                     return (
                       <button
@@ -1037,25 +1093,7 @@ export default function AdminImagePicker({
                         title={asset.alt_text || asset.file_name || `Asset #${asset.id}`}
                         disabled={hasActiveUpload}
                       >
-                        {isItemPdf ? (
-                          <div className="image-picker__gallery-placeholder" style={{ fontSize: "2rem" }}>
-                            📄
-                          </div>
-                        ) : src ? (
-                          <img
-                            src={src}
-                            alt={asset.alt_text || ""}
-                            className="image-picker__gallery-img"
-                          />
-                        ) : safeSvgSrc ? (
-                          <img
-                            src={safeSvgSrc}
-                            alt={asset.alt_text || asset.file_name || ""}
-                            className="image-picker__gallery-img"
-                          />
-                        ) : (
-                          <div className="image-picker__gallery-placeholder">?</div>
-                        )}
+                        <AdminImagePickerGalleryPreview asset={asset} />
 
                         {isSelected && (
                           <span className="image-picker__gallery-check">✓</span>

@@ -1,6 +1,32 @@
 import AdminImagePicker from "./AdminImagePicker";
 import AdminProjectGalleryPicker from "./AdminProjectGalleryPicker";
+import { buildLegacyAssetDataUrl } from "../../utils/mediaContent";
+import { useAdminMediaObjectUrl } from "../../utils/useAdminMediaObjectUrl";
 import "./AdminProjectsPanel.css";
+
+function AdminProjectCardImage({ project }) {
+  const { objectUrl } = useAdminMediaObjectUrl(project.image, {
+    enabled: Boolean(project.image?.content_url),
+  });
+  const imgSrc = objectUrl || buildLegacyAssetDataUrl(project.image);
+
+  if (!imgSrc) {
+    return (
+      <div className="entity-card__image-placeholder">
+        <span aria-hidden="true">ðŸ–¼ï¸</span>
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={imgSrc}
+      alt={project.title}
+      className="entity-card__image"
+      loading="lazy"
+    />
+  );
+}
 
 export default function AdminProjectsPanel({
   projects,
@@ -340,21 +366,13 @@ export default function AdminProjectsPanel({
         ) : (
           projects.map((project) => {
             const isDeleting = deletingProjectIds?.includes(project.id);
-            const imgSrc =
-              project.image?.data_base64 && project.image?.mime_type ? `data:${project.image.mime_type};base64,${project.image.data_base64}` : null;
             const galleryCount = Array.isArray(project.gallery_images) ? project.gallery_images.length : 0;
 
             return (
               <article className="entity-card admin-list-card" key={project.id}>
                 <div className="entity-card__content">
                   <div className="entity-card__image-container">
-                    {imgSrc ? (
-                      <img src={imgSrc} alt={project.title} className="entity-card__image" />
-                    ) : (
-                      <div className="entity-card__image-placeholder">
-                        <span aria-hidden="true">🖼️</span>
-                      </div>
-                    )}
+                    <AdminProjectCardImage project={project} />
                   </div>
 
                   <div className="entity-card__details">

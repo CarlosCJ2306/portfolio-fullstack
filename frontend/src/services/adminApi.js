@@ -419,6 +419,65 @@ async function request(endpoint, options = {}, credentials) {
   return response.json();
 }
 
+async function requestBlob(endpointOrUrl, options = {}) {
+  if (!API_BASE_URL) {
+    throw new Error("No esta configurada la variable VITE_API_BASE_URL.");
+  }
+
+  const authCredentials = getAdminCredentials();
+
+  if (!authCredentials?.username || !authCredentials?.password) {
+    throw new Error("No hay una sesion administrativa activa.");
+  }
+
+  const { headers, method = "GET", ...restOptions } = options;
+  const authorizationValue = encodeBasicAuth(
+    authCredentials.username,
+    authCredentials.password
+  );
+  const isAbsoluteUrl = /^https?:\/\//i.test(endpointOrUrl);
+  const requestUrl = isAbsoluteUrl
+    ? endpointOrUrl
+    : `${API_BASE_URL}${endpointOrUrl}`;
+  let response;
+
+  try {
+    response = await fetch(requestUrl, {
+      ...restOptions,
+      method,
+      headers: buildHeaders(headers, null, authorizationValue),
+    });
+  } catch (error) {
+    if (error?.name === "AbortError") {
+      throw createRequestError({
+        message: "La solicitud fue cancelada.",
+        isAbortError: true,
+      });
+    }
+
+    throw createRequestError({
+      message:
+        "No fue posible conectar con el servidor administrativo. Verifica tu conexion e intenta nuevamente.",
+      userMessage:
+        "No fue posible conectar con el servidor administrativo. Verifica tu conexion e intenta nuevamente.",
+      isNetworkError: true,
+    });
+  }
+
+  if (!response.ok) {
+    const errorPayload = await parseErrorPayload(response);
+
+    if (response.status === 401 || response.status === 403) {
+      clearAdminCredentials();
+      notifyInvalidAdminAuth();
+    }
+
+    throw buildErrorFromResponse(response, errorPayload);
+  }
+
+  return response.blob();
+}
+
 export function loginAdmin(credentials) {
   return request(
     "/api/admin/auth/login",
@@ -621,4 +680,12 @@ export function deleteMediaAsset(assetId) {
   return request(`/api/admin/media-assets/${assetId}`, {
     method: "DELETE",
   });
+}
+
+export function fetchAdminMediaBlob(contentUrl, options = {}) {
+  if (!contentUrl) {
+    throw new Error("No hay URL de contenido multimedia disponible.");
+  }
+
+  return requestBlob(contentUrl, options);
 }

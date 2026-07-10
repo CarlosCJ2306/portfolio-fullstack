@@ -6,7 +6,7 @@ Router protegido para administrar el portafolio.
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from app.core.admin_auth import verify_admin_access
@@ -39,6 +39,10 @@ from app.schemas.admin_schema import (
     SkillAdminRead,
 )
 from app.services.admin_service import AdminService
+from app.services.media_content_service import (
+    MediaContentService,
+    build_content_response,
+)
 
 
 router = APIRouter(
@@ -250,6 +254,19 @@ def list_media_assets(
 )
 def get_media_asset(asset_id: int, db: Session = Depends(get_db)):
     return AdminService(db).get_media_asset(asset_id)
+
+
+@router.get(
+    "/media-assets/{asset_id}/content",
+    summary="Obtener contenido binario de un media asset",
+)
+def get_media_asset_content(
+    asset_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    media_content = MediaContentService(db).get_admin_content(asset_id)
+    return build_content_response(media_content, request)
 
 
 @router.post(

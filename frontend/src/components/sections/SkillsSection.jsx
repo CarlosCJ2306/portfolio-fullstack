@@ -1,4 +1,5 @@
 import { getSafeSvgDataUrl } from "../../utils/svgSecurity";
+import { buildLegacyAssetDataUrl, resolveMediaContentUrl } from "../../utils/mediaContent";
 import "./SkillsSection.css";
 
 export default function SkillsSection({ skills = [] }) {
@@ -66,6 +67,10 @@ export default function SkillsSection({ skills = [] }) {
               skill.level || skill.proficiency || skill.level_name || "";
 
             const safeSvgSrc = getSafeSvgDataUrl(skill.icon?.svg_content);
+            const iconSrc =
+              resolveMediaContentUrl(skill.icon)
+              || safeSvgSrc
+              || buildLegacyAssetDataUrl(skill.icon);
 
             return (
               <article
@@ -77,16 +82,10 @@ export default function SkillsSection({ skills = [] }) {
                   Si luego el backend entrega SVG controlado, podemos renderizarlo aquí.
                 */}
                 <div className="skill-icon">
-                  {safeSvgSrc ? (
+                  {iconSrc ? (
                     <img
-                      src={safeSvgSrc}
+                      src={iconSrc}
                       alt={skill.icon?.alt_text || skillName}
-                      className="skill-icon-img"
-                    />
-                  ) : skill.icon?.data_base64 && skill.icon?.mime_type ? (
-                    <img 
-                      src={`data:${skill.icon.mime_type};base64,${skill.icon.data_base64}`} 
-                      alt={skillName} 
                       className="skill-icon-img"
                     />
                   ) : (

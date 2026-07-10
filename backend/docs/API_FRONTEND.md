@@ -25,6 +25,7 @@ El frontend consume esta variable desde `frontend/.env` y la documenta en `front
 - La portada publica usa `GET /api/public/home` como carga principal.
 - La lista completa de proyectos usa `GET /api/public/projects`.
 - El panel admin usa rutas separadas para dashboard, CRUD, mensajes y media assets.
+- Las respuestas generales entregan metadata ligera de multimedia y `content_url`; el contenido pesado se descarga bajo demanda.
 
 ## Endpoints publicos
 
@@ -66,7 +67,9 @@ Carga en una sola respuesta:
 
 Notas:
 
-- `profile.avatar` contiene el asset de avatar cuando existe.
+- `profile.avatar` contiene metadata ligera del asset de avatar cuando existe.
+- `profile.avatar.content_url` permite descargar la imagen bajo demanda.
+- `profile.avatar` no incluye `data_base64` ni `svg_content`.
 - Si el home falla, el frontend puede seguir mostrando otras secciones si la carga de proyectos responde.
 
 ### Perfil publico
@@ -136,6 +139,33 @@ Notas del contrato:
 - `client_display_name` y `confidentiality_note` contienen únicamente texto público/genérico.
 - Cuando `allow_public_images=false`, la API pública devuelve `image=null` y `gallery_images=[]`. No elimina ni desasocia los assets almacenados.
 - El detalle publico de proyectos abre un modal/carrusel con la portada y la galeria.
+- Cuando existen imágenes públicas autorizadas, `image` y `gallery_images[].image` entregan metadata ligera con `content_url`, no Base64.
+
+### Media assets publicos
+
+```http
+GET /api/public/media-assets/{asset_id}/content
+```
+
+Devuelve el contenido binario del asset público autorizado.
+
+Política de autorización:
+
+- El asset debe estar activo.
+- Debe estar referenciado por contenido público activo: avatar, skill, portada de proyecto, galería de proyecto o certificación.
+- Para proyectos, `allow_public_images=true` es obligatorio para exponer portada o galería.
+- Los assets huérfanos, inactivos, administrativos o asociados a proyectos con `allow_public_images=false` responden 404.
+
+Headers relevantes:
+
+```txt
+Content-Type
+Content-Length
+Content-Disposition
+Cache-Control
+ETag
+X-Content-Type-Options: nosniff
+```
 
 ### Experiencia publica
 
@@ -198,7 +228,8 @@ Notas:
 
 - `credential_url` es un enlace externo independiente.
 - `expiration_date` es opcional y, cuando existe junto a `issue_date`, no puede ser anterior.
-- `certificate_file` puede incluir `mime_type`, `data_base64` y, si aplica, PDF en `application/pdf`.
+- `certificate_file` entrega metadata ligera y `content_url` cuando existe.
+- `certificate_file` no incluye `data_base64` ni `svg_content` en respuestas generales.
 - El frontend puede abrir el PDF en un modal simple o usar un fallback de abrir/descargar.
 
 ### Contacto publico
@@ -337,9 +368,17 @@ DELETE /api/admin/social-links/{id}
 
 ```http
 GET /api/admin/media-assets
+GET /api/admin/media-assets/{id}/content
 POST /api/admin/media-assets
 DELETE /api/admin/media-assets/{id}
 ```
+
+Contrato de listado:
+
+- `GET /api/admin/media-assets` devuelve metadata ligera y `content_url`.
+- No devuelve `data_base64` ni `svg_content`.
+- El panel administrativo debe usar `GET /api/admin/media-assets/{id}/content` para previews, PDFs o descargas bajo demanda.
+- La ruta de contenido admin requiere HTTP Basic y no debe colocarse directamente en `<img>` sin fetch autenticado.
 
 Reglas de assets:
 
@@ -408,6 +447,7 @@ createAdminSocialLink()
 updateAdminSocialLink()
 deleteAdminSocialLink()
 listMediaAssets()
+fetchAdminMediaBlob()
 uploadMediaAsset()
 deleteMediaAsset()
 ```
@@ -429,3 +469,5 @@ Estas rutas estan protegidas con usuario y contrasena de documentacion.
 - Las certificaciones pueden usar `credential_url` y `certificate_file` al mismo tiempo.
 - El admin trabaja con `avatar_asset_id`, `image_asset_id`, `gallery_image_ids`, `icon_asset_id` y `certificate_file_id`.
 - `MediaAsset` se valida por tipo, MIME, tamano, Base64 y SVG seguro antes de persistir.
+- Las respuestas generales de `MediaAsset` son ligeras: usan `content_url` y no transportan Base64/SVG/PDF.
+- El contenido pesado se descarga bajo demanda desde endpoints públicos autorizados o endpoints admin autenticados.

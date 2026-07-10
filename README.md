@@ -6,7 +6,8 @@ Portafolio personal construido con FastAPI en el backend y React + Vite en el fr
 
 - Fases 1-6 cerradas.
 - C0, C1, C2, C3 y C4 cerrados.
-- Fase 7.1 es el siguiente lote.
+- Fase 7.1 cerrada técnicamente.
+- Fase 7.2 es el siguiente lote.
 - SQLite es el motor vigente.
 - PostgreSQL está fuera del alcance activo.
 - El despliegue continúa condicionado.
@@ -17,7 +18,7 @@ Portafolio personal construido con FastAPI en el backend y React + Vite en el fr
 - Backend: FastAPI + SQLAlchemy + SQLite local.
 - Frontend: React + Vite.
 - Estilos: CSS por página y por componente.
-- Multimedia: assets en base64, SVG seguro y PDFs asociados a certificaciones.
+- Multimedia: metadata ligera en JSON y contenido bajo demanda con `content_url`; SVG seguro y PDFs asociados a certificaciones.
 - Administración: HTTP Basic en memoria durante la sesión activa del navegador.
 - Confidencialidad de proyectos: campos C1 vigentes para alias público, nota, badge y permiso de imágenes públicas.
 - Contenido profesional: sincronizado en C3 con perfil, Fofimatic, Kodland, proyectos confidenciales, skills y educación vigente.
@@ -41,6 +42,7 @@ Portafolio personal construido con FastAPI en el backend y React + Vite en el fr
 - [docs/PLAN_ACTUALIZACION_CONTENIDO_PROFESIONAL.md](docs/PLAN_ACTUALIZACION_CONTENIDO_PROFESIONAL.md)
 - [docs/CONTENIDO_PROFESIONAL_PORTAFOLIO.md](docs/CONTENIDO_PROFESIONAL_PORTAFOLIO.md)
 - [docs/QA_CONTENIDO_PROFESIONAL.md](docs/QA_CONTENIDO_PROFESIONAL.md)
+- [docs/PAYLOAD_FASE_7_1.md](docs/PAYLOAD_FASE_7_1.md)
 - [docs/QA_FASE_6.md](docs/QA_FASE_6.md)
 - [docs/REVISION_ARCHIVOS_DUDOSOS.md](docs/REVISION_ARCHIVOS_DUDOSOS.md)
 - [docs/INVENTARIO_CONTENIDO_PORTFOLIO.md](docs/INVENTARIO_CONTENIDO_PORTFOLIO.md)

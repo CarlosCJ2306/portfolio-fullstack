@@ -1,6 +1,35 @@
 import AdminImagePicker from "./AdminImagePicker";
 import { getSafeSvgDataUrl } from "../../utils/svgSecurity";
+import { buildLegacyAssetDataUrl } from "../../utils/mediaContent";
+import { useAdminMediaObjectUrl } from "../../utils/useAdminMediaObjectUrl";
 import "./AdminSkillsPanel.css";
+
+function AdminSkillIcon({ skill }) {
+  const { objectUrl } = useAdminMediaObjectUrl(skill.icon, {
+    enabled: Boolean(skill.icon?.content_url),
+  });
+  const iconSrc =
+    objectUrl
+    || buildLegacyAssetDataUrl(skill.icon)
+    || getSafeSvgDataUrl(skill.icon?.svg_content);
+
+  if (!iconSrc) {
+    return (
+      <div className="entity-card__icon-placeholder">
+        {skill.name.charAt(0).toUpperCase()}
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={iconSrc}
+      alt={skill.icon?.alt_text || skill.name}
+      className="entity-card__icon-img"
+      loading="lazy"
+    />
+  );
+}
 
 export default function AdminSkillsPanel({
   skills,
@@ -179,21 +208,12 @@ export default function AdminSkillsPanel({
         ) : (
           skills.map((skill) => {
             const isDeleting = deletingSkillIds?.includes(skill.id);
-            const iconSrc =
-              skill.icon?.data_base64 && skill.icon?.mime_type ? `data:${skill.icon.mime_type};base64,${skill.icon.data_base64}` : null;
-            const safeSvgSrc = getSafeSvgDataUrl(skill.icon?.svg_content);
 
             return (
               <article className="entity-card admin-list-card" key={skill.id}>
                 <div className="entity-card__content">
                   <div className="entity-card__icon">
-                    {iconSrc ? (
-                      <img src={iconSrc} alt={skill.name} className="entity-card__icon-img" />
-                    ) : safeSvgSrc ? (
-                      <img src={safeSvgSrc} alt={skill.icon?.alt_text || skill.name} className="entity-card__icon-img" />
-                    ) : (
-                      <div className="entity-card__icon-placeholder">{skill.name.charAt(0).toUpperCase()}</div>
-                    )}
+                    <AdminSkillIcon skill={skill} />
                   </div>
 
                   <div className="admin-stack">

@@ -13,7 +13,7 @@ Autor: Carlos Andrés Jiménez Sarmiento (CJ)
 Proyecto: Portfolio Full Stack
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from app.core.log import log_info, log_warning
@@ -31,6 +31,10 @@ from app.schemas.public_schema import (
     ContactMessageCreatedRead,
 )
 from app.services.public_service import PublicService
+from app.services.media_content_service import (
+    MediaContentService,
+    build_content_response,
+)
 
 
 # -----------------------------------------------------------------------------
@@ -182,6 +186,16 @@ def get_home_data(
     service = PublicService(db)
 
     return service.get_home_data()
+
+
+@router.get("/media-assets/{asset_id}/content")
+def get_public_media_asset_content(
+    asset_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    media_content = MediaContentService(db).get_public_content(asset_id)
+    return build_content_response(media_content, request)
 
 @router.post(
     "/contact",

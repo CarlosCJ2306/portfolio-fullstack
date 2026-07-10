@@ -15,7 +15,8 @@ Este es el único plan operativo vigente del proyecto. Las auditorías y planes 
 - C2: cerrado técnicamente.
 - C3: cerrado técnicamente.
 - C4: cerrado.
-- Fase 7.1: siguiente lote.
+- Fase 7.1: cerrada técnicamente.
+- Fase 7.2: siguiente lote.
 - SQLite permanece como motor vigente.
 - PostgreSQL queda fuera del alcance activo.
 - No se deben revertir los cambios C1.
@@ -43,6 +44,7 @@ Campos C1 vigentes:
 | C2 | Cerrado técnicamente | Admin, vista pública y QA técnica C2 |
 | C3 | Cerrado técnicamente | Sincronización editorial, backup, idempotencia y QA técnica C3 |
 | C4 | Cerrado | QA visual/editorial real, confidencialidad, responsive, accesibilidad e integridad SQLite |
+| 7.1 | Cerrada técnicamente | Optimización segura de payload multimedia, `content_url`, endpoints de contenido y mediciones antes/después |
 
 ## Ruta activa antes de despliegue
 
@@ -118,13 +120,23 @@ Resultado C4:
 
 ## Fase 7 — Preparación para despliegue con SQLite
 
-La futura Fase 7 debe desplegar con SQLite en almacenamiento persistente. SQLite en un filesystem efímero no es una solución productiva aceptable.
+La Fase 7 debe preparar el despliegue con SQLite en almacenamiento persistente. SQLite en un filesystem ef?mero no es una soluci?n productiva aceptable.
 
-### 7.1 Optimización del payload multimedia
+### 7.1 Optimización del payload multimedia — cerrada técnicamente
 
 Reducir y remedir el peso de respuestas públicas/admin, especialmente proyectos, galerías y media assets.
 
-### 7.2 Limpieza Git y retirada de `backend/venv` del índice
+Resultado:
+
+- Las respuestas JSON generales ya no transportan `data_base64` ni `svg_content`.
+- Se incorporaron endpoints públicos/admin de contenido bajo demanda.
+- La vista pública y el admin usan `content_url` y Blob URLs cuando corresponde.
+- `/api/public/home` bajó de 379.794 B a 16.386 B.
+- `/api/admin/media-assets` bajó de 10.858.065 B a 3.203 B.
+- Pytest, check_db, lint, build y mediciones quedaron documentados en `docs/PAYLOAD_FASE_7_1.md`.
+- No se modificó `portfolio.db`, no se ejecutaron migraciones y no hubo CRUD real.
+
+### 7.2 Limpieza Git y retirada de `backend/venv` del índice — siguiente lote
 
 Retirar artefactos recreables del índice de forma reversible, sin borrar copias locales. Confirmar que DB, backups, logs y secretos no entren al repositorio.
 
@@ -156,8 +168,9 @@ Despliegue final solo con backup, procedimiento de restauración y rollback ensa
 
 - `CAMBIOS.md`: changelog resumido y estado actual.
 - `docs/HISTORIAL_CAMBIOS_DETALLADO.md`: historial largo.
-- `docs/PLAN_ACTUALIZACION_CONTENIDO_PROFESIONAL.md`: reglas editoriales y confidencialidad para C4.
+- `docs/PLAN_ACTUALIZACION_CONTENIDO_PROFESIONAL.md`: reglas editoriales y de confidencialidad aplicadas durante C0-C4.
 - `docs/CONTENIDO_PROFESIONAL_PORTAFOLIO.md`: fuente editorial vigente post-C3.
+- `docs/PAYLOAD_FASE_7_1.md`: optimización multimedia, endpoints de contenido y mediciones antes/después.
 - `docs/INVENTARIO_CONTENIDO_PORTFOLIO.md`: snapshot seguro del contenido post-C3.
 - `docs/QA_FASE_6.md`: evidencia histórica de QA.
 - `docs/QA_CONTENIDO_PROFESIONAL.md`: evidencia técnica, editorial y visual de C2-C4.
@@ -177,4 +190,4 @@ Los documentos archivados no son planes vigentes.
 - No ejecutar `sync_professional_portfolio` ni `migrate_professional_content_fields` como parte de 7.0.
 - `portfolio.db`, backups, logs y `.env` no deben subirse a Git.
 - `backend/venv` sigue pendiente para 7.2.
-- No iniciar Vercel, Render ni producción antes de cerrar C3 y C4.
+- No iniciar despliegues productivos antes de completar la preparaci?n t?cnica, staging, pruebas remotas y rollback de la Fase 7.

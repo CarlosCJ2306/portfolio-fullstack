@@ -1,4 +1,5 @@
 import "./HeroSection.css";
+import { buildLegacyAssetDataUrl, resolveMediaContentUrl } from "../../utils/mediaContent";
 
 function buildLocation(profile) {
   const city = profile?.city || "";
@@ -23,9 +24,9 @@ export default function HeroSection({ profile, socialLinks = [] }) {
   const location = buildLocation(profile);
 
   const avatarSrc =
-    profile?.avatar?.data_base64 && profile?.avatar?.mime_type
-      ? `data:${profile.avatar.mime_type};base64,${profile.avatar.data_base64}`
-      : null;
+    resolveMediaContentUrl(profile?.avatar)
+    || buildLegacyAssetDataUrl(profile?.avatar)
+    || null;
 
   return (
     <section id="home" className="hero-section">
