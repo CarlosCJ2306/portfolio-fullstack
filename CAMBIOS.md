@@ -6,11 +6,29 @@
 - C0, C1, C2 y C3 cerrados técnicamente.
 - C4 cerrado con decisión editorial GO.
 - Fase 7.1 cerrada técnicamente.
-- Fase 7.2 es el siguiente lote.
+- Fase 7.2 cerrada técnicamente.
+- Fase 7.3 es el siguiente lote.
 - SQLite es el motor vigente.
 - PostgreSQL queda fuera del alcance activo.
 - Estado: **Conditional Go** para preparación; sin despliegue inmediato.
 - Historial extenso: [docs/HISTORIAL_CAMBIOS_DETALLADO.md](docs/HISTORIAL_CAMBIOS_DETALLADO.md).
+
+## 2026-07-10 - Fase 7.2: limpieza Git y artefactos recreables
+
+Se retiró `backend/venv` del índice de Git sin eliminar la copia local, sin modificar código funcional, sin tocar datos, sin migraciones, sin despliegue y sin commit.
+
+- Archivos retirados del índice: 1475.
+- Reducción estimada del snapshot actual: 29.41 MiB.
+- `backend/venv` se conserva localmente y `backend/venv/Scripts/python.exe` sigue disponible.
+- `.gitignore` quedó reforzado para entornos virtuales, caches Python, SQLite local, backups, logs, `frontend/node_modules/` y `frontend/dist/`.
+- No quedan coincidencias rastreadas para `.env`, `portfolio.db`, backups, logs, `node_modules`, `dist`, caches o archivos sensibles revisados.
+- No quedan archivos rastreados mayores o iguales a 1 MiB después del retiro.
+- No se reescribió el historial Git; los blobs históricos del venv permanecen en commits anteriores.
+- `portfolio.db` conservó tamaño, fecha y SHA-256.
+- Verificaciones técnicas aprobadas: pytest, check_db, lint y build.
+- Evidencia documentada en `docs/GIT_FASE_7_2.md`.
+
+Siguiente lote: **Fase 7.3 — configuración productiva, CORS, secretos y variables**.
 
 ## 2026-07-10 - Fase 7.1: optimización segura del payload multimedia
 

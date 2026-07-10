@@ -7,7 +7,8 @@ Portafolio personal construido con FastAPI en el backend y React + Vite en el fr
 - Fases 1-6 cerradas.
 - C0, C1, C2, C3 y C4 cerrados.
 - Fase 7.1 cerrada técnicamente.
-- Fase 7.2 es el siguiente lote.
+- Fase 7.2 cerrada técnicamente.
+- Fase 7.3 es el siguiente lote.
 - SQLite es el motor vigente.
 - PostgreSQL está fuera del alcance activo.
 - El despliegue continúa condicionado.
@@ -43,6 +44,7 @@ Portafolio personal construido con FastAPI en el backend y React + Vite en el fr
 - [docs/CONTENIDO_PROFESIONAL_PORTAFOLIO.md](docs/CONTENIDO_PROFESIONAL_PORTAFOLIO.md)
 - [docs/QA_CONTENIDO_PROFESIONAL.md](docs/QA_CONTENIDO_PROFESIONAL.md)
 - [docs/PAYLOAD_FASE_7_1.md](docs/PAYLOAD_FASE_7_1.md)
+- [docs/GIT_FASE_7_2.md](docs/GIT_FASE_7_2.md)
 - [docs/QA_FASE_6.md](docs/QA_FASE_6.md)
 - [docs/REVISION_ARCHIVOS_DUDOSOS.md](docs/REVISION_ARCHIVOS_DUDOSOS.md)
 - [docs/INVENTARIO_CONTENIDO_PORTFOLIO.md](docs/INVENTARIO_CONTENIDO_PORTFOLIO.md)
@@ -64,6 +66,7 @@ Portafolio personal construido con FastAPI en el backend y React + Vite en el fr
 1. Copia `backend/.env.example` a `backend/.env`.
 2. Ajusta las variables necesarias para tu entorno.
 3. No subas `backend/.env`, `backend/portfolio.db`, backups `.db` ni logs al repositorio público.
+4. `backend/venv` no se versiona; se recrea localmente con `python -m venv venv` e instalando `backend/requirements.txt`.
 
 ### Frontend
 

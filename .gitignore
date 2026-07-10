@@ -13,9 +13,13 @@ frontend/.env
 *.db-journal
 *.db-wal
 *.db-shm
+*.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
 *.backup
 backups/
 backup/
+backend/backups/
 backend/*.db
 backend/portfolio.db
 backend/portfolio_backup_*.db
@@ -33,6 +37,10 @@ logs/
 # Cachés y bytecode
 __pycache__/
 *.pyc
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
 
 # Entornos virtuales de Python
 venv/

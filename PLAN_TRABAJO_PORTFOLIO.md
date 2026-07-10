@@ -16,7 +16,8 @@ Este es el único plan operativo vigente del proyecto. Las auditorías y planes 
 - C3: cerrado técnicamente.
 - C4: cerrado.
 - Fase 7.1: cerrada técnicamente.
-- Fase 7.2: siguiente lote.
+- Fase 7.2: cerrada técnicamente.
+- Fase 7.3: siguiente lote.
 - SQLite permanece como motor vigente.
 - PostgreSQL queda fuera del alcance activo.
 - No se deben revertir los cambios C1.
@@ -45,6 +46,7 @@ Campos C1 vigentes:
 | C3 | Cerrado técnicamente | Sincronización editorial, backup, idempotencia y QA técnica C3 |
 | C4 | Cerrado | QA visual/editorial real, confidencialidad, responsive, accesibilidad e integridad SQLite |
 | 7.1 | Cerrada técnicamente | Optimización segura de payload multimedia, `content_url`, endpoints de contenido y mediciones antes/después |
+| 7.2 | Cerrada técnicamente | `backend/venv` retirado del índice, conservado localmente, `.gitignore` reforzado y auditoría Git documentada |
 
 ## Ruta activa antes de despliegue
 
@@ -120,7 +122,7 @@ Resultado C4:
 
 ## Fase 7 — Preparación para despliegue con SQLite
 
-La Fase 7 debe preparar el despliegue con SQLite en almacenamiento persistente. SQLite en un filesystem ef?mero no es una soluci?n productiva aceptable.
+La Fase 7 debe preparar el despliegue con SQLite en almacenamiento persistente. SQLite en un filesystem efímero no es una solución productiva aceptable.
 
 ### 7.1 Optimización del payload multimedia — cerrada técnicamente
 
@@ -136,11 +138,20 @@ Resultado:
 - Pytest, check_db, lint, build y mediciones quedaron documentados en `docs/PAYLOAD_FASE_7_1.md`.
 - No se modificó `portfolio.db`, no se ejecutaron migraciones y no hubo CRUD real.
 
-### 7.2 Limpieza Git y retirada de `backend/venv` del índice — siguiente lote
+### 7.2 Limpieza Git y retirada de `backend/venv` del índice — cerrada técnicamente
 
 Retirar artefactos recreables del índice de forma reversible, sin borrar copias locales. Confirmar que DB, backups, logs y secretos no entren al repositorio.
 
-### 7.3 Configuración productiva, CORS, secretos y variables
+Resultado:
+
+- `backend/venv` fue retirado del índice y conservado físicamente.
+- `.gitignore` quedó reforzado para entornos virtuales, caches, logs, SQLite local, backups, builds y dependencias locales.
+- No se reescribió el historial Git.
+- `portfolio.db` permaneció intacta.
+- Pytest, check_db, lint y build quedaron aprobados.
+- Evidencia documentada en `docs/GIT_FASE_7_2.md`.
+
+### 7.3 Configuración productiva, CORS, secretos y variables — siguiente lote
 
 Separar entornos local/staging/producción. Configurar CORS explícito, secretos seguros y variables sin valores sensibles en Git.
 
@@ -148,7 +159,7 @@ Separar entornos local/staging/producción. Configurar CORS explícito, secretos
 Configurar el frontend en Azure Static Web Apps con build de React/Vite, `VITE_API_BASE_URL` productivo y fallback SPA para rutas como `/admin`.
 
 ### 7.5 Azure App Service con SQLite persistente
-Configurar el backend en Azure App Service para Linux/Python usando SQLite en almacenamiento persistente compatible con Azure. No usar filesystem ef?mero para `portfolio.db`.
+Configurar el backend en Azure App Service para Linux/Python usando SQLite en almacenamiento persistente compatible con Azure. No usar filesystem efímero para `portfolio.db`.
 
 ### 7.6 Staging
 
@@ -169,6 +180,7 @@ Despliegue final solo con backup, procedimiento de restauración y rollback ensa
 - `docs/PLAN_ACTUALIZACION_CONTENIDO_PROFESIONAL.md`: reglas editoriales y de confidencialidad aplicadas durante C0-C4.
 - `docs/CONTENIDO_PROFESIONAL_PORTAFOLIO.md`: fuente editorial vigente post-C3.
 - `docs/PAYLOAD_FASE_7_1.md`: optimización multimedia, endpoints de contenido y mediciones antes/después.
+- `docs/GIT_FASE_7_2.md`: limpieza segura del índice Git, retiro local-preservado de `backend/venv` y auditoría de sensibles.
 - `docs/INVENTARIO_CONTENIDO_PORTFOLIO.md`: snapshot seguro del contenido post-C3.
 - `docs/QA_FASE_6.md`: evidencia histórica de QA.
 - `docs/QA_CONTENIDO_PROFESIONAL.md`: evidencia técnica, editorial y visual de C2-C4.
@@ -187,5 +199,5 @@ Los documentos archivados no son planes vigentes.
 - No ejecutar `reset_db.py`, `update_db.py`, `seed_db.py` ni migraciones sin lote explícito, backup y autorización.
 - No ejecutar `sync_professional_portfolio` ni `migrate_professional_content_fields` como parte de 7.0.
 - `portfolio.db`, backups, logs y `.env` no deben subirse a Git.
-- `backend/venv` sigue pendiente para 7.2.
-- No iniciar despliegues productivos antes de completar la preparaci?n t?cnica, staging, pruebas remotas y rollback de la Fase 7.
+- `backend/venv` fue retirado del índice en 7.2 y se conserva solo como entorno local ignorado.
+- No iniciar despliegues productivos antes de completar la preparación técnica, staging, pruebas remotas y rollback de la Fase 7.
