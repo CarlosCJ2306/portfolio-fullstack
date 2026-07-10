@@ -17,7 +17,8 @@ Este es el único plan operativo vigente del proyecto. Las auditorías y planes 
 - C4: cerrado.
 - Fase 7.1: cerrada técnicamente.
 - Fase 7.2: cerrada técnicamente.
-- Fase 7.3: siguiente lote.
+- Fase 7.3: cerrada técnicamente.
+- Fase 7.4: siguiente lote.
 - SQLite permanece como motor vigente.
 - PostgreSQL queda fuera del alcance activo.
 - No se deben revertir los cambios C1.
@@ -47,6 +48,7 @@ Campos C1 vigentes:
 | C4 | Cerrado | QA visual/editorial real, confidencialidad, responsive, accesibilidad e integridad SQLite |
 | 7.1 | Cerrada técnicamente | Optimización segura de payload multimedia, `content_url`, endpoints de contenido y mediciones antes/después |
 | 7.2 | Cerrada técnicamente | `backend/venv` retirado del índice, conservado localmente, `.gitignore` reforzado y auditoría Git documentada |
+| 7.3 | Cerrada técnicamente | Configuración centralizada por entorno, CORS explícito, health/readiness, validación de secretos y contrato Azure documentado |
 
 ## Ruta activa antes de despliegue
 
@@ -151,11 +153,21 @@ Resultado:
 - Pytest, check_db, lint y build quedaron aprobados.
 - Evidencia documentada en `docs/GIT_FASE_7_2.md`.
 
-### 7.3 Configuración productiva, CORS, secretos y variables — siguiente lote
+### 7.3 Configuración productiva, CORS, secretos y variables — cerrada técnicamente
 
 Separar entornos local/staging/producción. Configurar CORS explícito, secretos seguros y variables sin valores sensibles en Git.
 
-### 7.4 Azure Static Web Apps
+Resultado:
+
+- Configuración backend centralizada en `app.core.config`.
+- CORS, Trusted Hosts, OpenAPI, Basic Auth, logging y SQLite quedan validados por entorno.
+- Se agregaron `/health` y `/ready`.
+- Frontend centraliza `VITE_API_BASE_URL` y agrega `npm run validate:production-env`.
+- SQLite para Azure queda restringido a una instancia, un worker, sin WAL y con almacenamiento persistente.
+- No se crearon recursos Azure, no se desplegó y no se modificó `portfolio.db`.
+- Evidencia documentada en `docs/CONFIG_FASE_7_3.md`.
+
+### 7.4 Azure Static Web Apps — siguiente lote
 Configurar el frontend en Azure Static Web Apps con build de React/Vite, `VITE_API_BASE_URL` productivo y fallback SPA para rutas como `/admin`.
 
 ### 7.5 Azure App Service con SQLite persistente
@@ -181,6 +193,7 @@ Despliegue final solo con backup, procedimiento de restauración y rollback ensa
 - `docs/CONTENIDO_PROFESIONAL_PORTAFOLIO.md`: fuente editorial vigente post-C3.
 - `docs/PAYLOAD_FASE_7_1.md`: optimización multimedia, endpoints de contenido y mediciones antes/después.
 - `docs/GIT_FASE_7_2.md`: limpieza segura del índice Git, retiro local-preservado de `backend/venv` y auditoría de sensibles.
+- `docs/CONFIG_FASE_7_3.md`: contrato de configuración, CORS, secretos, SQLite persistente, health/readiness y preparación Azure.
 - `docs/INVENTARIO_CONTENIDO_PORTFOLIO.md`: snapshot seguro del contenido post-C3.
 - `docs/QA_FASE_6.md`: evidencia histórica de QA.
 - `docs/QA_CONTENIDO_PROFESIONAL.md`: evidencia técnica, editorial y visual de C2-C4.

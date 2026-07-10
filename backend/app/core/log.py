@@ -237,23 +237,24 @@ def get_logger() -> logging.Logger:
     logger.setLevel(log_level)
     logger.propagate = False
 
-    settings.log_dir.mkdir(
-        parents=True,
-        exist_ok=True
-    )
-
     formatter = _build_formatter()
 
-    file_handler = RotatingFileHandler(
-        filename=settings.log_file_path,
-        maxBytes=settings.log_max_bytes,
-        backupCount=settings.log_backup_count,
-        encoding="utf-8"
-    )
-    file_handler.setLevel(log_level)
-    file_handler.setFormatter(formatter)
+    if settings.log_to_file:
+        settings.log_dir.mkdir(
+            parents=True,
+            exist_ok=True
+        )
 
-    logger.addHandler(file_handler)
+        file_handler = RotatingFileHandler(
+            filename=settings.log_file_path,
+            maxBytes=settings.log_max_bytes,
+            backupCount=settings.log_backup_count,
+            encoding="utf-8"
+        )
+        file_handler.setLevel(log_level)
+        file_handler.setFormatter(formatter)
+
+        logger.addHandler(file_handler)
 
     if settings.log_console:
         console_handler = logging.StreamHandler(sys.stdout)

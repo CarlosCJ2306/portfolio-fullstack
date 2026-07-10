@@ -1,12 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
-
-function joinUrl(baseUrl, path) {
-  if (!baseUrl) {
-    return path;
-  }
-
-  return `${baseUrl.replace(/\/+$/, "")}/${path.replace(/^\/+/, "")}`;
-}
+import { buildApiUrl } from "./apiConfig";
 
 export function resolveMediaContentUrl(asset) {
   const contentUrl =
@@ -26,7 +18,7 @@ export function resolveMediaContentUrl(asset) {
     // Las rutas relativas se resuelven contra VITE_API_BASE_URL.
   }
 
-  return joinUrl(API_BASE_URL, contentUrl);
+  return buildApiUrl(contentUrl);
 }
 
 export function buildLegacyAssetDataUrl(asset) {

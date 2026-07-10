@@ -44,11 +44,18 @@ _assert_safe_database_url(_TEST_DATABASE_URL)
 # credenciales del entorno local.
 os.environ["APP_ENV"] = "test"
 os.environ["DATABASE_URL"] = _TEST_DATABASE_URL
+os.environ["CORS_ALLOWED_ORIGINS"] = (
+    "http://localhost:5173,http://127.0.0.1:5173,"
+    "http://localhost:4173,http://127.0.0.1:4173"
+)
+os.environ["TRUSTED_HOSTS"] = "testserver,localhost,127.0.0.1"
 os.environ["LOG_DIR"] = str(_TEMP_ROOT / "logs")
 os.environ["LOG_CONSOLE"] = "false"
 os.environ["ADMIN_ENABLED"] = "true"
 os.environ["ADMIN_USERNAME"] = f"qa_{secrets.token_hex(6)}"
 os.environ["ADMIN_PASSWORD"] = secrets.token_urlsafe(24)
+os.environ["API_DOCS_USERNAME"] = os.environ["ADMIN_USERNAME"]
+os.environ["API_DOCS_PASSWORD"] = os.environ["ADMIN_PASSWORD"]
 
 from fastapi.testclient import TestClient
 from sqlalchemy import text

@@ -20,6 +20,14 @@ VITE_API_BASE_URL=http://127.0.0.1:8000
 
 El frontend consume esta variable desde `frontend/.env` y la documenta en `frontend/.env.example`.
 
+`VITE_API_BASE_URL` es publica en el bundle. No debe contener credenciales, tokens, API keys ni secretos.
+
+En staging/production debe ser una URL absoluta `https://` sin credenciales embebidas, sin `localhost` y sin path/query/fragment. La validacion previa al build se ejecuta con:
+
+```bash
+npm run validate:production-env
+```
+
 ## Estado actual del contrato
 
 - La portada publica usa `GET /api/public/home` como carga principal.
@@ -29,21 +37,45 @@ El frontend consume esta variable desde `frontend/.env` y la documenta en `front
 
 ## Endpoints publicos
 
-### Salud
+### Health
 
 ```http
-GET /api/public/health
+GET /health
 ```
 
 Respuesta esperada:
 
 ```json
 {
-  "status": "ok",
-  "module": "public",
-  "message": "Public API is running"
+  "status": "ok"
 }
 ```
+
+Endpoint publico minimo para health checks de plataforma. No requiere Basic Auth y no devuelve configuracion, rutas, versiones ni contenido profesional.
+
+### Readiness
+
+```http
+GET /ready
+```
+
+Respuesta esperada con SQLite disponible:
+
+```json
+{
+  "status": "ready"
+}
+```
+
+Si SQLite no esta disponible, responde 503:
+
+```json
+{
+  "status": "unavailable"
+}
+```
+
+`/ready` solo ejecuta una comprobacion equivalente a `SELECT 1`; no modifica datos ni devuelve rutas internas.
 
 ### Home publica
 
@@ -460,7 +492,37 @@ GET /redoc
 GET /openapi.json
 ```
 
-Estas rutas estan protegidas con usuario y contrasena de documentacion.
+Estas rutas estan protegidas con usuario y contrasena de documentacion. `ENABLE_API_DOCS` las mantiene configurables y quedan deshabilitadas por defecto en production.
+
+## Configuracion runtime
+
+Variables backend canonicas:
+
+```txt
+APP_ENV
+APP_DEBUG
+ADMIN_USERNAME
+ADMIN_PASSWORD
+CORS_ALLOWED_ORIGINS
+TRUSTED_HOSTS
+SQLITE_DATABASE_PATH
+SQLITE_REQUIRE_EXISTING
+SQLITE_BUSY_TIMEOUT_MS
+LOG_LEVEL
+ENABLE_API_DOCS
+```
+
+Reglas relevantes:
+
+- `ADMIN_USERNAME` y `ADMIN_PASSWORD` nunca deben exponerse al frontend.
+- CORS usa una lista explicita de origenes; `*` se rechaza en staging/production.
+- `Authorization`, `Content-Type`, `Accept` e `If-None-Match` son headers permitidos.
+- `ETag` y `Content-Disposition` se exponen para descargas bajo demanda.
+- `TRUSTED_HOSTS` controla hosts aceptados por FastAPI.
+- En staging/production, SQLite exige ruta absoluta, archivo existente y `SQLITE_REQUIRE_EXISTING=true`.
+- No se crea una base vacia automaticamente.
+- No se habilita WAL ni se cambia `journal_mode`.
+- La operacion futura con SQLite en Azure requiere una instancia, un worker y almacenamiento persistente.
 
 ## Resumen vigente
 

@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+import { buildApiUrl } from "../utils/apiConfig";
 const LEGACY_ADMIN_STORAGE_KEY = "portfolio-admin-auth";
 
 export const ADMIN_AUTH_INVALID_EVENT = "portfolio-admin-auth-invalid";
@@ -354,10 +354,6 @@ export function clearAdminCredentials() {
 }
 
 async function request(endpoint, options = {}, credentials) {
-  if (!API_BASE_URL) {
-    throw new Error("No esta configurada la variable VITE_API_BASE_URL.");
-  }
-
   const authCredentials = credentials || getAdminCredentials();
 
   if (!authCredentials?.username || !authCredentials?.password) {
@@ -372,7 +368,7 @@ async function request(endpoint, options = {}, credentials) {
   let response;
 
   try {
-    response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    response = await fetch(buildApiUrl(endpoint), {
       ...restOptions,
       method,
       headers: buildHeaders(headers, body, authorizationValue),
@@ -420,10 +416,6 @@ async function request(endpoint, options = {}, credentials) {
 }
 
 async function requestBlob(endpointOrUrl, options = {}) {
-  if (!API_BASE_URL) {
-    throw new Error("No esta configurada la variable VITE_API_BASE_URL.");
-  }
-
   const authCredentials = getAdminCredentials();
 
   if (!authCredentials?.username || !authCredentials?.password) {
@@ -438,7 +430,7 @@ async function requestBlob(endpointOrUrl, options = {}) {
   const isAbsoluteUrl = /^https?:\/\//i.test(endpointOrUrl);
   const requestUrl = isAbsoluteUrl
     ? endpointOrUrl
-    : `${API_BASE_URL}${endpointOrUrl}`;
+    : buildApiUrl(endpointOrUrl);
   let response;
 
   try {

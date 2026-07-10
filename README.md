@@ -8,7 +8,8 @@ Portafolio personal construido con FastAPI en el backend y React + Vite en el fr
 - C0, C1, C2, C3 y C4 cerrados.
 - Fase 7.1 cerrada técnicamente.
 - Fase 7.2 cerrada técnicamente.
-- Fase 7.3 es el siguiente lote.
+- Fase 7.3 cerrada técnicamente.
+- Fase 7.4 es el siguiente lote.
 - SQLite es el motor vigente.
 - PostgreSQL está fuera del alcance activo.
 - El despliegue continúa condicionado.
@@ -45,6 +46,7 @@ Portafolio personal construido con FastAPI en el backend y React + Vite en el fr
 - [docs/QA_CONTENIDO_PROFESIONAL.md](docs/QA_CONTENIDO_PROFESIONAL.md)
 - [docs/PAYLOAD_FASE_7_1.md](docs/PAYLOAD_FASE_7_1.md)
 - [docs/GIT_FASE_7_2.md](docs/GIT_FASE_7_2.md)
+- [docs/CONFIG_FASE_7_3.md](docs/CONFIG_FASE_7_3.md)
 - [docs/QA_FASE_6.md](docs/QA_FASE_6.md)
 - [docs/REVISION_ARCHIVOS_DUDOSOS.md](docs/REVISION_ARCHIVOS_DUDOSOS.md)
 - [docs/INVENTARIO_CONTENIDO_PORTFOLIO.md](docs/INVENTARIO_CONTENIDO_PORTFOLIO.md)
@@ -68,11 +70,33 @@ Portafolio personal construido con FastAPI en el backend y React + Vite en el fr
 3. No subas `backend/.env`, `backend/portfolio.db`, backups `.db` ni logs al repositorio público.
 4. `backend/venv` no se versiona; se recrea localmente con `python -m venv venv` e instalando `backend/requirements.txt`.
 
+Variables principales del backend:
+
+- `APP_ENV`: `development`, `test`, `staging` o `production`.
+- `ADMIN_USERNAME` / `ADMIN_PASSWORD`: secretos runtime del backend.
+- `CORS_ALLOWED_ORIGINS`: lista explicita de origenes permitidos.
+- `TRUSTED_HOSTS`: hosts aceptados por FastAPI.
+- `SQLITE_DATABASE_PATH`: ruta del archivo SQLite.
+- `SQLITE_REQUIRE_EXISTING`: obliga a que la DB exista antes de iniciar.
+- `SQLITE_BUSY_TIMEOUT_MS`: timeout de bloqueo SQLite.
+- `LOG_LEVEL`: nivel de logs.
+- `ENABLE_API_DOCS`: controla `/docs`, `/redoc` y `/openapi.json`.
+
 ### Frontend
 
 1. Copia `frontend/.env.example` a `frontend/.env`.
 2. Mantén `VITE_API_BASE_URL=http://127.0.0.1:8000` para desarrollo local.
-3. No subas `frontend/.env`, `frontend/dist/` ni `frontend/node_modules/`.
+3. Recuerda que toda variable `VITE_*` es publica en el bundle; no incluyas secretos.
+4. No subas `frontend/.env`, `frontend/dist/` ni `frontend/node_modules/`.
+
+Validacion productiva previa al build futuro:
+
+```powershell
+cd frontend
+npm run validate:production-env
+```
+
+El valor productivo de `VITE_API_BASE_URL` se inyectara durante la configuracion de Azure Static Web Apps en Fase 7.4.
 
 ## Comandos del frontend
 
@@ -83,6 +107,15 @@ npm run lint
 npm run build
 npm run dev
 ```
+
+## Health checks
+
+```http
+GET /health
+GET /ready
+```
+
+`/health` no consulta datos y sera el endpoint recomendado para Azure App Service. `/ready` comprueba la conexion SQLite con una consulta segura `SELECT 1`.
 
 ## Comandos del backend
 

@@ -26,13 +26,16 @@ from contextlib import asynccontextmanager
 
 from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.openapi.docs import get_redoc_html, get_swagger_ui_html
 from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from sqlalchemy import text
 
 from app.core.config import settings
 from app.core.log import log_error, log_info, log_success, log_warning
+from app.database.connection import engine
 from app.routers.admin_auth_router import router as admin_auth_router
 from app.routers.admin_router import router as admin_router
 from app.routers.public_router import router as public_router
@@ -92,7 +95,7 @@ def verify_docs_access(
     if not correct_username or not correct_password:
         log_warning(
             "Intento no autorizado de acceso a documentación API.",
-            username=credentials.username
+            username="[redacted]"
         )
 
         raise HTTPException(
@@ -103,7 +106,7 @@ def verify_docs_access(
 
     log_success(
         "Acceso autorizado a documentación API.",
-        username=credentials.username
+        username="[redacted]"
     )
 
     return credentials.username
@@ -209,21 +212,18 @@ app = FastAPI(
 #                              CORS
 # -----------------------------------------------------------------------------
 
-allowed_origins = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "http://localhost:4173",
-    "http://127.0.0.1:4173",
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-]
+app.add_middleware(
+    TrustedHostMiddleware,
+    allowed_hosts=list(settings.trusted_hosts),
+)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,
+    allow_origins=list(settings.cors_allowed_origins),
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "Accept", "If-None-Match"],
+    expose_headers=["ETag", "Content-Disposition"],
 )
 
 
@@ -308,7 +308,7 @@ def custom_swagger_ui(
 
     log_info(
         "Swagger UI consultado.",
-        username=username
+        username="[redacted]"
     )
 
     return get_swagger_ui_html(
@@ -338,7 +338,7 @@ def custom_redoc(
 
     log_info(
         "ReDoc consultado.",
-        username=username
+        username="[redacted]"
     )
 
     return get_redoc_html(
@@ -368,7 +368,7 @@ def custom_openapi(
 
     log_info(
         "OpenAPI JSON consultado.",
-        username=username
+        username="[redacted]"
     )
 
     if app.openapi_schema:
@@ -430,6 +430,43 @@ def root() -> dict:
         "environment": settings.app_env,
         "message": "Portfolio Backend API is running"
     }
+
+
+@app.get(
+    "/health",
+    tags=["Root"],
+    summary="Health check minimo",
+)
+def health() -> dict:
+    """
+    Endpoint publico minimo para health checks de plataforma.
+
+    Returns:
+        Estado basico sin exponer configuracion ni datos internos.
+    """
+    return {"status": "ok"}
+
+
+@app.get(
+    "/ready",
+    tags=["Root"],
+    summary="Readiness check de SQLite",
+)
+def ready() -> JSONResponse:
+    """
+    Comprueba disponibilidad de SQLite sin leer contenido profesional.
+
+    Returns:
+        200 si la conexion responde, 503 si no esta disponible.
+    """
+    try:
+        with engine.connect() as connection:
+            connection.execute(text("SELECT 1"))
+    except Exception as error:
+        log_error("Readiness check fallo.", error_type=type(error).__name__)
+        return JSONResponse({"status": "unavailable"}, status_code=503)
+
+    return JSONResponse({"status": "ready"})
 
 
 @app.get(

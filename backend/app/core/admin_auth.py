@@ -50,7 +50,7 @@ def verify_admin_access(
     if not correct_username or not correct_password:
         log_warning(
             "Intento no autorizado de acceso al panel admin.",
-            username=credentials.username
+            username="[redacted]"
         )
 
         raise HTTPException(
@@ -61,7 +61,7 @@ def verify_admin_access(
 
     log_success(
         "Acceso autorizado al panel admin.",
-        username=credentials.username
+        username="[redacted]"
     )
 
     return credentials.username

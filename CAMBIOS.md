@@ -7,11 +7,39 @@
 - C4 cerrado con decisión editorial GO.
 - Fase 7.1 cerrada técnicamente.
 - Fase 7.2 cerrada técnicamente.
-- Fase 7.3 es el siguiente lote.
+- Fase 7.3 cerrada técnicamente.
+- Fase 7.4 es el siguiente lote.
 - SQLite es el motor vigente.
 - PostgreSQL queda fuera del alcance activo.
 - Estado: **Conditional Go** para preparación; sin despliegue inmediato.
 - Historial extenso: [docs/HISTORIAL_CAMBIOS_DETALLADO.md](docs/HISTORIAL_CAMBIOS_DETALLADO.md).
+
+## 2026-07-10 - Fase 7.3: configuracion productiva, CORS, secretos y variables
+
+Se preparo el contrato de configuracion para development, test, staging y production, sin crear recursos Azure, sin despliegue, sin migraciones, sin CRUD real y sin modificar `portfolio.db`.
+
+- Configuracion backend centralizada en `app.core.config`, con aliases compatibles para variables historicas.
+- `APP_ENV`, `APP_DEBUG`, `ADMIN_USERNAME`, `ADMIN_PASSWORD`, `CORS_ALLOWED_ORIGINS`, `TRUSTED_HOSTS`, `SQLITE_DATABASE_PATH`, `SQLITE_REQUIRE_EXISTING`, `SQLITE_BUSY_TIMEOUT_MS`, `LOG_LEVEL` y `ENABLE_API_DOCS` quedaron definidos como contrato vigente.
+- CORS ahora usa origenes explicitos desde configuracion, sin wildcard productivo, con headers y metodos acotados.
+- Basic Auth mantiene HTTP Basic, usa settings centralizados y rechaza placeholders en staging/production.
+- SQLite mantiene el motor vigente, con ruta configurable, exigencia de DB existente en staging/production y `busy_timeout` configurable.
+- Se agregaron `/health` y `/ready`; `/ready` usa solo `SELECT 1`.
+- Frontend centraliza `VITE_API_BASE_URL` y agrega `npm run validate:production-env`.
+- Logging queda orientado a stdout/stderr y sin archivo local por defecto en staging/production.
+- Se documento la restriccion operativa: una instancia, un worker, sin WAL, sin autoscale horizontal y con almacenamiento persistente.
+- Documentacion creada: `docs/CONFIG_FASE_7_3.md`.
+
+Verificaciones:
+
+- Backend `pytest -q`: 63 pruebas aprobadas.
+- Se registró un warning externo de `StarletteDeprecationWarning` por `httpx`/`starlette.testclient`.
+- `check_db`: `foreign_keys=1`, `integrity_check=ok` y cero violaciones.
+- Frontend `npm run lint`: aprobado.
+- Frontend `npm run build`: aprobado.
+- `npm run validate:production-env`: falla controlada sin variable y aprueba con `https://api.example.invalid`.
+- `portfolio.db` conserva tamano 11026432, timestamp 2026-07-10T06:11:02.8025327Z y SHA-256 43CD430783BE1BCD6305C0D96AE5D33DE2006CD5B05819AE13ED6AC8BB8B6470.
+
+Siguiente lote: **Fase 7.4 - configuracion de Azure Static Web Apps**.
 
 ## 2026-07-10 - Fase 7.2: limpieza Git y artefactos recreables
 

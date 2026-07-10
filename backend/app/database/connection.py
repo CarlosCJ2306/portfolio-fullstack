@@ -51,22 +51,7 @@ def _build_database_url() -> str:
     Returns:
         URL final de conexión compatible con SQLAlchemy.
     """
-    database_url = settings.database_url
-
-    sqlite_relative_prefix = "sqlite:///./"
-
-    if database_url.startswith(sqlite_relative_prefix):
-        db_file_name = database_url.replace(
-            sqlite_relative_prefix,
-            "",
-            1
-        )
-
-        db_path = settings.backend_root / db_file_name
-
-        return f"sqlite:///{db_path.as_posix()}"
-
-    return database_url
+    return settings.database_url
 
 
 def _build_connect_args(database_url: str) -> dict:
@@ -134,11 +119,12 @@ if DATABASE_URL.startswith("sqlite"):
         dbapi_connection,
         _connection_record
     ) -> None:
-        """Activa las restricciones foreign key en cada conexión SQLite."""
+        """Activa restricciones SQLite requeridas para la aplicación."""
         cursor = dbapi_connection.cursor()
 
         try:
             cursor.execute("PRAGMA foreign_keys=ON")
+            cursor.execute(f"PRAGMA busy_timeout={settings.sqlite_busy_timeout_ms}")
         finally:
             cursor.close()
 

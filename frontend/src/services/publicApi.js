@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+import { buildApiUrl } from "../utils/apiConfig";
 
 const FIELD_LABELS = {
   name: "nombre",
@@ -195,16 +195,12 @@ function buildErrorFromResponse(response, payload) {
 }
 
 async function request(endpoint, options = {}) {
-  if (!API_BASE_URL) {
-    throw new Error("No esta configurada la variable VITE_API_BASE_URL.");
-  }
-
   const { headers, body, method = "GET", ...restOptions } = options;
 
   let response;
 
   try {
-    response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    response = await fetch(buildApiUrl(endpoint), {
       ...restOptions,
       method,
       headers: buildHeaders(headers, body),
