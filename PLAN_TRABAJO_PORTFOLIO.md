@@ -144,13 +144,11 @@ Retirar artefactos recreables del índice de forma reversible, sin borrar copias
 
 Separar entornos local/staging/producción. Configurar CORS explícito, secretos seguros y variables sin valores sensibles en Git.
 
-### 7.4 Configuración Vercel
+### 7.4 Azure Static Web Apps
+Configurar el frontend en Azure Static Web Apps con build de React/Vite, `VITE_API_BASE_URL` productivo y fallback SPA para rutas como `/admin`.
 
-Configurar build de React/Vite, `VITE_API_BASE_URL` productivo y fallback SPA para rutas como `/admin`.
-
-### 7.5 Configuración Render con SQLite persistente
-
-Configurar FastAPI en Render usando un volumen persistente para SQLite. No usar filesystem efímero para `portfolio.db`.
+### 7.5 Azure App Service con SQLite persistente
+Configurar el backend en Azure App Service para Linux/Python usando SQLite en almacenamiento persistente compatible con Azure. No usar filesystem ef?mero para `portfolio.db`.
 
 ### 7.6 Staging
 
