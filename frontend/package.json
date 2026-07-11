@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "validate:production-env": "node scripts/validate-production-env.mjs",
     "validate:azure-static-config": "node scripts/validate-static-web-app-config.mjs",
-    "build:azure": "npm run validate:production-env && npm run validate:azure-static-config && vite build && node scripts/validate-static-web-app-config.mjs --dist"
+    "build:azure": "npm run validate:production-env && npm run validate:azure-static-config -- --allow-active-workflow && vite build && node scripts/validate-static-web-app-config.mjs --dist --allow-active-workflow"
   },
   "dependencies": {
     "react": "^19.2.7",

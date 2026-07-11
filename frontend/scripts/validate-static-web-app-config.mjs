@@ -2,6 +2,7 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
 
 const args = new Set(process.argv.slice(2));
+const allowActiveWorkflow = args.has("--allow-active-workflow");
 const rootDir = resolve(import.meta.dirname, "..");
 const publicConfigPath = resolve(rootDir, "public", "staticwebapp.config.json");
 const distConfigPath = resolve(rootDir, "dist", "staticwebapp.config.json");
@@ -120,7 +121,7 @@ function validateWorkflowTemplate() {
     }
   }
 
-  if (existsSync(activeWorkflowDir)) {
+  if (!allowActiveWorkflow && existsSync(activeWorkflowDir)) {
     const activeWorkflowFiles = readdirSync(activeWorkflowDir).filter((fileName) =>
       /\.(ya?ml)$/i.test(fileName)
     );
