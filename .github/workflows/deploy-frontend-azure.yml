@@ -33,4 +33,4 @@ jobs:
           app_location: "frontend"
           api_location: ""
           output_location: "dist"
-          app_build_command: "npm run build:azure"
+          app_build_command: "npm run validate:production-env && npm run build && node scripts/validate-static-web-app-config.mjs --dist"
