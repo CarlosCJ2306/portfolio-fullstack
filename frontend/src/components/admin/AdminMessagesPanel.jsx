@@ -98,7 +98,7 @@ export default function AdminMessagesPanel({
                       <button
                         type="button"
                         className="admin-button ghost"
-                        onClick={() => onDeleteMessage(message)}
+                        onClick={() => onDeleteMessage(message.id)}
                         disabled={isItemBusy}
                       >
                         {isDeleting ? "Eliminando..." : "Eliminar"}

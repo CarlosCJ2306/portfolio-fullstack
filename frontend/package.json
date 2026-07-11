@@ -8,6 +8,7 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "validate:admin-message-ids": "node scripts/validate-admin-message-ids.mjs",
     "validate:production-env": "node scripts/validate-production-env.mjs",
     "validate:azure-static-config": "node scripts/validate-static-web-app-config.mjs",
     "build:azure": "npm run validate:production-env && npm run validate:azure-static-config -- --allow-active-workflow && vite build && node scripts/validate-static-web-app-config.mjs --dist --allow-active-workflow"

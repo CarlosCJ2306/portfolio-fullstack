@@ -30,6 +30,53 @@ def test_admin_requires_basic_auth(client: TestClient) -> None:
     assert response.status_code == 401
 
 
+def test_admin_contact_message_delete_uses_integer_id_contract(
+    client: TestClient,
+    admin_auth: tuple[str, str],
+) -> None:
+    created = client.post(
+        "/api/public/contact",
+        json={
+            "name": "Mensaje QA",
+            "email": "qa@example.test",
+            "subject": "Contrato DELETE",
+            "message": "Mensaje temporal para validar el contrato admin.",
+        },
+    )
+    assert created.status_code == 201, created.text
+    contact_message_id = created.json()["contact_message_id"]
+    assert isinstance(contact_message_id, int)
+
+    list_response = client.get("/api/admin/contact-messages", auth=admin_auth)
+    assert list_response.status_code == 200
+    listed_message = next(
+        message
+        for message in list_response.json()
+        if message["id"] == contact_message_id
+    )
+    assert isinstance(listed_message["id"], int)
+    assert "contact_message_id" not in listed_message
+
+    invalid_delete = client.delete(
+        "/api/admin/contact-messages/[object Object]",
+        auth=admin_auth,
+    )
+    assert invalid_delete.status_code == 422
+
+    delete_response = client.delete(
+        f"/api/admin/contact-messages/{contact_message_id}",
+        auth=admin_auth,
+    )
+    assert delete_response.status_code == 204
+
+    after_delete = client.get("/api/admin/contact-messages", auth=admin_auth)
+    assert after_delete.status_code == 200
+    assert all(
+        message["id"] != contact_message_id
+        for message in after_delete.json()
+    )
+
+
 def test_profile_text_update_preserves_avatar_asset_id(
     client: TestClient,
     admin_auth: tuple[str, str],

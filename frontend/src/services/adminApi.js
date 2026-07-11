@@ -1,4 +1,5 @@
 import { buildApiUrl } from "../utils/apiConfig";
+import { normalizeAdminEntityId } from "../utils/adminEntityIds";
 const LEGACY_ADMIN_STORAGE_KEY = "portfolio-admin-auth";
 
 export const ADMIN_AUTH_INVALID_EVENT = "portfolio-admin-auth-invalid";
@@ -500,13 +501,23 @@ export function getAdminContactMessages() {
 }
 
 export function markAdminContactMessageAsRead(contactMessageId) {
-  return request(`/api/admin/contact-messages/${contactMessageId}/read`, {
+  const normalizedContactMessageId = normalizeAdminEntityId(
+    contactMessageId,
+    "identificador del mensaje de contacto"
+  );
+
+  return request(`/api/admin/contact-messages/${normalizedContactMessageId}/read`, {
     method: "PATCH",
   });
 }
 
 export function deleteAdminContactMessage(contactMessageId) {
-  return request(`/api/admin/contact-messages/${contactMessageId}`, {
+  const normalizedContactMessageId = normalizeAdminEntityId(
+    contactMessageId,
+    "identificador del mensaje de contacto"
+  );
+
+  return request(`/api/admin/contact-messages/${normalizedContactMessageId}`, {
     method: "DELETE",
   });
 }

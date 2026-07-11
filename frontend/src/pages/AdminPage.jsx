@@ -48,6 +48,7 @@ import AdminSocialLinksPanel from "../components/admin/AdminSocialLinksPanel";
 import AdminStatsGrid from "../components/admin/AdminStatsGrid";
 import AdminTopbar from "../components/admin/AdminTopbar";
 import AdminToast from "../components/admin/AdminToast";
+import { normalizeAdminEntityId } from "../utils/adminEntityIds";
 import "../styles/AdminLayout.css";
 
 const initialLoginForm = {
@@ -2401,9 +2402,27 @@ export default function AdminPage() {
   }
 
   async function handleMarkAsRead(contactMessageId) {
+    let normalizedContactMessageId;
+
+    try {
+      normalizedContactMessageId = normalizeAdminEntityId(
+        contactMessageId,
+        "identificador del mensaje de contacto"
+      );
+    } catch (error) {
+      const message = getAdminUiErrorMessage(
+        error,
+        "No se pudo actualizar el mensaje de contacto."
+      );
+      setModuleError("messages", message);
+      setErrorMessage(message);
+      showNotice("error", "Error al actualizar mensaje", message);
+      return;
+    }
+
     if (
       !beginPendingItem(
-        contactMessageId,
+        normalizedContactMessageId,
         markingMessageIdsRef,
         setMarkingMessageIds
       )
@@ -2416,8 +2435,8 @@ export default function AdminPage() {
     setSuccessMessage("");
 
     try {
-      const updatedMessage = await markAdminContactMessageAsRead(contactMessageId);
-      setContactMessages((currentItems) => replaceItemById(currentItems, contactMessageId, updatedMessage));
+      const updatedMessage = await markAdminContactMessageAsRead(normalizedContactMessageId);
+      setContactMessages((currentItems) => replaceItemById(currentItems, normalizedContactMessageId, updatedMessage));
       clearModuleError("messages");
       updateDashboardCounts({
         unread_contact_messages: Math.max((dashboard?.unread_contact_messages || 1) - 1, 0),
@@ -2435,7 +2454,7 @@ export default function AdminPage() {
       showNotice("error", "Error al actualizar mensaje", message);
     } finally {
       endPendingItem(
-        contactMessageId,
+        normalizedContactMessageId,
         markingMessageIdsRef,
         setMarkingMessageIds
       );
@@ -2444,9 +2463,27 @@ export default function AdminPage() {
   }
 
   async function handleDeleteContactMessage(contactMessageId) {
+    let normalizedContactMessageId;
+
+    try {
+      normalizedContactMessageId = normalizeAdminEntityId(
+        contactMessageId,
+        "identificador del mensaje de contacto"
+      );
+    } catch (error) {
+      const message = getAdminUiErrorMessage(
+        error,
+        "No se pudo eliminar el mensaje de contacto."
+      );
+      setModuleError("messages", message);
+      setErrorMessage(message);
+      showNotice("error", "Error al eliminar mensaje", message);
+      return;
+    }
+
     if (
       !beginPendingItem(
-        contactMessageId,
+        normalizedContactMessageId,
         deletingMessageIdsRef,
         setDeletingMessageIds
       )
@@ -2454,7 +2491,7 @@ export default function AdminPage() {
       return;
     }
 
-    const messageToDelete = contactMessages.find((message) => message.id === contactMessageId);
+    const messageToDelete = contactMessages.find((message) => message.id === normalizedContactMessageId);
 
     if (
       !window.confirm(
@@ -2462,7 +2499,7 @@ export default function AdminPage() {
       )
     ) {
       endPendingItem(
-        contactMessageId,
+        normalizedContactMessageId,
         deletingMessageIdsRef,
         setDeletingMessageIds
       );
@@ -2472,10 +2509,10 @@ export default function AdminPage() {
     try {
       setErrorMessage("");
       setSuccessMessage("");
-      await deleteAdminContactMessage(contactMessageId);
+      await deleteAdminContactMessage(normalizedContactMessageId);
       clearModuleError("messages");
       setContactMessages((currentItems) =>
-        currentItems.filter((item) => item.id !== contactMessageId)
+        currentItems.filter((item) => item.id !== normalizedContactMessageId)
       );
       updateDashboardCounts({
         total_contact_messages: Math.max((dashboard?.total_contact_messages || 1) - 1, 0),
@@ -2500,7 +2537,7 @@ export default function AdminPage() {
       showNotice("error", "Error al eliminar mensaje", message);
     } finally {
       endPendingItem(
-        contactMessageId,
+        normalizedContactMessageId,
         deletingMessageIdsRef,
         setDeletingMessageIds
       );
