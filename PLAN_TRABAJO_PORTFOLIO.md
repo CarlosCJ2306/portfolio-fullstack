@@ -19,7 +19,8 @@ Este es el único plan operativo vigente del proyecto. Las auditorías y planes 
 - Fase 7.2: cerrada técnicamente.
 - Fase 7.3: cerrada técnicamente.
 - Fase 7.4: cerrada técnicamente.
-- Fase 7.5: siguiente lote.
+- Fase 7.5: cerrada técnicamente.
+- Fase 7.6: siguiente lote.
 - SQLite permanece como motor vigente.
 - PostgreSQL queda fuera del alcance activo.
 - No se deben revertir los cambios C1.
@@ -51,6 +52,7 @@ Campos C1 vigentes:
 | 7.2 | Cerrada técnicamente | `backend/venv` retirado del índice, conservado localmente, `.gitignore` reforzado y auditoría Git documentada |
 | 7.3 | Cerrada técnicamente | Configuración centralizada por entorno, CORS explícito, health/readiness, validación de secretos y contrato Azure documentado |
 | 7.4 | Cerrada técnicamente | Azure Static Web Apps preparado con fallback SPA, build Azure, validadores y workflow inactivo |
+| 7.5 | Cerrada técnicamente | Azure App Service preparado con `startup.sh`, un worker, SQLite en `/home/data` y workflow inactivo |
 
 ## Ruta activa antes de despliegue
 
@@ -184,10 +186,24 @@ Resultado:
 - No se creó recurso Azure, no se activó workflow y no hubo despliegue.
 - Evidencia documentada en `docs/AZURE_STATIC_WEB_APPS_FASE_7_4.md`.
 
-### 7.5 Azure App Service con SQLite persistente — siguiente lote
+### 7.5 Azure App Service con SQLite persistente — cerrada técnicamente
+
 Configurar el backend en Azure App Service para Linux/Python usando SQLite en almacenamiento persistente compatible con Azure. No usar filesystem efímero para `portfolio.db`.
 
-### 7.6 Staging
+Resultado:
+
+- Se agregó `backend/startup.sh` para Linux/Python.
+- El startup usa `app.main:app`, un worker y no ejecuta migraciones, seeds ni instalaciones runtime.
+- `backend/` queda como raíz futura del paquete.
+- `SQLITE_DATABASE_PATH=/home/data/portfolio.db` queda como ruta futura recomendada y configurable.
+- `SQLITE_REQUIRE_EXISTING=true` evita crear una DB vacía en staging/production.
+- Se documentaron una instancia, un worker, sin WAL y sin scale-out.
+- Se creó una plantilla inactiva para GitHub Actions con OIDC futuro.
+- Se agregó validador App Service y pruebas backend.
+- No se creó recurso Azure, no se desplegó y no se transfirió `portfolio.db`.
+- Evidencia documentada en `docs/AZURE_APP_SERVICE_FASE_7_5.md`.
+
+### 7.6 Staging — siguiente lote
 
 Levantar entorno de prueba remoto con datos controlados, backups verificados y configuración de origen cruzado real.
 
@@ -209,6 +225,7 @@ Despliegue final solo con backup, procedimiento de restauración y rollback ensa
 - `docs/GIT_FASE_7_2.md`: limpieza segura del índice Git, retiro local-preservado de `backend/venv` y auditoría de sensibles.
 - `docs/CONFIG_FASE_7_3.md`: contrato de configuración, CORS, secretos, SQLite persistente, health/readiness y preparación Azure.
 - `docs/AZURE_STATIC_WEB_APPS_FASE_7_4.md`: preparación de Azure Static Web Apps, fallback SPA, build Azure y workflow inactivo.
+- `docs/AZURE_APP_SERVICE_FASE_7_5.md`: preparación de Azure App Service Linux/Python, `startup.sh`, SQLite persistente y workflow inactivo.
 - `docs/INVENTARIO_CONTENIDO_PORTFOLIO.md`: snapshot seguro del contenido post-C3.
 - `docs/QA_FASE_6.md`: evidencia histórica de QA.
 - `docs/QA_CONTENIDO_PROFESIONAL.md`: evidencia técnica, editorial y visual de C2-C4.

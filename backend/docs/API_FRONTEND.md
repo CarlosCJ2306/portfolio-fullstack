@@ -28,6 +28,25 @@ En staging/production debe ser una URL absoluta `https://` sin credenciales embe
 npm run validate:production-env
 ```
 
+## Despliegue futuro en Azure
+
+La ruta activa de despliegue separa frontend y backend:
+
+- Frontend: Azure Static Web Apps.
+- Backend: Azure App Service Linux/Python.
+- Base de datos: SQLite persistente administrada por el backend.
+
+El backend se empaquetara usando `backend/` como raiz del paquete. `requirements.txt` queda en esa raiz y el startup Linux futuro sera `startup.sh`.
+
+SQLite no viaja dentro del paquete de codigo. En staging/production debe configurarse mediante:
+
+```env
+SQLITE_DATABASE_PATH=/home/data/portfolio.db
+SQLITE_REQUIRE_EXISTING=true
+```
+
+La aplicacion no crea una base vacia, no ejecuta seeds y no ejecuta migraciones durante el arranque.
+
 ## Estado actual del contrato
 
 - La portada publica usa `GET /api/public/home` como carga principal.
@@ -76,6 +95,8 @@ Si SQLite no esta disponible, responde 503:
 ```
 
 `/ready` solo ejecuta una comprobacion equivalente a `SELECT 1`; no modifica datos ni devuelve rutas internas.
+
+Para Azure App Service, `/ready` sera la ruta recomendada de Health Check porque verifica que SQLite este disponible. `/health` se conserva como liveness minima del proceso.
 
 ### Home publica
 
@@ -522,7 +543,9 @@ Reglas relevantes:
 - En staging/production, SQLite exige ruta absoluta, archivo existente y `SQLITE_REQUIRE_EXISTING=true`.
 - No se crea una base vacia automaticamente.
 - No se habilita WAL ni se cambia `journal_mode`.
-- La operacion futura con SQLite en Azure requiere una instancia, un worker y almacenamiento persistente.
+- La operacion futura con SQLite en Azure requiere una instancia, un worker, `startup.sh`, almacenamiento persistente en `/home/data` y ausencia de WAL.
+- `TRUSTED_HOSTS` debe incluir el hostname real de App Service o `WEBSITE_HOSTNAME` cuando Azure lo provea.
+- `CORS_ALLOWED_ORIGINS` debe incluir solo el origen HTTPS real de Azure Static Web Apps.
 
 ## Resumen vigente
 

@@ -10,7 +10,8 @@ Portafolio personal construido con FastAPI en el backend y React + Vite en el fr
 - Fase 7.2 cerrada técnicamente.
 - Fase 7.3 cerrada técnicamente.
 - Fase 7.4 cerrada técnicamente.
-- Fase 7.5 es el siguiente lote.
+- Fase 7.5 cerrada técnicamente.
+- Fase 7.6 es el siguiente lote.
 - SQLite es el motor vigente.
 - PostgreSQL está fuera del alcance activo.
 - El despliegue continúa condicionado.
@@ -49,6 +50,7 @@ Portafolio personal construido con FastAPI en el backend y React + Vite en el fr
 - [docs/GIT_FASE_7_2.md](docs/GIT_FASE_7_2.md)
 - [docs/CONFIG_FASE_7_3.md](docs/CONFIG_FASE_7_3.md)
 - [docs/AZURE_STATIC_WEB_APPS_FASE_7_4.md](docs/AZURE_STATIC_WEB_APPS_FASE_7_4.md)
+- [docs/AZURE_APP_SERVICE_FASE_7_5.md](docs/AZURE_APP_SERVICE_FASE_7_5.md)
 - [docs/QA_FASE_6.md](docs/QA_FASE_6.md)
 - [docs/REVISION_ARCHIVOS_DUDOSOS.md](docs/REVISION_ARCHIVOS_DUDOSOS.md)
 - [docs/INVENTARIO_CONTENIDO_PORTFOLIO.md](docs/INVENTARIO_CONTENIDO_PORTFOLIO.md)
@@ -142,6 +144,30 @@ venv\Scripts\activate
 pip install -r requirements.txt
 python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
+
+## Preparación Azure App Service
+
+El backend se desplegará posteriormente usando `backend/` como raíz del paquete. `backend/requirements.txt` debe quedar en la raíz desplegada para Oryx, y `backend/startup.sh` define el arranque Linux con un solo worker:
+
+```bash
+python -m uvicorn app.main:app --host 0.0.0.0 --port "${PORT:-8000}" --workers 1 --no-use-colors
+```
+
+Validación del paquete App Service:
+
+```powershell
+cd backend
+venv\Scripts\python.exe -m app.scripts.validate_azure_app_service
+```
+
+La base SQLite no viaja con el código. En Azure se transferirá separadamente y debe vivir en almacenamiento persistente, con ruta configurable mediante:
+
+```env
+SQLITE_DATABASE_PATH=/home/data/portfolio.db
+SQLITE_REQUIRE_EXISTING=true
+```
+
+La plantilla inactiva de workflow vive en `docs/deployment/azure-app-service.workflow.yml.example`; no despliega hasta moverla y configurarla con recursos reales.
 
 ## Verificación segura
 

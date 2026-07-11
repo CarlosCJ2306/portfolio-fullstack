@@ -9,11 +9,41 @@
 - Fase 7.2 cerrada técnicamente.
 - Fase 7.3 cerrada técnicamente.
 - Fase 7.4 cerrada técnicamente.
-- Fase 7.5 es el siguiente lote.
+- Fase 7.5 cerrada técnicamente.
+- Fase 7.6 es el siguiente lote.
 - SQLite es el motor vigente.
 - PostgreSQL queda fuera del alcance activo.
 - Estado: **Conditional Go** para preparación; sin despliegue inmediato.
 - Historial extenso: [docs/HISTORIAL_CAMBIOS_DETALLADO.md](docs/HISTORIAL_CAMBIOS_DETALLADO.md).
+
+## 2026-07-10 - Fase 7.5: preparación de Azure App Service con SQLite persistente
+
+Se preparó el backend FastAPI para un despliegue futuro en Azure App Service Linux/Python, sin crear recursos Azure, sin despliegue, sin transferir `portfolio.db`, sin migraciones y sin CRUD real.
+
+- Se agregó `backend/startup.sh` como startup Linux explícito para Uvicorn.
+- El startup usa `app.main:app`, `--workers 1`, sin `--reload`, sin migraciones, sin seeds y sin instalaciones runtime.
+- Se mantiene `backend/` como raíz futura del paquete desplegable.
+- `backend/requirements.txt` queda como archivo detectable por Azure/Oryx.
+- Se documentó `SQLITE_DATABASE_PATH=/home/data/portfolio.db` como ruta persistente futura configurable.
+- Se mantiene `SQLITE_REQUIRE_EXISTING=true` para staging/production: no se crea DB vacía.
+- Se creó `docs/deployment/azure-app-service.settings.env.example` sin valores reales.
+- Se creó `docs/deployment/azure-app-service.workflow.yml.example` como plantilla inactiva con OIDC futuro.
+- La plantilla usa `package: backend`, `azure/login@v2`, `azure/webapps-deploy@v3`, secrets OIDC y `vars.AZURE_WEBAPP_NAME`.
+- Se agregó `app.scripts.validate_azure_app_service` para validar paquete, startup, dependencias, exclusiones Git y plantillas.
+- Se agregaron pruebas backend para startup, SQLite persistente, `/health`, `/ready`, workflow inactivo y exclusión de DB/artefactos locales.
+- Se creó `docs/AZURE_APP_SERVICE_FASE_7_5.md`.
+
+Verificaciones:
+
+- Backend `pytest -q`: aprobado.
+- `check_db`: aprobado.
+- `validate_azure_app_service`: aprobado.
+- Frontend `npm run lint`: aprobado.
+- Frontend `npm run build`: aprobado.
+- `portfolio.db` conserva tamaño, timestamp y SHA-256 esperados.
+- `git diff --check`: aprobado.
+
+Siguiente lote: **Fase 7.6 - staging remoto en Azure**.
 
 ## 2026-07-10 - Fase 7.4: preparación de Azure Static Web Apps
 
