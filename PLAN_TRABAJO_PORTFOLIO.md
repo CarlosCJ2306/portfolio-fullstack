@@ -1,248 +1,188 @@
-# Plan operativo vigente del portfolio
+# PLAN-002 — Carrusel interactivo de skills y orden automático administrativo
 
-Fecha de realineación: 2026-07-09
-Estado: **Conditional Go** para continuar preparación; **sin despliegue inmediato**.
-Motor vigente: **SQLite**.
-PostgreSQL: **fuera del alcance activo por decisión del propietario**.
+## 1. Identificación del plan
 
-Este es el único plan operativo vigente del proyecto. Las auditorías y planes antiguos se conservan en `docs/archive/` únicamente para trazabilidad histórica.
+- Número: `PLAN-002`
+- Estado: En análisis
+- Fecha: 2026-07-12
+- Rama activa: `dev-cj`
 
-## Estado actual
+## 2. Estado real del proyecto
 
-- Fases 1 a 6: cerradas.
-- C0: cerrado.
-- C1: cerrado.
-- C2: cerrado técnicamente.
-- C3: cerrado técnicamente.
-- C4: cerrado.
-- Fase 7.1: cerrada técnicamente.
-- Fase 7.2: cerrada técnicamente.
-- Fase 7.3: cerrada técnicamente.
-- Fase 7.4: cerrada técnicamente.
-- Fase 7.5: cerrada técnicamente.
-- Fase 7.6: siguiente lote.
-- SQLite permanece como motor vigente.
-- PostgreSQL queda fuera del alcance activo.
-- No se deben revertir los cambios C1.
+- Frontend y backend se mantienen separados.
+- El frontend está desplegado en Azure Static Web Apps.
+- El backend está desplegado en Azure App Service.
+- El despliegue del backend continúa siendo manual.
+- SQLite continúa siendo el motor vigente.
+- El ciclo anterior quedó archivado como `PLAN-001`.
+- El árbol parte limpio para este nuevo ciclo.
 
-Campos C1 vigentes:
+## 3. Último plan cerrado
 
-- `Project.is_confidential`
-- `Project.confidentiality_note`
-- `Project.client_display_name`
-- `Project.allow_public_images`
-- `Certification.expiration_date`
+- `PLAN-001 — Consolidación y despliegue Azure`
+- Archivo histórico: `docs/planes_historicos/PLAN-001-2026-07-12-consolidacion-y-despliegue-azure.md`
+- Changelog histórico: `docs/planes_historicos/CAMBIOS-PLAN-001-2026-07-12.md`
 
-## Evidencia de fases cerradas
+## 4. Prioridad principal
 
-| Fase | Estado | Evidencia |
-|---|---|---|
-| 1 | Cerrada | `CAMBIOS.md` / Git |
-| 2 | Cerrada | `CAMBIOS.md` / Git |
-| 3 | Cerrada | `CAMBIOS.md` / Git |
-| 4 | Cerrada | `CAMBIOS.md` / Git |
-| 5 | Cerrada | `CAMBIOS.md` / Git |
-| 6 | Cerrada | `docs/QA_FASE_6.md` |
-| C0 | Cerrado | Documentación e inventario |
-| C1 | Cerrado | Migración SQLite y 32 pruebas |
-| C2 | Cerrado técnicamente | Admin, vista pública y QA técnica C2 |
-| C3 | Cerrado técnicamente | Sincronización editorial, backup, idempotencia y QA técnica C3 |
-| C4 | Cerrado | QA visual/editorial real, confidencialidad, responsive, accesibilidad e integridad SQLite |
-| 7.1 | Cerrada técnicamente | Optimización segura de payload multimedia, `content_url`, endpoints de contenido y mediciones antes/después |
-| 7.2 | Cerrada técnicamente | `backend/venv` retirado del índice, conservado localmente, `.gitignore` reforzado y auditoría Git documentada |
-| 7.3 | Cerrada técnicamente | Configuración centralizada por entorno, CORS explícito, health/readiness, validación de secretos y contrato Azure documentado |
-| 7.4 | Cerrada técnicamente | Azure Static Web Apps preparado con fallback SPA, build Azure, validadores y workflow inactivo |
-| 7.5 | Cerrada técnicamente | Azure App Service preparado con `startup.sh`, un worker, SQLite en `/home/data` y workflow inactivo |
+1. Carrusel interactivo de skills.
+2. Orden automático administrativo.
 
-## Ruta activa antes de despliegue
+## 5. Objetivo general
 
-### C2 — Admin y frontend público — cerrado técnicamente
+Mejorar la experiencia del portfolio con un carrusel público infinito, interactivo y responsive para skills, y con sugerencia automática del siguiente orden al crear registros administrativos.
 
-Se implementó interfaz administrativa y representación pública para los campos incorporados en C1:
+## 6. Problema o necesidad
 
-- `is_confidential`
-- `confidentiality_note`
-- `client_display_name`
-- `allow_public_images`
-- `expiration_date`
+- La sección pública de skills hoy se comporta como una grilla estática.
+- El panel administrativo expone el orden, pero el alta manual requiere más fricción de la necesaria.
+- El proyecto ya tiene una base estable; conviene crecer con componentes pequeños y sin duplicar lógica.
 
-Criterio de salida:
+## 7. Alcance
 
-- Admin permite gestionar confidencialidad, alias público, nota pública, permiso de imágenes y vencimiento de certificaciones.
-- La vista pública muestra badge, alias y nota sin revelar datos protegidos.
-- `allow_public_images=false` mantiene ocultas portada y galería en público, sin borrar relaciones.
-- Proyecto confidencial con imágenes públicas exige confirmación explícita.
-- Pytest, check_db, lint y build quedaron aprobados.
-- La implementación y la verificación técnica quedaron cerradas. La validación visual completa en navegador se realizará durante C4.
+### 7.1 Carrusel interactivo de skills
 
-### C3 — Actualización controlada de contenido — cerrado técnicamente
+- Respetar el orden de visualización actual del backend (`display_order` en el código real).
+- Usar tres filas visuales sin agregar columnas ni campos nuevos.
+- Movimiento infinito, autoplay, arrastre con mouse y swipe táctil.
+- Pausa durante interacción y reanudación automática desde la posición actual.
+- Responsive en móvil, tableta y escritorio.
+- Accesibilidad y `prefers-reduced-motion`.
+- Reutilización de componentes/utilidades solo si aporta valor real.
 
-Actualizar datos profesionales con backup, dry-run, ejecución idempotente y QA de integridad.
+### 7.2 Orden automático administrativo
 
-Alcance:
+- Detectar entidades reales que ya usan `display_order`.
+- Sugerir el siguiente valor cuando el usuario no lo modifique.
+- Mantener el valor editable.
+- El backend conserva la autoridad final.
+- No reordenar registros existentes ni compactar al eliminar en esta primera mejora.
 
-- incorporó Kodland;
-- conservó Fofimatic de junio de 2024 a marzo de 2026;
-- mantuvo Fofimatic con `is_current=false`;
-- actualizó perfil;
-- actualizó skills;
-- actualizó educación;
-- actualizó proyectos;
-- mantuvo certificaciones existentes inactivas.
+## 8. Fuera de alcance
 
-Criterio de salida:
+- Migraciones de esquema.
+- Nuevas columnas.
+- Cambios de seguridad, Azure o despliegue.
+- PostgreSQL.
+- Cambios de contenido profesional.
+- Cambios de contratos API no necesarios.
 
-- No se publican clientes protegidos ni información interna.
-- Los datos editoriales quedan respaldados por fuentes del propietario.
-- Assets, mensajes, IDs y relaciones no autorizadas permanecen intactos.
-- `check_db` confirma integridad.
-- La sincronización quedó idempotente con segundo dry-run en cero operaciones.
+## 9. Restricciones permanentes
 
-### C4 — QA editorial, confidencialidad y contratos — cerrado
+- No modificar SQLite real.
+- No ejecutar scripts destructivos.
+- No instalar dependencias sin justificación.
+- No crear capas o abstracciones prematuras.
+- No romper responsive, accesibilidad ni manejo seguro de iconos/imágenes.
 
-Validar el contenido actualizado antes de producción.
+## 10. Principios de arquitectura escalable
 
-Alcance:
+### Frontend
 
-- QA editorial;
-- revisión de confidencialidad;
-- responsive público/admin;
-- contratos backend/frontend;
-- pruebas técnicas;
-- búsqueda de nombres protegidos;
-- revisión de multimedia autorizada.
+- Componentes pequeños y reutilizables.
+- Una responsabilidad principal por componente.
+- Separar presentación, estado, interacción y servicios cuando aporte claridad.
+- Evitar componentes monolíticos.
+- Mantener componentes específicos cerca de su módulo.
+- Extraer elementos compartidos solo cuando exista reutilización real.
+- Diseñar con responsive y accesibilidad desde el inicio.
 
-Criterio de salida:
+### Backend
 
-- Cero exposición de clientes, documentos, rutas, usuarios, reportes o archivos sensibles.
-- Vista pública y admin funcionan con el contenido definitivo.
-- El propietario aprueba go/no-go editorial.
+- Routers delgados.
+- Lógica reutilizable en servicios o repositorios cuando exista necesidad real.
+- Validaciones consistentes entre schemas y negocio.
+- No duplicar consultas o reglas.
+- Mantener SQLite y contratos compatibles salvo autorización expresa.
 
-Resultado C4:
+### Documentación
 
-- Recorrido real en navegador Chrome sobre 8 viewports.
-- Vista pública validada con 6 proyectos activos confidenciales, sin multimedia pública y 0 certificaciones públicas.
-- Panel administrativo validado en lectura, sin escrituras ni CRUD real.
-- Confidencialidad, accesibilidad funcional, consola/red, payload de referencia e integridad SQLite documentados en `docs/QA_CONTENIDO_PROFESIONAL.md`.
-- Decisión editorial: **GO** para iniciar Fase 7.1, sin despliegue inmediato.
+- Un solo plan activo.
+- Un solo changelog activo.
+- Históricos separados y numerados.
+- Documentación técnica solo cuando tenga utilidad permanente.
+- No repetir el mismo estado en varios archivos.
 
-## Fase 7 — Preparación para despliegue con SQLite
+## 11. Estrategia de componentes reutilizables
 
-La Fase 7 debe preparar el despliegue con SQLite en almacenamiento persistente. SQLite en un filesystem efímero no es una solución productiva aceptable.
+- Compartir únicamente lo que ya tenga uso real.
+- Evitar librerías nuevas si React, CSS y utilidades locales bastan.
+- Mantener el carrusel como componente aislado y la lógica de orden como helper de backend con apoyo en frontend.
 
-### 7.1 Optimización del payload multimedia — cerrada técnicamente
+## 12. Tarea 1: carrusel interactivo de skills
 
-Reducir y remedir el peso de respuestas públicas/admin, especialmente proyectos, galerías y media assets.
+- Analizar la implementación actual de `SkillsSection`.
+- Diseñar la distribución de 3 filas con la secuencia global intacta.
+- Decidir si la solución será propia o apoyada por una dependencia mínima ya justificada.
+- Preparar soporte para autoplay, drag, swipe y pausa/reanudación.
 
-Resultado:
+## 13. Tarea 2: orden automático administrativo
 
-- Las respuestas JSON generales ya no transportan `data_base64` ni `svg_content`.
-- Se incorporaron endpoints públicos/admin de contenido bajo demanda.
-- La vista pública y el admin usan `content_url` y Blob URLs cuando corresponde.
-- `/api/public/home` bajó de 379.794 B a 16.386 B.
-- `/api/admin/media-assets` bajó de 10.858.065 B a 3.203 B.
-- Pytest, check_db, lint, build y mediciones quedaron documentados en `docs/PAYLOAD_FASE_7_1.md`.
-- No se modificó `portfolio.db`, no se ejecutaron migraciones y no hubo CRUD real.
+- Localizar todas las entidades reales que usan `display_order`.
+- Definir dónde se sugiere el siguiente orden.
+- Mantener validación backend como autoridad final.
+- Empezar por la entidad piloto más simple y reutilizable.
 
-### 7.2 Limpieza Git y retirada de `backend/venv` del índice — cerrada técnicamente
+## 14. Fases de trabajo
 
-Retirar artefactos recreables del índice de forma reversible, sin borrar copias locales. Confirmar que DB, backups, logs y secretos no entren al repositorio.
+1. Análisis técnico y selección de enfoque.
+2. Implementación del carrusel de skills.
+3. Implementación del orden automático en la entidad piloto.
+4. Extensión al resto de entidades con `display_order`.
+5. Pruebas, accesibilidad y documentación.
 
-Resultado:
+## 15. Pruebas previstas
 
-- `backend/venv` fue retirado del índice y conservado físicamente.
-- `.gitignore` quedó reforzado para entornos virtuales, caches, logs, SQLite local, backups, builds y dependencias locales.
-- No se reescribió el historial Git.
-- `portfolio.db` permaneció intacta.
-- Pytest, check_db, lint y build quedaron aprobados.
-- Evidencia documentada en `docs/GIT_FASE_7_2.md`.
+- Lint y build frontend.
+- Pytest backend.
+- Revisión de integridad SQLite.
+- Revisión responsive del carrusel.
+- Revisión de altas administrativas con orden sugerido.
 
-### 7.3 Configuración productiva, CORS, secretos y variables — cerrada técnicamente
+## 16. Riesgos
 
-Separar entornos local/staging/producción. Configurar CORS explícito, secretos seguros y variables sin valores sensibles en Git.
+- Sobrecargar el carrusel con animaciones o dependencias innecesarias.
+- Introducir una convención de orden distinta a la existente.
+- Crear una sugerencia automática que no coincida con la convención real de datos.
+- Mezclar lógica visual con persistencia.
 
-Resultado:
+## 17. Criterios de aceptación
 
-- Configuración backend centralizada en `app.core.config`.
-- CORS, Trusted Hosts, OpenAPI, Basic Auth, logging y SQLite quedan validados por entorno.
-- Se agregaron `/health` y `/ready`.
-- Frontend centraliza `VITE_API_BASE_URL` y agrega `npm run validate:production-env`.
-- SQLite para Azure queda restringido a una instancia, un worker, sin WAL y con almacenamiento persistente.
-- No se crearon recursos Azure, no se desplegó y no se modificó `portfolio.db`.
-- Evidencia documentada en `docs/CONFIG_FASE_7_3.md`.
+- El carrusel es usable, infinito y responsive.
+- La accesibilidad se mantiene.
+- El orden sugerido coincide con la convención real.
+- El backend sigue siendo la autoridad final.
+- No se agregan campos ni migraciones.
 
-### 7.4 Azure Static Web Apps — cerrada técnicamente
+## 18. Ideas futuras
 
-Preparar el frontend en Azure Static Web Apps con build de React/Vite, `VITE_API_BASE_URL` productivo futuro y fallback SPA para rutas como `/admin`.
+1. Mejoras visuales de proyectos.
+2. Mejoras visuales de otras secciones.
+3. Gestión segura de imágenes.
+4. Actualización de documentación de Azure.
 
-Resultado:
+## 19. Documentación relacionada
 
-- Se creó `frontend/public/staticwebapp.config.json` con `navigationFallback` a `/index.html`.
-- `/admin` queda como ruta cliente; la seguridad real sigue en el backend con HTTP Basic.
-- Se configuraron headers mínimos y caché larga únicamente para assets versionados.
-- Se agregó `npm run validate:azure-static-config`.
-- Se agregó `npm run build:azure`.
-- Se creó una plantilla inactiva en `docs/deployment/azure-static-web-apps.workflow.yml.example`.
-- No se creó recurso Azure, no se activó workflow y no hubo despliegue.
-- Evidencia documentada en `docs/AZURE_STATIC_WEB_APPS_FASE_7_4.md`.
+- `README.md`
+- `CAMBIOS.md`
+- `backend/docs/API_FRONTEND.md`
+- `docs/CONTENIDO_PROFESIONAL_PORTAFOLIO.md`
+- `docs/INVENTARIO_CONTENIDO_PORTFOLIO.md`
+- `docs/HISTORIAL_CAMBIOS_DETALLADO.md`
+- `docs/planes_historicos/PLAN-001-2026-07-12-consolidacion-y-despliegue-azure.md`
 
-### 7.5 Azure App Service con SQLite persistente — cerrada técnicamente
+## 20. Estado inicial de Git y SQLite
 
-Configurar el backend en Azure App Service para Linux/Python usando SQLite en almacenamiento persistente compatible con Azure. No usar filesystem efímero para `portfolio.db`.
+- Git: árbol limpio al iniciar este plan.
+- SQLite: intacta al iniciar este plan.
 
-Resultado:
+## 21. Resultados finales, inicialmente pendientes
 
-- Se agregó `backend/startup.sh` para Linux/Python.
-- El startup usa `app.main:app`, un worker y no ejecuta migraciones, seeds ni instalaciones runtime.
-- `backend/` queda como raíz futura del paquete.
-- `SQLITE_DATABASE_PATH=/home/data/portfolio.db` queda como ruta futura recomendada y configurable.
-- `SQLITE_REQUIRE_EXISTING=true` evita crear una DB vacía en staging/production.
-- Se documentaron una instancia, un worker, sin WAL y sin scale-out.
-- Se creó una plantilla inactiva para GitHub Actions con OIDC futuro.
-- Se agregó validador App Service y pruebas backend.
-- No se creó recurso Azure, no se desplegó y no se transfirió `portfolio.db`.
-- Evidencia documentada en `docs/AZURE_APP_SERVICE_FASE_7_5.md`.
+- Implementación del carrusel.
+- Implementación del orden automático.
+- Pruebas y validaciones.
+- Documentación final del plan.
 
-### 7.6 Staging — siguiente lote
+## 22. Mensaje de commit final, inicialmente pendiente
 
-Levantar entorno de prueba remoto con datos controlados, backups verificados y configuración de origen cruzado real.
-
-### 7.7 Smoke tests remotos
-
-Validar público, admin, CORS, HTTPS, galería, PDF, contacto, persistencia y reinicio.
-
-### 7.8 Despliegue, backup y rollback
-
-Despliegue final solo con backup, procedimiento de restauración y rollback ensayado.
-
-## Documentación vigente
-
-- `CAMBIOS.md`: changelog resumido y estado actual.
-- `docs/HISTORIAL_CAMBIOS_DETALLADO.md`: historial largo.
-- `docs/PLAN_ACTUALIZACION_CONTENIDO_PROFESIONAL.md`: reglas editoriales y de confidencialidad aplicadas durante C0-C4.
-- `docs/CONTENIDO_PROFESIONAL_PORTAFOLIO.md`: fuente editorial vigente post-C3.
-- `docs/PAYLOAD_FASE_7_1.md`: optimización multimedia, endpoints de contenido y mediciones antes/después.
-- `docs/GIT_FASE_7_2.md`: limpieza segura del índice Git, retiro local-preservado de `backend/venv` y auditoría de sensibles.
-- `docs/CONFIG_FASE_7_3.md`: contrato de configuración, CORS, secretos, SQLite persistente, health/readiness y preparación Azure.
-- `docs/AZURE_STATIC_WEB_APPS_FASE_7_4.md`: preparación de Azure Static Web Apps, fallback SPA, build Azure y workflow inactivo.
-- `docs/AZURE_APP_SERVICE_FASE_7_5.md`: preparación de Azure App Service Linux/Python, `startup.sh`, SQLite persistente y workflow inactivo.
-- `docs/INVENTARIO_CONTENIDO_PORTFOLIO.md`: snapshot seguro del contenido post-C3.
-- `docs/QA_FASE_6.md`: evidencia histórica de QA.
-- `docs/QA_CONTENIDO_PROFESIONAL.md`: evidencia técnica, editorial y visual de C2-C4.
-- `docs/REVISION_ARCHIVOS_DUDOSOS.md`: inventario de archivos dudosos y decisión documental.
-- `backend/docs/API_FRONTEND.md`: contrato API vigente.
-
-## Documentación histórica archivada
-
-- `docs/archive/auditorias-2026-07-05/`
-- `docs/archive/postgresql/`
-
-Los documentos archivados no son planes vigentes.
-
-## Notas operativas
-
-- No ejecutar `reset_db.py`, `update_db.py`, `seed_db.py` ni migraciones sin lote explícito, backup y autorización.
-- No ejecutar `sync_professional_portfolio` ni `migrate_professional_content_fields` como parte de 7.0.
-- `portfolio.db`, backups, logs y `.env` no deben subirse a Git.
-- `backend/venv` fue retirado del índice en 7.2 y se conserva solo como entorno local ignorado.
-- No iniciar despliegues productivos antes de completar la preparación técnica, staging, pruebas remotas y rollback de la Fase 7.
+Pendiente de definir al cerrar PLAN-002.

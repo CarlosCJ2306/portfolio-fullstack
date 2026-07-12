@@ -1,10 +1,10 @@
-# Plan de actualización del contenido profesional
+# ANEXO-PLAN-001-2026-07-12 ? actualización del contenido profesional (histórico)
 
-Estado: **C0, C1, C2 y C3 completados; C4 es el siguiente lote**.
+Estado: **Hist?rico cerrado**.
 Motor vigente: **SQLite**.
 PostgreSQL: **fuera del alcance activo por decisión del propietario**.
 
-Este documento rige la actualización editorial y de confidencialidad del portfolio antes de producción.
+Este documento conserva la actualizaci?n editorial y de confidencialidad utilizada durante el PLAN-001.
 
 ## Objetivo
 
@@ -66,8 +66,8 @@ Actualizar el portfolio para reflejar con precisión la hoja de vida vigente, in
 - 5 relaciones `project_images` preservadas en el proyecto histórico inactivo.
 - 50 relaciones `project_skills` activas para los seis proyectos profesionales.
 
-El contenido vigente está en [CONTENIDO_PROFESIONAL_PORTAFOLIO.md](CONTENIDO_PROFESIONAL_PORTAFOLIO.md).
-El inventario seguro post-C3 está en [INVENTARIO_CONTENIDO_PORTFOLIO.md](INVENTARIO_CONTENIDO_PORTFOLIO.md).
+El contenido vigente está en [../CONTENIDO_PROFESIONAL_PORTAFOLIO.md](../CONTENIDO_PROFESIONAL_PORTAFOLIO.md).
+El inventario seguro post-C3 está en [../INVENTARIO_CONTENIDO_PORTFOLIO.md](../INVENTARIO_CONTENIDO_PORTFOLIO.md).
 
 ## Estrategia de datos
 
@@ -118,3 +118,9 @@ Alcance:
 - Proyectos no contienen métricas ni información interna.
 - Assets y mensajes se preservan.
 - C4 aprueba contratos, integridad, frontend y confidencialidad antes de Fase 7.
+
+## Cierre del PLAN-001
+
+- Este anexo conserva el plan editorial y de confidencialidad utilizado en C0-C3.
+- La referencia activa del contenido profesional vive en el documento ra?z correspondiente.
+- PLAN-001 queda cerrado para abrir PLAN-002.
