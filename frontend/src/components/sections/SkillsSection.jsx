@@ -1,34 +1,62 @@
-import { getSafeSvgDataUrl } from "../../utils/svgSecurity";
-import { buildLegacyAssetDataUrl, resolveMediaContentUrl } from "../../utils/mediaContent";
+import { useMemo } from "react";
+import SkillsCarousel from "./skills/SkillsCarousel";
 import "./SkillsSection.css";
 
+function getSortValue(skill) {
+  const displayOrder = Number(skill?.display_order);
+  const id = Number(skill?.id);
+
+  return {
+    displayOrder: Number.isFinite(displayOrder)
+      ? displayOrder
+      : Number.POSITIVE_INFINITY,
+    id: Number.isFinite(id) ? id : Number.POSITIVE_INFINITY,
+  };
+}
+
+function groupSkillsIntoColumns(skills) {
+  const columns = [];
+
+  for (let index = 0; index < skills.length; index += 3) {
+    columns.push(skills.slice(index, index + 3));
+  }
+
+  return columns;
+}
+
 export default function SkillsSection({ skills = [] }) {
-  /*
-    Este componente recibe las habilidades desde HomePage.jsx.
+  const orderedSkills = useMemo(() => {
+    if (!Array.isArray(skills)) {
+      return [];
+    }
 
-    Datos esperados desde el JSON:
-    skills: lista de habilidades técnicas guardadas en el backend.
+    return [...skills].sort((left, right) => {
+      const leftSort = getSortValue(left);
+      const rightSort = getSortValue(right);
 
-    Cada skill podría traer campos como:
-    - name
-    - title
-    - category
-    - level
-    - icon
-    - icon_svg
-  */
+      if (leftSort.displayOrder !== rightSort.displayOrder) {
+        return leftSort.displayOrder - rightSort.displayOrder;
+      }
 
-  const hasSkills = Array.isArray(skills) && skills.length > 0;
+      if (leftSort.id !== rightSort.id) {
+        return leftSort.id - rightSort.id;
+      }
 
-  if (!hasSkills) {
+      return 0;
+    });
+  }, [skills]);
+
+  const skillColumns = useMemo(
+    () => groupSkillsIntoColumns(orderedSkills),
+    [orderedSkills],
+  );
+
+  if (!orderedSkills.length) {
     return (
       <section id="skills" className="skills-section">
         <div className="container">
           <span className="badge">Skills</span>
-
-          {/* Aquí aparece un mensaje temporal si el backend todavía no envía skills. */}
           <h2 className="section-title">Habilidades técnicas</h2>
-
           <p className="section-description">
             Aún no hay habilidades registradas para mostrar.
           </p>
@@ -40,73 +68,18 @@ export default function SkillsSection({ skills = [] }) {
   return (
     <section id="skills" className="skills-section">
       <div className="container">
-        <div className="section-heading">
-          {/* Etiqueta visual de la sección. */}
-          <span className="badge">Skills</span>
-
-          {/* Título principal de la sección. */}
-          <h2 className="section-title">Habilidades técnicas</h2>
-
-          {/* Descripción corta para explicar qué se está mostrando. */}
-          <p className="section-description">
-            Tecnologías, herramientas y conocimientos que hacen parte de mi
-            perfil como desarrollador.
-          </p>
+        <div className="skills-section-heading">
+          <div>
+            <span className="badge">Skills</span>
+            <h2 className="section-title">Habilidades técnicas</h2>
+            <p className="section-description">
+              Tecnologías, herramientas y conocimientos que hacen parte de mi
+              perfil como desarrollador.
+            </p>
+          </div>
         </div>
 
-        <div className="skills-grid">
-          {/* Aquí se recorre la lista de skills recibida desde el JSON del backend. */}
-          {skills.map((skill) => {
-            const skillName =
-              skill.name || skill.title || skill.skill_name || "Skill";
-
-            const category =
-              skill.category || skill.type || "Tecnología";
-
-            const level =
-              skill.level || skill.proficiency || skill.level_name || "";
-
-            const safeSvgSrc = getSafeSvgDataUrl(skill.icon?.svg_content);
-            const iconSrc =
-              resolveMediaContentUrl(skill.icon)
-              || safeSvgSrc
-              || buildLegacyAssetDataUrl(skill.icon);
-
-            return (
-              <article
-                className="skill-card"
-                key={skill.id || skillName}
-              >
-                {/* 
-                  Ícono visual simple.
-                  Si luego el backend entrega SVG controlado, podemos renderizarlo aquí.
-                */}
-                <div className="skill-icon">
-                  {iconSrc ? (
-                    <img
-                      src={iconSrc}
-                      alt={skill.icon?.alt_text || skillName}
-                      className="skill-icon-img"
-                    />
-                  ) : (
-                    skillName.charAt(0).toUpperCase()
-                  )}
-                </div>
-
-                <div className="skill-content">
-                  {/* Nombre de la habilidad. */}
-                  <h3>{skillName}</h3>
-
-                  {/* Categoría de la habilidad. */}
-                  <p>{category}</p>
-
-                  {/* Nivel opcional, solo aparece si el JSON lo trae. */}
-                  {level && <span>{level}</span>}
-                </div>
-              </article>
-            );
-          })}
-        </div>
+        <SkillsCarousel columns={skillColumns} />
       </div>
     </section>
   );

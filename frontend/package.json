@@ -14,6 +14,8 @@
     "build:azure": "npm run validate:production-env && npm run validate:azure-static-config -- --allow-active-workflow && vite build && node scripts/validate-static-web-app-config.mjs --dist --allow-active-workflow"
   },
   "dependencies": {
+    "embla-carousel-auto-scroll": "^8.6.0",
+    "embla-carousel-react": "^8.6.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7"
   },

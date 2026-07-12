@@ -3,7 +3,7 @@
 ## Plan activo
 
 - Plan: `PLAN-002`
-- Estado: En análisis
+- Estado: En progreso
 - Changelog activo del plan vigente.
 
 ## Resumen del PLAN-001
@@ -19,13 +19,32 @@
 - Validación defensiva del ID en mensajes administrativos.
 - Commit real: `80d4847` (`[PLAN-001] Reforzar validación de ID en mensajes administrativos`).
 
-## Cambios pequeños del PLAN-002
-
-- Pendiente.
-
 ## Avances del carrusel
 
-- Pendiente de análisis técnico.
+- Carrusel público interactivo de skills implementado.
+- Integración con Embla Carousel y Auto Scroll.
+- Tres filas permanentes.
+- Agrupación de tres skills por columna.
+- Movimiento automático continuo.
+- Drag con mouse y swipe táctil.
+- Pausa manual y reanudación diferida.
+- `prefers-reduced-motion`.
+- Responsive fluido con `container queries` y `clamp()`.
+- Mejora de legibilidad en móvil y tableta.
+- `npm --prefix .\frontend run lint` aprobado.
+- `npm --prefix .\frontend run build` aprobado.
+- `git diff --check` aprobado.
+- QA visual aprobada por el usuario.
+
+## Nueva prioridad: vista previa PDF responsive
+
+- La vista incrustada falla en el teléfono probado.
+- Abrir el PDF funciona correctamente.
+- Descargar el PDF funciona correctamente.
+- La compatibilidad y el comportamiento en tabletas todavía deben validarse.
+- El análisis técnico del visor queda pendiente.
+- Todavía no se eligió solución ni dependencia.
+- El orden automático administrativo pasa a ejecutarse después de esta corrección.
 
 ## Avances del orden automático
 
@@ -33,7 +52,9 @@
 
 ## Pruebas y verificaciones
 
-- Pendiente.
+- Lint, build y diff check aprobados para el carrusel.
+- QA visual aprobada por el usuario para el carrusel.
+- Pendiente la validación técnica de PDF responsive.
 
 ## Riesgos pendientes
 

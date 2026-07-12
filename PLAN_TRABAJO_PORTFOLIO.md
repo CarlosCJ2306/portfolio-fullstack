@@ -1,9 +1,9 @@
-# PLAN-002 — Carrusel interactivo de skills y orden automático administrativo
+# PLAN-002 — Carrusel de skills, vista previa PDF responsive y orden automático administrativo
 
 ## 1. Identificación del plan
 
 - Número: `PLAN-002`
-- Estado: En análisis
+- Estado: En progreso
 - Fecha: 2026-07-12
 - Rama activa: `dev-cj`
 
@@ -23,32 +23,63 @@
 - Archivo histórico: `docs/planes_historicos/PLAN-001-2026-07-12-consolidacion-y-despliegue-azure.md`
 - Changelog histórico: `docs/planes_historicos/CAMBIOS-PLAN-001-2026-07-12.md`
 
-## 4. Prioridad principal
+## 4. Prioridades
 
-1. Carrusel interactivo de skills.
-2. Orden automático administrativo.
+- Completado: carrusel interactivo de skills.
+- Prioridad activa: vista previa PDF responsive.
+- Pendiente posterior: orden automático administrativo.
 
 ## 5. Objetivo general
 
-Mejorar la experiencia del portfolio con un carrusel público infinito, interactivo y responsive para skills, y con sugerencia automática del siguiente orden al crear registros administrativos.
+Mejorar la experiencia del portfolio con un carrusel público infinito, interactivo y responsive para skills, luego corregir la vista previa incrustada de PDF en teléfonos y tabletas, y después sugerir automáticamente el siguiente orden al crear registros administrativos.
 
 ## 6. Problema o necesidad
 
-- La sección pública de skills hoy se comporta como una grilla estática.
+- La sección pública de skills ya quedó implementada y aprobada visualmente.
+- La vista previa incrustada de PDF presenta problemas de compatibilidad en dispositivos móviles, incluidos teléfonos y tabletas, aunque abrir y descargar el archivo funcionan correctamente.
 - El panel administrativo expone el orden, pero el alta manual requiere más fricción de la necesaria.
 - El proyecto ya tiene una base estable; conviene crecer con componentes pequeños y sin duplicar lógica.
 
 ## 7. Alcance
 
-### 7.1 Carrusel interactivo de skills
+### 7.0 Carrusel interactivo de skills
 
-- Respetar el orden de visualización actual del backend (`display_order` en el código real).
-- Usar tres filas visuales sin agregar columnas ni campos nuevos.
-- Movimiento infinito, autoplay, arrastre con mouse y swipe táctil.
-- Pausa durante interacción y reanudación automática desde la posición actual.
-- Responsive en móvil, tableta y escritorio.
-- Accesibilidad y `prefers-reduced-motion`.
-- Reutilización de componentes/utilidades solo si aporta valor real.
+- Implementado con Embla Carousel y Auto Scroll.
+- Agrupación de hasta tres skills por columna.
+- Tres filas permanentes.
+- Movimiento infinito.
+- Drag con mouse y swipe táctil.
+- Pausa manual y durante la interacción.
+- Reanudación diferida.
+- `prefers-reduced-motion`.
+- Diseño responsive fluido con `container queries` y `clamp()`.
+- Mejoras de legibilidad en móvil y tableta.
+- Orden defensivo mediante `display_order`.
+- Archivos involucrados:
+  - `frontend/package.json`
+  - `frontend/package-lock.json`
+  - `frontend/src/components/sections/SkillsSection.jsx`
+  - `frontend/src/components/sections/SkillsSection.css`
+  - `frontend/src/components/sections/skills/SkillsCarousel.jsx`
+  - `frontend/src/components/sections/skills/SkillCard.jsx`
+- Verificaciones aprobadas:
+  - `npm --prefix .\frontend run lint`
+  - `npm --prefix .\frontend run build`
+  - `git diff --check`
+  - QA visual en escritorio
+  - QA visual en tableta
+  - QA visual en teléfono
+
+### 7.1 Tarea activa: vista previa PDF responsive
+
+- El fallo fue comprobado en el teléfono probado.
+- Abrir el PDF continúa funcionando.
+- Descargar el PDF continúa funcionando.
+- La compatibilidad y el comportamiento en tabletas todavía deben validarse.
+- Analizar el visor incrustado actual de certificados y documentos PDF.
+- Corregir la experiencia en teléfono y tableta sin romper escritorio.
+- Mantener abrir y descargar como acciones funcionales.
+- Evaluar si el visor necesita fallback responsive o render alternativo.
 
 ### 7.2 Orden automático administrativo
 
@@ -73,7 +104,7 @@ Mejorar la experiencia del portfolio con un carrusel público infinito, interact
 - No ejecutar scripts destructivos.
 - No instalar dependencias sin justificación.
 - No crear capas o abstracciones prematuras.
-- No romper responsive, accesibilidad ni manejo seguro de iconos/imágenes.
+- No romper responsive, accesibilidad ni manejo seguro de iconos e imágenes.
 
 ## 10. Principios de arquitectura escalable
 
@@ -106,62 +137,80 @@ Mejorar la experiencia del portfolio con un carrusel público infinito, interact
 ## 11. Estrategia de componentes reutilizables
 
 - Compartir únicamente lo que ya tenga uso real.
-- Evitar librerías nuevas si React, CSS y utilidades locales bastan.
+- Evitar dependencias nuevas sin justificación; usar librerías mantenidas cuando reduzcan complejidad y riesgo, como Embla Carousel en el carrusel de skills.
 - Mantener el carrusel como componente aislado y la lógica de orden como helper de backend con apoyo en frontend.
 
-## 12. Tarea 1: carrusel interactivo de skills
+## 12. Tarea 1: carrusel interactivo de skills — implementada
 
-- Analizar la implementación actual de `SkillsSection`.
-- Diseñar la distribución de 3 filas con la secuencia global intacta.
-- Decidir si la solución será propia o apoyada por una dependencia mínima ya justificada.
-- Preparar soporte para autoplay, drag, swipe y pausa/reanudación.
+- Embla Carousel y Auto Scroll.
+- Agrupación de hasta tres skills por columna.
+- Orden mediante `display_order`.
+- Tres filas.
+- Loop y movimiento automático.
+- Drag y swipe.
+- Pausa manual y durante drag/swipe.
+- Reanudación diferida.
+- `prefers-reduced-motion`.
+- `container queries` y `clamp()`.
+- Mejoras de legibilidad.
+- `lint`, `build` y `git diff --check` aprobados.
+- QA visual aprobada por el usuario.
 
-## 13. Tarea 2: orden automático administrativo
+## 13. Tarea 2: vista previa PDF responsive
+
+- Localizar el componente o modal que muestra el PDF.
+- Diagnosticar por qué el visor incrustado no se renderiza bien en teléfono.
+- Definir un fallback responsive que preserve abrir y descargar.
+- Evitar introducir una dependencia nueva sin análisis previo.
+
+## 14. Tarea 3: orden automático administrativo
 
 - Localizar todas las entidades reales que usan `display_order`.
 - Definir dónde se sugiere el siguiente orden.
 - Mantener validación backend como autoridad final.
 - Empezar por la entidad piloto más simple y reutilizable.
 
-## 14. Fases de trabajo
+## 15. Fases de trabajo
 
-1. Análisis técnico y selección de enfoque.
-2. Implementación del carrusel de skills.
-3. Implementación del orden automático en la entidad piloto.
-4. Extensión al resto de entidades con `display_order`.
-5. Pruebas, accesibilidad y documentación.
+1. Carrusel de skills - implementado y validado.
+2. Análisis técnico del visor PDF actual.
+3. Implementación y QA de vista previa PDF responsive.
+4. Orden automático administrativo.
+5. Pruebas finales y cierre documental.
 
-## 15. Pruebas previstas
+## 16. Pruebas previstas
 
 - Lint y build frontend.
 - Pytest backend.
 - Revisión de integridad SQLite.
 - Revisión responsive del carrusel.
+- Revisión responsive del visor PDF.
 - Revisión de altas administrativas con orden sugerido.
 
-## 16. Riesgos
+## 17. Riesgos
 
-- Sobrecargar el carrusel con animaciones o dependencias innecesarias.
+- Sobrecargar el visor o el carrusel con animaciones o dependencias innecesarias.
 - Introducir una convención de orden distinta a la existente.
 - Crear una sugerencia automática que no coincida con la convención real de datos.
 - Mezclar lógica visual con persistencia.
 
-## 17. Criterios de aceptación
+## 18. Criterios de aceptación
 
 - El carrusel es usable, infinito y responsive.
+- La vista previa PDF es clara en teléfono y tableta.
 - La accesibilidad se mantiene.
 - El orden sugerido coincide con la convención real.
 - El backend sigue siendo la autoridad final.
 - No se agregan campos ni migraciones.
 
-## 18. Ideas futuras
+## 19. Ideas futuras
 
 1. Mejoras visuales de proyectos.
 2. Mejoras visuales de otras secciones.
 3. Gestión segura de imágenes.
 4. Actualización de documentación de Azure.
 
-## 19. Documentación relacionada
+## 20. Documentación relacionada
 
 - `README.md`
 - `CAMBIOS.md`
@@ -171,18 +220,18 @@ Mejorar la experiencia del portfolio con un carrusel público infinito, interact
 - `docs/HISTORIAL_CAMBIOS_DETALLADO.md`
 - `docs/planes_historicos/PLAN-001-2026-07-12-consolidacion-y-despliegue-azure.md`
 
-## 20. Estado inicial de Git y SQLite
+## 21. Estado inicial de Git y SQLite
 
 - Git: árbol limpio al iniciar este plan.
 - SQLite: intacta al iniciar este plan.
 
-## 21. Resultados finales, inicialmente pendientes
+## 22. Resultados finales, inicialmente pendientes
 
-- Implementación del carrusel.
+- Implementación y QA de la vista previa PDF responsive.
 - Implementación del orden automático.
 - Pruebas y validaciones.
 - Documentación final del plan.
 
-## 22. Mensaje de commit final, inicialmente pendiente
+## 23. Mensaje de commit final, inicialmente pendiente
 
 Pendiente de definir al cerrar PLAN-002.
