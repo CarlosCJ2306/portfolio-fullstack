@@ -59,8 +59,10 @@ export default function AdminMessagesPanel({
           <p className="muted">No hay mensajes registrados.</p>
         ) : (
           orderedMessages.map((message) => {
-            const isMarking = markingMessageIds?.includes(message.id);
-            const isDeleting = deletingMessageIds?.includes(message.id);
+            const messageId = message.id;
+            const hasValidMessageId = Number.isInteger(messageId) && messageId > 0;
+            const isMarking = markingMessageIds?.includes(messageId);
+            const isDeleting = deletingMessageIds?.includes(messageId);
             const isItemBusy = isMarking || isDeleting;
 
             return (
@@ -88,8 +90,8 @@ export default function AdminMessagesPanel({
                       <button
                         type="button"
                         className="admin-button secondary"
-                        onClick={() => onMarkAsRead(message.id)}
-                        disabled={isItemBusy}
+                        onClick={() => onMarkAsRead(messageId)}
+                        disabled={isItemBusy || !hasValidMessageId}
                       >
                         {isMarking ? "Marcando..." : "Marcar leído"}
                       </button>
@@ -98,8 +100,8 @@ export default function AdminMessagesPanel({
                       <button
                         type="button"
                         className="admin-button ghost"
-                        onClick={() => onDeleteMessage(message.id)}
-                        disabled={isItemBusy}
+                        onClick={() => onDeleteMessage(messageId)}
+                        disabled={isItemBusy || !hasValidMessageId}
                       >
                         {isDeleting ? "Eliminando..." : "Eliminar"}
                       </button>
