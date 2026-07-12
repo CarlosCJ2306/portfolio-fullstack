@@ -12,6 +12,62 @@ const FOCUSABLE_SELECTOR = [
   '[tabindex]:not([tabindex="-1"])',
 ].join(", ");
 
+const PDF_FALLBACK_MEDIA_QUERY =
+  "(max-width: 1024px), (hover: none) and (pointer: coarse)";
+
+const PDF_FILE_SAFE_NAME_PATTERN = /[^A-Za-z0-9._-]+/g;
+
+function useCompactPdfViewer() {
+  const getInitialValue = () => {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+      return false;
+    }
+
+    return window.matchMedia(PDF_FALLBACK_MEDIA_QUERY).matches;
+  };
+
+  const [isCompactPdfViewer, setIsCompactPdfViewer] = useState(getInitialValue);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+      return undefined;
+    }
+
+    const mediaQueryList = window.matchMedia(PDF_FALLBACK_MEDIA_QUERY);
+
+    const updateMatches = (event) => {
+      setIsCompactPdfViewer(event.matches);
+    };
+
+    if (typeof mediaQueryList.addEventListener === "function") {
+      mediaQueryList.addEventListener("change", updateMatches);
+
+      return () => {
+        mediaQueryList.removeEventListener("change", updateMatches);
+      };
+    }
+
+    if (typeof mediaQueryList.addListener === "function") {
+      mediaQueryList.addListener(updateMatches);
+
+      return () => {
+        mediaQueryList.removeListener(updateMatches);
+      };
+    }
+
+    return undefined;
+  }, []);
+
+  return isCompactPdfViewer;
+}
+
+function stripControlCharacters(value) {
+  return Array.from(String(value)).filter((character) => {
+    const code = character.charCodeAt(0);
+    return code >= 32 && code !== 127;
+  }).join("");
+}
+
 function getFocusableElements(container) {
   if (!container) {
     return [];
@@ -30,12 +86,15 @@ async function createPdfPreviewResource(certificateFile) {
     certificateFile?.mime_type !== "application/pdf"
   ) {
     return {
-      url: "",
+      sourceUrl: "",
+      previewUrl: "",
+      downloadUrl: "",
       error: "El archivo PDF no esta disponible para vista previa.",
     };
   }
 
   const contentUrl = resolveMediaContentUrl(certificateFile);
+  const sourceUrl = contentUrl || "";
 
   if (contentUrl) {
     try {
@@ -43,20 +102,27 @@ async function createPdfPreviewResource(certificateFile) {
 
       if (!response.ok) {
         return {
-          url: "",
+          sourceUrl,
+          previewUrl: "",
+          downloadUrl: "",
           error: "El PDF no esta disponible para vista previa.",
         };
       }
 
       const blob = await response.blob();
+      const previewUrl = URL.createObjectURL(blob);
 
       return {
-        url: URL.createObjectURL(blob),
+        sourceUrl,
+        previewUrl,
+        downloadUrl: previewUrl,
         error: "",
       };
     } catch {
       return {
-        url: "",
+        sourceUrl,
+        previewUrl: "",
+        downloadUrl: "",
         error:
           "No se pudo preparar el PDF para mostrarlo. Intenta abrirlo o descargarlo nuevamente.",
       };
@@ -65,7 +131,9 @@ async function createPdfPreviewResource(certificateFile) {
 
   if (!certificateFile?.data_base64) {
     return {
-      url: "",
+      sourceUrl,
+      previewUrl: "",
+      downloadUrl: "",
       error: "El archivo PDF no esta disponible para vista previa.",
     };
   }
@@ -77,7 +145,9 @@ async function createPdfPreviewResource(certificateFile) {
 
     if (!base64) {
       return {
-        url: "",
+        sourceUrl,
+        previewUrl: "",
+        downloadUrl: "",
         error: "El archivo PDF no contiene datos validos para abrirse.",
       };
     }
@@ -90,18 +160,57 @@ async function createPdfPreviewResource(certificateFile) {
     }
 
     const blob = new Blob([bytes], { type: "application/pdf" });
+    const previewUrl = URL.createObjectURL(blob);
 
     return {
-      url: URL.createObjectURL(blob),
+      sourceUrl,
+      previewUrl,
+      downloadUrl: previewUrl,
       error: "",
     };
   } catch {
     return {
-      url: "",
+      sourceUrl,
+      previewUrl: "",
+      downloadUrl: "",
       error:
         "No se pudo preparar el PDF para mostrarlo. Intenta abrirlo o descargarlo nuevamente.",
     };
   }
+}
+
+function getPdfDisplayName(certification, certificateFile) {
+  return (
+    certification?.name ||
+    certification?.title ||
+    certification?.certification_name ||
+    certificateFile?.file_name ||
+    "Documento PDF"
+  );
+}
+
+function getPdfFileName(certificationName, certificateFile) {
+  const rawName =
+    certificateFile?.file_name ||
+    certificationName ||
+    "documento-pdf";
+
+  const normalizedName = String(rawName)
+    .replaceAll("\\", "/")
+    .split("/")
+    .pop() || "documento-pdf";
+  const cleanedName = stripControlCharacters(normalizedName)
+    .replace(PDF_FILE_SAFE_NAME_PATTERN, "_")
+    .replace(/^_+|_+$/g, "")
+    .trim();
+
+  if (!cleanedName) {
+    return "documento-pdf.pdf";
+  }
+
+  return cleanedName.toLowerCase().endsWith(".pdf")
+    ? cleanedName
+    : `${cleanedName}.pdf`;
 }
 
 function buildPdfDataUrl(certificateFile) {
@@ -140,6 +249,8 @@ export default function CertificationsSection({ certifications = [] }) {
   const modalRef = useRef(null);
   const closeButtonRef = useRef(null);
   const lastTriggerRef = useRef(null);
+  const previewRequestRef = useRef(0);
+  const isCompactPdfViewer = useCompactPdfViewer();
 
   const certificationModalTitleId = `certification-modal-title-${selectedPdf?.name || "active"}`;
 
@@ -169,7 +280,7 @@ export default function CertificationsSection({ certifications = [] }) {
   }, [selectedPdf]);
 
   useEffect(() => {
-    const currentUrl = selectedPdf?.url;
+    const currentUrl = selectedPdf?.previewUrl;
 
     return () => {
       if (currentUrl) {
@@ -191,33 +302,67 @@ export default function CertificationsSection({ certifications = [] }) {
   }
 
   function closePdfModal() {
+    previewRequestRef.current += 1;
     setSelectedPdf(null);
     restoreTriggerFocus();
   }
 
   async function openPdfModal(certification, triggerElement) {
-    const certificationName =
-      certification?.name ||
-      certification?.title ||
-      certification?.certification_name ||
-      "Certificacion";
+    const certificationName = getPdfDisplayName(
+      certification,
+      certification?.certificate_file
+    );
+    const pdfFileName = getPdfFileName(
+      certificationName,
+      certification?.certificate_file
+    );
+    const requestId = previewRequestRef.current + 1;
+
+    previewRequestRef.current = requestId;
+    lastTriggerRef.current = triggerElement || null;
+    setPdfErrorMessage("");
+    setSelectedPdf({
+      name: certificationName,
+      sourceUrl: resolveMediaContentUrl(certification?.certificate_file),
+      previewUrl: "",
+      downloadUrl: "",
+      fileName: pdfFileName,
+      previewError: "",
+      isLoading: true,
+    });
 
     const previewResource = await createPdfPreviewResource(
       certification?.certificate_file
     );
 
-    if (!previewResource.url) {
-      setPdfErrorMessage(previewResource.error);
+    if (previewRequestRef.current !== requestId) {
       return;
     }
 
-    lastTriggerRef.current = triggerElement || null;
-    setPdfErrorMessage("");
-    setSelectedPdf({
-      name: certificationName,
-      url: previewResource.url,
-      downloadUrl: previewResource.url || buildPdfDataUrl(certification?.certificate_file),
-      fileName: `${certificationName}.pdf`,
+    if (!previewResource.previewUrl && previewResource.error) {
+      setPdfErrorMessage(previewResource.error);
+    }
+
+    setSelectedPdf((currentSelectedPdf) => {
+      if (!currentSelectedPdf || currentSelectedPdf.name !== certificationName) {
+        return currentSelectedPdf;
+      }
+
+      const previewUrl = previewResource.previewUrl || "";
+      const downloadUrl =
+        previewResource.downloadUrl ||
+        previewUrl ||
+        currentSelectedPdf.sourceUrl ||
+        buildLegacyAssetDataUrl(certification?.certificate_file);
+
+      return {
+        ...currentSelectedPdf,
+        sourceUrl: previewResource.sourceUrl || currentSelectedPdf.sourceUrl || "",
+        previewUrl,
+        downloadUrl,
+        previewError: previewResource.error || "",
+        isLoading: false,
+      };
     });
   }
 
@@ -257,6 +402,9 @@ export default function CertificationsSection({ certifications = [] }) {
 
   const hasCertifications =
     Array.isArray(certifications) && certifications.length > 0;
+  const modalIntroText = isCompactPdfViewer
+    ? "Consulta el documento con el visor de tu dispositivo."
+    : "Si tu navegador no muestra la vista previa, usa Abrir o Descargar.";
 
   if (!hasCertifications) {
     return (
@@ -413,6 +561,25 @@ export default function CertificationsSection({ certifications = [] }) {
       </section>
 
       {selectedPdf && (
+        (() => {
+          const showEmbeddedPreview = Boolean(
+            selectedPdf.previewUrl
+            && !selectedPdf.previewError
+            && !isCompactPdfViewer
+          );
+          const openPdfUrl =
+            selectedPdf.sourceUrl || selectedPdf.previewUrl || "";
+          const downloadPdfUrl =
+            selectedPdf.downloadUrl ||
+            selectedPdf.previewUrl ||
+            selectedPdf.sourceUrl ||
+            "";
+          const showFallbackMessage = isCompactPdfViewer
+            ? "Este dispositivo abrirá el PDF en el visor del navegador o del sistema."
+            : selectedPdf.previewError ||
+              (selectedPdf.isLoading ? "Preparando la vista previa del PDF." : "");
+
+          return (
         <div
           className="pdf-modal-overlay"
           onClick={(event) => {
@@ -424,7 +591,7 @@ export default function CertificationsSection({ certifications = [] }) {
         >
           <div
             ref={modalRef}
-            className="pdf-modal"
+            className={`pdf-modal${showEmbeddedPreview ? "" : " pdf-modal--fallback"}`}
             role="dialog"
             aria-modal="true"
             aria-labelledby={certificationModalTitleId}
@@ -434,9 +601,7 @@ export default function CertificationsSection({ certifications = [] }) {
             <div className="pdf-modal-header">
               <div className="pdf-modal-header__content">
                 <h3 id={certificationModalTitleId}>{selectedPdf.name}</h3>
-                <p>
-                  Si tu navegador no muestra la vista previa, usa Abrir o Descargar.
-                </p>
+                <p>{modalIntroText}</p>
               </div>
 
               <button
@@ -451,35 +616,76 @@ export default function CertificationsSection({ certifications = [] }) {
             </div>
 
             <div className="pdf-modal-actions">
-              <a
-                href={selectedPdf.url}
-                target="_blank"
-                rel="noreferrer"
-                className="certification-link"
-                aria-label={`Abrir PDF de ${selectedPdf.name} en nueva pestana`}
-              >
-                Abrir
-              </a>
-
-              {selectedPdf.downloadUrl && (
+              {openPdfUrl ? (
                 <a
-                  href={selectedPdf.downloadUrl}
+                  href={openPdfUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="certification-link"
+                  aria-label={`Abrir PDF de ${selectedPdf.name} en nueva pestana`}
+                >
+                  Abrir PDF
+                </a>
+              ) : (
+                <span className="certification-link certification-link--disabled" aria-disabled="true">
+                  Abrir PDF
+                </span>
+              )}
+
+              {downloadPdfUrl ? (
+                <a
+                  href={downloadPdfUrl}
                   download={selectedPdf.fileName}
                   className="certification-link"
                 >
                   Descargar PDF
                 </a>
+              ) : (
+                <span className="certification-link certification-link--disabled" aria-disabled="true">
+                  Descargar PDF
+                </span>
               )}
             </div>
 
-            <iframe
-              title={`PDF de ${selectedPdf.name}`}
-              src={selectedPdf.url}
-              className="pdf-modal-frame"
-              tabIndex={0}
-            />
+            <div className="pdf-modal-body">
+              {showEmbeddedPreview ? (
+                <iframe
+                  title={`PDF de ${selectedPdf.name}`}
+                  src={selectedPdf.previewUrl}
+                  className="pdf-modal-frame"
+                  tabIndex={0}
+                />
+              ) : (
+                <div className="pdf-modal-fallback" role="status">
+                  <div className="pdf-modal-fallback__icon" aria-hidden="true">
+                    PDF
+                  </div>
+
+                  <div className="pdf-modal-fallback__content">
+                    <p className="pdf-modal-fallback__eyebrow">
+                      Vista previa adaptable
+                    </p>
+
+                    <h4>{selectedPdf.name}</h4>
+
+                    <p>
+                      {showFallbackMessage ||
+                        "Este documento se abrirá en el visor del navegador o del sistema."}
+                    </p>
+
+                    {selectedPdf.previewError && (
+                      <p className="pdf-modal-fallback__error" role="alert">
+                        {selectedPdf.previewError}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
+          );
+        })()
       )}
     </>
   );

@@ -36,25 +36,32 @@
 - `git diff --check` aprobado.
 - QA visual aprobada por el usuario.
 
-## Nueva prioridad: vista previa PDF responsive
+## Vista previa PDF responsive
 
-- La vista incrustada falla en el teléfono probado.
-- Abrir el PDF funciona correctamente.
-- Descargar el PDF funciona correctamente.
-- La compatibilidad y el comportamiento en tabletas todavía deben validarse.
-- El análisis técnico del visor queda pendiente.
-- Todavía no se eligió solución ni dependencia.
-- El orden automático administrativo pasa a ejecutarse después de esta corrección.
+- Se conservo el iframe para escritorio.
+- Se agrego fallback para telefonos y tabletas.
+- El fallback muestra titulo, explicacion, Abrir PDF y Descargar PDF.
+- Abrir utiliza la URL fuente directa cuando esta disponible.
+- Se elimino el visor roto y el UUID visible.
+- Se corrigio la altura excesiva del modal movil.
+- No se instalaron dependencias.
+- No se modifico backend, SQLite ni contratos API.
+- Lint, build y git diff --check aprobados.
+- QA funcional aprobada por el usuario.
 
-## Avances del orden automático
+## Prioridad activa
 
-- Pendiente de análisis técnico.
+- El orden automatico administrativo pasa a ser la prioridad activa del PLAN-002.
+
+## Avances del orden automatico
+
+- Pendiente de analisis tecnico.
 
 ## Pruebas y verificaciones
 
-- Lint, build y diff check aprobados para el carrusel.
+- Lint, build y diff check aprobados para el carrusel y la vista previa PDF responsive.
 - QA visual aprobada por el usuario para el carrusel.
-- Pendiente la validación técnica de PDF responsive.
+- QA funcional aprobada por el usuario para la vista previa PDF responsive.
 
 ## Riesgos pendientes
 
