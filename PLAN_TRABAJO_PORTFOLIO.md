@@ -27,7 +27,7 @@
 
 - Completado: carrusel interactivo de skills.
 - Completado: vista previa PDF responsive.
-- Prioridad activa: orden automatico administrativo.
+- Prioridad activa: orden automático administrativo.
 
 ## 5. Objetivo general
 
@@ -36,7 +36,7 @@ Mejorar la experiencia del portfolio con un carrusel público infinito, interact
 ## 6. Problema o necesidad
 
 - La sección pública de skills ya quedó implementada y aprobada visualmente.
-- La vista previa incrustada de PDF presenta problemas de compatibilidad en dispositivos móviles, incluidos teléfonos y tabletas, aunque abrir y descargar el archivo funcionan correctamente.
+- La incompatibilidad de la vista previa PDF en dispositivos móviles fue resuelta mediante un fallback responsive, conservando las acciones de abrir y descargar.
 - El panel administrativo expone el orden, pero el alta manual requiere más fricción de la necesaria.
 - El proyecto ya tiene una base estable; conviene crecer con componentes pequeños y sin duplicar lógica.
 
@@ -70,14 +70,14 @@ Mejorar la experiencia del portfolio con un carrusel público infinito, interact
   - QA visual en tableta
   - QA visual en teléfono
 
-### 7.1 Tarea activa: vista previa PDF responsive
+### 7.1 Vista previa PDF responsive — implementada
 
-- Implementada con iframe conservado en escritorio y fallback responsive en telefonos y tabletas.
-- Deteccion mediante media query y capacidades del dispositivo.
+- Implementada con iframe conservado en escritorio y fallback responsive en teléfonos y tabletas.
+- Detección mediante media query y capacidades del dispositivo.
 - Apertura mediante URL fuente directa.
 - Descarga conservada.
-- Titulo legible.
-- Eliminacion del UUID visible.
+- Título legible.
+- Eliminación del UUID visible.
 - Modal compacto sin reservar la altura del iframe.
 - Fallback ante error de vista previa.
 - Sin dependencias nuevas.
@@ -90,19 +90,11 @@ Mejorar la experiencia del portfolio con un carrusel público infinito, interact
   - `npm --prefix .\frontend run lint`
   - `npm --prefix .\frontend run build`
   - `git diff --check`
-  - QA funcional en telefono
+  - QA funcional en teléfono
   - Abrir PDF
   - Descargar PDF
   - modal compacto
   - visor incrustado conservado en escritorio
-
-### 7.2 Orden automatico administrativo
-
-- Detectar entidades reales que ya usan `display_order`.
-- Sugerir el siguiente valor cuando el usuario no lo modifique.
-- Mantener el valor editable.
-- El backend conserva la autoridad final.
-- No reordenar registros existentes ni compactar al eliminar en esta primera mejora.
 
 ### 7.2 Orden automático administrativo
 
@@ -179,20 +171,35 @@ Mejorar la experiencia del portfolio con un carrusel público infinito, interact
 - `lint`, `build` y `git diff --check` aprobados.
 - QA visual aprobada por el usuario.
 
-## 13. Tarea 2: vista previa PDF responsive
+## 13. Tarea 2: vista previa PDF responsive — implementada
 
-- Localizar el componente o modal que muestra el PDF.
-- Diagnosticar por qué el visor incrustado no se renderiza bien en teléfono.
-- Definir un fallback responsive que preserve abrir y descargar.
-- Evitar introducir una dependencia nueva sin análisis previo.
+- Se conservó el iframe para la vista previa en escritorio.
+- Se agregó un fallback responsive para teléfonos y tabletas.
+- La detección se realiza mediante media query y capacidades del dispositivo.
+- La apertura utiliza la URL fuente directa cuando está disponible.
+- La descarga conserva un nombre de archivo legible.
+- Se eliminó el visor roto y el UUID visible.
+- Se corrigió la altura excesiva del modal móvil.
+- Se añadió fallback ante errores de vista previa.
+- No se instalaron dependencias nuevas.
+- No se modificaron backend, contratos API ni SQLite.
+- Lint, build y git diff --check fueron aprobados.
+- La QA funcional fue aprobada por el usuario.
+
+## 14. Tarea 3: orden automático administrativo
+
+- Localizar todas las entidades reales que usan `display_order`.
+- Definir dónde se sugiere el siguiente orden.
+- Mantener validación backend como autoridad final.
+- Empezar por una entidad piloto y extender el patrón de forma proporcional.
+- No reordenar registros existentes ni compactar al eliminar.
 
 ## 15. Fases de trabajo
 
-1. Carrusel de skills - implementado y validado.
-2. Vista previa PDF responsive - implementada y validada.
-3. Orden automatico administrativo - prioridad activa.
+1. Carrusel de skills — implementado y validado.
+2. Vista previa PDF responsive — implementada y validada.
+3. Orden automático administrativo — prioridad activa.
 4. Pruebas finales y cierre documental.
-
 
 ## 16. Pruebas previstas
 
@@ -243,10 +250,10 @@ Mejorar la experiencia del portfolio con un carrusel público infinito, interact
 
 ## 22. Resultados finales, inicialmente pendientes
 
-- Implementación y QA de la vista previa PDF responsive.
-- Implementación del orden automático.
+- Implementación del orden automático administrativo.
 - Pruebas y validaciones.
-- Documentación final del plan.
+- Validaciones de SQLite.
+- Documentación final del PLAN-002.
 
 ## 23. Mensaje de commit final, inicialmente pendiente
 

@@ -38,24 +38,24 @@
 
 ## Vista previa PDF responsive
 
-- Se conservo el iframe para escritorio.
-- Se agrego fallback para telefonos y tabletas.
-- El fallback muestra titulo, explicacion, Abrir PDF y Descargar PDF.
-- Abrir utiliza la URL fuente directa cuando esta disponible.
-- Se elimino el visor roto y el UUID visible.
-- Se corrigio la altura excesiva del modal movil.
+- Se conservó el iframe para escritorio.
+- Se agregó fallback para teléfonos y tabletas.
+- El fallback muestra título, explicación, Abrir PDF y Descargar PDF.
+- Abrir utiliza la URL fuente directa cuando está disponible.
+- Se eliminó el visor roto y el UUID visible.
+- Se corrigió la altura excesiva del modal móvil.
 - No se instalaron dependencias.
-- No se modifico backend, SQLite ni contratos API.
+- No se modificó backend, SQLite ni contratos API.
 - Lint, build y git diff --check aprobados.
 - QA funcional aprobada por el usuario.
 
 ## Prioridad activa
 
-- El orden automatico administrativo pasa a ser la prioridad activa del PLAN-002.
+- El orden automático administrativo pasa a ser la prioridad activa del PLAN-002.
 
-## Avances del orden automatico
+## Avances del orden automático
 
-- Pendiente de analisis tecnico.
+- Pendiente de análisis técnico.
 
 ## Pruebas y verificaciones
 
