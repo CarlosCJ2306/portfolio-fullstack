@@ -137,6 +137,7 @@
   border-radius: 20px;
   background: rgba(2, 6, 23, 0.42);
   overflow: hidden;
+  scroll-margin-top: clamp(96px, 14vh, 168px);
 }
 
 .admin-collapsible[open] {

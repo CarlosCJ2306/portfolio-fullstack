@@ -3,6 +3,9 @@ import "./AdminExperiencePanel.css";
 export default function AdminExperiencePanel({
   experiences,
   experienceForm,
+  suggestedDisplayOrder,
+  formRef,
+  firstFieldRef,
   savingExperience,
   deletingExperienceIds,
   editingExperienceId,
@@ -48,7 +51,7 @@ export default function AdminExperiencePanel({
         </div>
       )}
 
-      <details className="admin-collapsible" open={editingExperienceId ? true : undefined}>
+      <details ref={formRef} className="admin-collapsible" open={editingExperienceId ? true : undefined}>
         <summary className="admin-collapsible__summary">
           <div className="admin-collapsible__summary-copy">
             <span className="admin-collapsible__eyebrow">Formulario</span>
@@ -71,7 +74,7 @@ export default function AdminExperiencePanel({
               <div className="admin-form-section__grid">
                 <label>
                   Cargo
-                  <input name="position" value={experienceForm.position} onChange={onExperienceChange} disabled={savingExperience} />
+                  <input ref={firstFieldRef} name="position" value={experienceForm.position} onChange={onExperienceChange} disabled={savingExperience} />
                 </label>
 
                 <label>
@@ -161,6 +164,11 @@ export default function AdminExperiencePanel({
                     onChange={onExperienceChange}
                     disabled={savingExperience}
                   />
+                  {!editingExperienceId && (
+                    <span className="muted">
+                      Déjalo vacío para asignar automáticamente el siguiente orden. Sugerido: {suggestedDisplayOrder}.
+                    </span>
+                  )}
                 </label>
 
                 <label className="toggle-row">

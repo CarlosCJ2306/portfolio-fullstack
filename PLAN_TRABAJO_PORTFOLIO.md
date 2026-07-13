@@ -27,7 +27,7 @@
 
 - Completado: carrusel interactivo de skills.
 - Completado: vista previa PDF responsive.
-- Prioridad activa: orden automático administrativo.
+- Prioridad activa: orden automático administrativo y navegación al formulario de edición.
 
 ## 5. Objetivo general
 
@@ -103,6 +103,7 @@ Mejorar la experiencia del portfolio con un carrusel público infinito, interact
 - Mantener el valor editable.
 - El backend conserva la autoridad final.
 - No reordenar registros existentes ni compactar al eliminar en esta primera mejora.
+- Al pulsar `Editar`, desplazar el formulario visible y enfocar el primer campo útil.
 
 ## 8. Fuera de alcance
 
@@ -193,12 +194,13 @@ Mejorar la experiencia del portfolio con un carrusel público infinito, interact
 - Mantener validación backend como autoridad final.
 - Empezar por una entidad piloto y extender el patrón de forma proporcional.
 - No reordenar registros existentes ni compactar al eliminar.
+- Documentar la navegación al formulario de edición al pulsar `Editar`.
 
 ## 15. Fases de trabajo
 
 1. Carrusel de skills — implementado y validado.
 2. Vista previa PDF responsive — implementada y validada.
-3. Orden automático administrativo — prioridad activa.
+3. Orden automático administrativo y navegación al formulario de edición — prioridad activa.
 4. Pruebas finales y cierre documental.
 
 ## 16. Pruebas previstas
@@ -209,6 +211,7 @@ Mejorar la experiencia del portfolio con un carrusel público infinito, interact
 - Revisión responsive del carrusel.
 - Revisión responsive del visor PDF.
 - Revisión de altas administrativas con orden sugerido.
+- Revisión de navegación al formulario al pulsar `Editar`.
 
 ## 17. Riesgos
 

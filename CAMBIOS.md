@@ -51,17 +51,19 @@
 
 ## Prioridad activa
 
-- El orden automático administrativo pasa a ser la prioridad activa del PLAN-002.
+- El orden automático administrativo y la navegación al formulario de edición pasan a ser la prioridad activa del PLAN-002.
 
 ## Avances del orden automático
 
 - Pendiente de análisis técnico.
+- Se documentó la navegación al formulario visible al pulsar `Editar`.
 
 ## Pruebas y verificaciones
 
 - Lint, build y diff check aprobados para el carrusel y la vista previa PDF responsive.
 - QA visual aprobada por el usuario para el carrusel.
 - QA funcional aprobada por el usuario para la vista previa PDF responsive.
+- Pendiente la validación final del flujo de edición con desplazamiento al formulario.
 
 ## Riesgos pendientes
 
