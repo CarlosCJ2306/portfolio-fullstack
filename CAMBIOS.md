@@ -51,19 +51,45 @@
 
 ## Prioridad activa
 
-- El orden automático administrativo y la navegación al formulario de edición pasan a ser la prioridad activa del PLAN-002.
+- Todas las tareas funcionales del PLAN-002 están implementadas.
+- Quedan pendientes la revisión final, el commit y el cierre documental definitivo.
 
 ## Avances del orden automático
 
-- Pendiente de análisis técnico.
-- Se documentó la navegación al formulario visible al pulsar `Editar`.
+- Implementado en enlaces sociales, skills, proyectos, experiencias, educación y certificaciones.
+- El campo de orden queda vacío durante la creación.
+- El frontend muestra una sugerencia editable.
+- Si el campo queda vacío, `display_order` se omite del payload.
+- El backend calcula `MAX(display_order) + 1`.
+- Una tabla vacía comienza en `0`.
+- El valor manual `0` se respeta.
+- Los registros inactivos participan.
+- Los huecos no se rellenan.
+- La eliminación no compacta.
+- La edición no aplica autoorden.
+- No se agregaron migraciones ni columnas.
+- Las entidades hijas sin flujo independiente quedaron fuera del alcance.
+
+## Navegación al formulario al editar
+
+- Al pulsar `Editar`, se abre el formulario correspondiente.
+- La página se desplaza hasta el formulario.
+- Se enfoca el primer campo editable.
+- Se respeta `prefers-reduced-motion`.
+- Se conserva el orden actual durante la edición.
+- Los seis paneles administrativos principales quedaron cubiertos.
+- Se ajustó el CSS administrativo para el posicionamiento del scroll.
+- QA manual aprobada por el usuario.
 
 ## Pruebas y verificaciones
 
-- Lint, build y diff check aprobados para el carrusel y la vista previa PDF responsive.
-- QA visual aprobada por el usuario para el carrusel.
-- QA funcional aprobada por el usuario para la vista previa PDF responsive.
-- Pendiente la validación final del flujo de edición con desplazamiento al formulario.
+- Pytest: `100 passed, 1 warning`.
+- Lint frontend: aprobado.
+- Build frontend: aprobado.
+- `git diff --check`: aprobado.
+- `check_db`: aprobado.
+- SQLite intacta en tamaño y hash.
+- QA manual aprobada para orden, scroll, foco y móvil.
 
 ## Riesgos pendientes
 

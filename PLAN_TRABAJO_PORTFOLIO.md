@@ -23,11 +23,13 @@
 - Archivo histórico: `docs/planes_historicos/PLAN-001-2026-07-12-consolidacion-y-despliegue-azure.md`
 - Changelog histórico: `docs/planes_historicos/CAMBIOS-PLAN-001-2026-07-12.md`
 
-## 4. Prioridades
+## 4. Estado de las prioridades
 
 - Completado: carrusel interactivo de skills.
 - Completado: vista previa PDF responsive.
-- Prioridad activa: orden automático administrativo y navegación al formulario de edición.
+- Completado: orden automático administrativo.
+- Completado: navegación al formulario al editar.
+- Pendiente: revisión final, commit del lote y cierre documental del PLAN-002.
 
 ## 5. Objetivo general
 
@@ -35,10 +37,10 @@ Mejorar la experiencia del portfolio con un carrusel público infinito, interact
 
 ## 6. Problema o necesidad
 
-- La sección pública de skills ya quedó implementada y aprobada visualmente.
-- La incompatibilidad de la vista previa PDF en dispositivos móviles fue resuelta mediante un fallback responsive, conservando las acciones de abrir y descargar.
-- El panel administrativo expone el orden, pero el alta manual requiere más fricción de la necesaria.
-- El proyecto ya tiene una base estable; conviene crecer con componentes pequeños y sin duplicar lógica.
+- La grilla de skills fue reemplazada por un carrusel responsive e interactivo.
+- La incompatibilidad del visor PDF móvil fue resuelta mediante un fallback responsive.
+- La fricción de ingresar manualmente el orden fue resuelta con sugerencia frontend y autoridad backend.
+- La edición administrativa ahora lleva directamente al formulario correspondiente y enfoca el primer campo útil.
 
 ## 7. Alcance
 
@@ -96,14 +98,24 @@ Mejorar la experiencia del portfolio con un carrusel público infinito, interact
   - modal compacto
   - visor incrustado conservado en escritorio
 
-### 7.2 Orden automático administrativo
+### 7.2 Orden automático administrativo — implementado
 
-- Detectar entidades reales que ya usan `display_order`.
-- Sugerir el siguiente valor cuando el usuario no lo modifique.
-- Mantener el valor editable.
-- El backend conserva la autoridad final.
-- No reordenar registros existentes ni compactar al eliminar en esta primera mejora.
-- Al pulsar `Editar`, desplazar el formulario visible y enfocar el primer campo útil.
+- Aplicado a `social_links`, `skills`, `projects`, `experiences`, `education` y `certifications`.
+- En creación, el campo `display_order` comienza vacío.
+- El frontend muestra una sugerencia calculada desde el máximo administrativo actual.
+- Si el campo queda vacío, el frontend omite `display_order` del payload.
+- El backend calcula `MAX(display_order) + 1`.
+- En una tabla vacía, el primer orden automático es `0`.
+- Un valor manual explícito se respeta.
+- El valor manual `0` se respeta.
+- Los registros activos e inactivos participan en el cálculo.
+- Los huecos no se rellenan.
+- Eliminar no compacta los órdenes.
+- Activar o desactivar no altera el orden.
+- Editar no aplica autoorden y conserva el valor existente.
+- `experience_bullets` y `project_images` quedaron fuera porque no tienen un flujo administrativo independiente con `display_order` editable.
+- No se agregaron columnas ni migraciones.
+- SQLite permaneció intacta.
 
 ## 8. Fuera de alcance
 
@@ -187,56 +199,79 @@ Mejorar la experiencia del portfolio con un carrusel público infinito, interact
 - Lint, build y git diff --check fueron aprobados.
 - La QA funcional fue aprobada por el usuario.
 
-## 14. Tarea 3: orden automático administrativo
+## 14. Tarea 3: orden automático administrativo — implementada
 
-- Localizar todas las entidades reales que usan `display_order`.
-- Definir dónde se sugiere el siguiente orden.
-- Mantener validación backend como autoridad final.
-- Empezar por una entidad piloto y extender el patrón de forma proporcional.
-- No reordenar registros existentes ni compactar al eliminar.
-- Documentar la navegación al formulario de edición al pulsar `Editar`.
+- Se hizo opcional `display_order` en los schemas de creación de las seis entidades principales.
+- Se agregó un helper reutilizable para calcular el siguiente orden.
+- Los servicios de creación calculan el orden únicamente cuando el campo llega omitido o como `None`.
+- El frontend diferencia correctamente entre campo vacío y `0` explícito.
+- Se agregaron sugerencias editables en los seis paneles.
+- Se añadieron pruebas contractuales parametrizadas.
+- No se modificaron los schemas de actualización para aplicar autoorden.
+- No se compactan órdenes ni se rellenan huecos.
 
-## 15. Fases de trabajo
+## 15. Tarea 4: navegación al formulario de edición — implementada
+
+- Se centralizó el flujo de scroll y foco en `AdminPage.jsx`.
+- Se conectaron referencias de formulario y primer campo útil en los seis paneles.
+- Se utilizó `scrollIntoView`.
+- Se respeta `prefers-reduced-motion`.
+- Se agregó el ajuste CSS necesario en `AdminLayout.css`.
+- La QA manual fue aprobada por el usuario en escritorio y móvil.
+
+## 16. Fases de trabajo
 
 1. Carrusel de skills — implementado y validado.
 2. Vista previa PDF responsive — implementada y validada.
-3. Orden automático administrativo y navegación al formulario de edición — prioridad activa.
-4. Pruebas finales y cierre documental.
+3. Orden automático administrativo — implementado y validado.
+4. Navegación al formulario de edición — implementada y validada.
+5. Revisión final, commit y cierre documental — pendiente.
 
-## 16. Pruebas previstas
+## 17. Pruebas y validaciones ejecutadas
 
-- Lint y build frontend.
-- Pytest backend.
-- Revisión de integridad SQLite.
-- Revisión responsive del carrusel.
-- Revisión responsive del visor PDF.
-- Revisión de altas administrativas con orden sugerido.
-- Revisión de navegación al formulario al pulsar `Editar`.
+- Backend: `100 passed, 1 warning`.
+- Warning conocido de Starlette/httpx.
+- Frontend lint aprobado.
+- Frontend build aprobado.
+- `git diff --check` aprobado.
+- `check_db` aprobado:
+  - `foreign_keys=1`
+  - `integrity_check=ok`
+  - `foreign_key_violations=0`
+- SQLite mantuvo:
+  - tamaño: `15179776` bytes
+  - SHA-256: `DDEB44C6878390B32E5AC6406735CFE882BDE6251471A11274E63E756B556D69`
+- QA manual del orden automático aprobada.
+- QA manual del scroll al formulario aprobada.
+- QA manual del foco aprobada.
+- QA móvil aprobada.
 
-## 17. Riesgos
+## 18. Riesgos
 
 - Sobrecargar el visor o el carrusel con animaciones o dependencias innecesarias.
 - Introducir una convención de orden distinta a la existente.
 - Crear una sugerencia automática que no coincida con la convención real de datos.
 - Mezclar lógica visual con persistencia.
 
-## 18. Criterios de aceptación
+## 19. Criterios de aceptación
 
 - El carrusel es usable, infinito y responsive.
 - La vista previa PDF es clara en teléfono y tableta.
-- La accesibilidad se mantiene.
-- El orden sugerido coincide con la convención real.
+- El orden automático es correcto y editable.
+- La navegación al formulario funciona.
 - El backend sigue siendo la autoridad final.
+- La accesibilidad se mantiene.
 - No se agregan campos ni migraciones.
+- SQLite intacta.
 
-## 19. Ideas futuras
+## 20. Ideas futuras
 
 1. Mejoras visuales de proyectos.
 2. Mejoras visuales de otras secciones.
 3. Gestión segura de imágenes.
 4. Actualización de documentación de Azure.
 
-## 20. Documentación relacionada
+## 21. Documentación relacionada
 
 - `README.md`
 - `CAMBIOS.md`
@@ -246,18 +281,19 @@ Mejorar la experiencia del portfolio con un carrusel público infinito, interact
 - `docs/HISTORIAL_CAMBIOS_DETALLADO.md`
 - `docs/planes_historicos/PLAN-001-2026-07-12-consolidacion-y-despliegue-azure.md`
 
-## 21. Estado inicial de Git y SQLite
+## 22. Estado inicial de Git y SQLite
 
 - Git: árbol limpio al iniciar este plan.
 - SQLite: intacta al iniciar este plan.
 
-## 22. Resultados finales, inicialmente pendientes
+## 23. Resultados pendientes para cerrar PLAN-002
 
-- Implementación del orden automático administrativo.
-- Pruebas y validaciones.
-- Validaciones de SQLite.
-- Documentación final del PLAN-002.
+- Revisar el diff final completo.
+- Realizar el commit del lote.
+- Verificar el historial de `dev-cj`.
+- Actualizar el estado del PLAN-002 a cerrado en una tarea documental posterior.
+- Decidir posteriormente push, merge y despliegue.
 
-## 23. Mensaje de commit final, inicialmente pendiente
+## 24. Mensaje de commit final, inicialmente pendiente
 
 Pendiente de definir al cerrar PLAN-002.
