@@ -3,6 +3,9 @@ import "./AdminEducationPanel.css";
 export default function AdminEducationPanel({
   education,
   educationForm,
+  suggestedDisplayOrder,
+  formRef,
+  firstFieldRef,
   savingEducation,
   deletingEducationIds,
   editingEducationId,
@@ -48,7 +51,7 @@ export default function AdminEducationPanel({
         </div>
       )}
 
-      <details className="admin-collapsible" open={editingEducationId ? true : undefined}>
+      <details ref={formRef} className="admin-collapsible" open={editingEducationId ? true : undefined}>
         <summary className="admin-collapsible__summary">
           <div className="admin-collapsible__summary-copy">
             <span className="admin-collapsible__eyebrow">Formulario</span>
@@ -71,7 +74,7 @@ export default function AdminEducationPanel({
               <div className="admin-form-section__grid">
                 <label>
                   Institución
-                  <input name="institution" value={educationForm.institution} onChange={onEducationChange} disabled={savingEducation} />
+                  <input ref={firstFieldRef} name="institution" value={educationForm.institution} onChange={onEducationChange} disabled={savingEducation} />
                 </label>
 
                 <label>
@@ -93,6 +96,11 @@ export default function AdminEducationPanel({
                     onChange={onEducationChange}
                     disabled={savingEducation}
                   />
+                  {!editingEducationId && (
+                    <span className="muted">
+                      Déjalo vacío para asignar automáticamente el siguiente orden. Sugerido: {suggestedDisplayOrder}.
+                    </span>
+                  )}
                 </label>
               </div>
             </section>

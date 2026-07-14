@@ -1,4 +1,9 @@
-const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "::1"]);
+const LOCAL_HOSTS = new Set([
+  "localhost",
+  "127.0.0.1",
+  "::1",
+  "192.168.80.10",
+]);
 
 export function getApiBaseUrl() {
   const rawValue = import.meta.env.VITE_API_BASE_URL;

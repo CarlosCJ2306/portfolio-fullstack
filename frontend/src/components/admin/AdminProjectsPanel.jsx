@@ -32,6 +32,9 @@ export default function AdminProjectsPanel({
   projects,
   skills,
   projectForm,
+  suggestedDisplayOrder,
+  formRef,
+  firstFieldRef,
   confidentialImagesConfirmed,
   onConfidentialImagesConfirmedChange,
   savingProject,
@@ -85,7 +88,7 @@ export default function AdminProjectsPanel({
         </div>
       )}
 
-      <details className="admin-collapsible" open={editingProjectId ? true : undefined}>
+      <details ref={formRef} className="admin-collapsible" open={editingProjectId ? true : undefined}>
         <summary className="admin-collapsible__summary">
           <div className="admin-collapsible__summary-copy">
             <span className="admin-collapsible__eyebrow">Formulario</span>
@@ -107,7 +110,7 @@ export default function AdminProjectsPanel({
               <div className="admin-form-section__stack admin-projects-panel__section-body">
                 <label>
                   Título
-                  <input name="title" value={projectForm.title} onChange={onProjectChange} disabled={savingProject} />
+                  <input ref={firstFieldRef} name="title" value={projectForm.title} onChange={onProjectChange} disabled={savingProject} />
                 </label>
 
                 <div className="admin-form-section__grid">
@@ -125,6 +128,11 @@ export default function AdminProjectsPanel({
                       onChange={onProjectChange}
                       disabled={savingProject}
                     />
+                    {!editingProjectId && (
+                      <span className="muted">
+                        Déjalo vacío para asignar automáticamente el siguiente orden. Sugerido: {suggestedDisplayOrder}.
+                      </span>
+                    )}
                   </label>
                 </div>
 

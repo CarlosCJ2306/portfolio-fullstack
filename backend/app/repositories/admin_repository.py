@@ -20,6 +20,26 @@ from app.models.skill_model import Skill
 from app.models.social_link_model import SocialLink
 
 
+def get_next_display_order(
+    db: Session,
+    model,
+    *,
+    base: int = 0,
+    filters: tuple = (),
+) -> int:
+    query = db.query(func.max(model.display_order))
+
+    for filter_clause in filters:
+        query = query.filter(filter_clause)
+
+    max_display_order = query.scalar()
+
+    if max_display_order is None:
+        return base
+
+    return int(max_display_order) + 1
+
+
 class AdminRepository:
     def __init__(self, db: Session) -> None:
         self.db = db
@@ -72,6 +92,20 @@ class AdminRepository:
         self.db.add(social_link)
         self.db.flush()
         return social_link
+
+    def get_next_entity_display_order(
+        self,
+        model,
+        *,
+        base: int = 0,
+        filters: tuple = (),
+    ) -> int:
+        return get_next_display_order(
+            self.db,
+            model,
+            base=base,
+            filters=filters,
+        )
 
     def delete_social_link(self, social_link: SocialLink) -> None:
         self.db.delete(social_link)

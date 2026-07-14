@@ -11,6 +11,12 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 
 from app.core.log import log_error, log_info, log_success
+from app.models.certification_model import Certification
+from app.models.education_model import Education
+from app.models.experience_model import Experience
+from app.models.project_model import Project
+from app.models.skill_model import Skill
+from app.models.social_link_model import SocialLink
 from app.repositories.admin_repository import AdminRepository
 from app.schemas.admin_schema import (
     AdminDashboardRead,
@@ -54,6 +60,23 @@ class AdminService:
 
     def _format_allowed_asset_types(self, allowed_asset_types: set[str]) -> str:
         return ", ".join(sorted(allowed_asset_types))
+
+    def _assign_next_display_order_if_missing(
+        self,
+        payload_data: dict,
+        model,
+        *,
+        base: int = 0,
+        filters: tuple = (),
+    ) -> dict:
+        if "display_order" not in payload_data:
+            payload_data["display_order"] = self.repository.get_next_entity_display_order(
+                model,
+                base=base,
+                filters=filters,
+            )
+
+        return payload_data
 
     def _validate_media_asset_reference(
         self,
@@ -208,7 +231,10 @@ class AdminService:
         return self.repository.list_social_links()
 
     def create_social_link(self, payload: SocialLinkCreate):
-        social_link = self.repository.create_social_link(payload.model_dump())
+        social_link_data = payload.model_dump(exclude_none=True)
+        self._assign_next_display_order_if_missing(social_link_data, SocialLink)
+
+        social_link = self.repository.create_social_link(social_link_data)
         self._commit("Error creando enlace social.", "No se pudo crear el enlace social.")
         self.repository.db.refresh(social_link)
         return social_link
@@ -241,7 +267,8 @@ class AdminService:
         return self.repository.list_skills()
 
     def create_skill(self, payload: SkillCreate):
-        skill_data = payload.model_dump()
+        skill_data = payload.model_dump(exclude_none=True)
+        self._assign_next_display_order_if_missing(skill_data, Skill)
 
         self._validate_media_asset_reference(
             skill_data.get("icon_asset_id"),
@@ -289,7 +316,8 @@ class AdminService:
         return self.repository.list_projects()
 
     def create_project(self, payload: ProjectCreate):
-        project_data = payload.model_dump(exclude_unset=True)
+        project_data = payload.model_dump(exclude_none=True)
+        self._assign_next_display_order_if_missing(project_data, Project)
         skill_ids = project_data.get("skill_ids", [])
         gallery_image_ids = project_data.get("gallery_image_ids", [])
         self._validate_media_asset_reference(
@@ -348,7 +376,9 @@ class AdminService:
         return self.repository.list_experience()
 
     def create_experience(self, payload: ExperienceCreate):
-        experience = self.repository.create_experience(payload.model_dump(exclude_unset=True))
+        experience_data = payload.model_dump(exclude_none=True)
+        self._assign_next_display_order_if_missing(experience_data, Experience)
+        experience = self.repository.create_experience(experience_data)
         self._commit("Error creando experiencia.", "No se pudo crear la experiencia.")
         self.repository.db.refresh(experience)
         return experience
@@ -377,7 +407,9 @@ class AdminService:
         return self.repository.list_education()
 
     def create_education(self, payload: EducationCreate):
-        education = self.repository.create_education(payload.model_dump())
+        education_data = payload.model_dump(exclude_none=True)
+        self._assign_next_display_order_if_missing(education_data, Education)
+        education = self.repository.create_education(education_data)
         self._commit("Error creando educación.", "No se pudo crear la educación.")
         self.repository.db.refresh(education)
         return education
@@ -408,7 +440,8 @@ class AdminService:
         return self.repository.list_certifications()
 
     def create_certification(self, payload: CertificationCreate):
-        certification_data = payload.model_dump()
+        certification_data = payload.model_dump(exclude_none=True)
+        self._assign_next_display_order_if_missing(certification_data, Certification)
 
         self._validate_certification_dates(
             certification_data.get("issue_date"),

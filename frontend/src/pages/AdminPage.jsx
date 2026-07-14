@@ -73,7 +73,7 @@ const initialSkillForm = {
   level: "",
   color: "",
   icon_asset_id: "",
-  display_order: 0,
+  display_order: "",
   is_active: true,
 };
 
@@ -90,7 +90,7 @@ const initialProjectForm = {
   confidentiality_note: "",
   client_display_name: "",
   allow_public_images: true,
-  display_order: 0,
+  display_order: "",
   is_featured: false,
   is_active: true,
   skill_ids: [],
@@ -105,7 +105,7 @@ const initialExperienceForm = {
   end_date: "",
   is_current: false,
   description: "",
-  display_order: 0,
+  display_order: "",
   is_active: true,
   bullets_text: "",
 };
@@ -117,7 +117,7 @@ const initialEducationForm = {
   start_year: "",
   end_year: "",
   description: "",
-  display_order: 0,
+  display_order: "",
   is_active: true,
 };
 
@@ -128,7 +128,7 @@ const initialCertificationForm = {
   expiration_date: "",
   credential_url: "",
   description: "",
-  display_order: 0,
+  display_order: "",
   is_active: true,
   certificate_file_id: null,
 };
@@ -137,7 +137,7 @@ const initialSocialLinkForm = {
   platform: "",
   url: "",
   icon_name: "",
-  display_order: 0,
+  display_order: "",
   is_active: true,
 };
 
@@ -656,7 +656,7 @@ function normalizeSocialLinkForm(socialLink) {
     display_order:
       socialLink?.display_order !== undefined && socialLink?.display_order !== null
         ? socialLink.display_order
-        : 0,
+        : "",
     is_active: socialLink?.is_active !== undefined ? socialLink.is_active : true,
   };
 }
@@ -748,6 +748,36 @@ function getDisplayOrderValue(item) {
     typeof rawValue === "number" ? rawValue : Number(rawValue ?? 0);
 
   return Number.isFinite(numericValue) ? numericValue : 0;
+}
+
+function getNextDisplayOrderValue(items) {
+  const displayOrders = (items || []).map((item) => getDisplayOrderValue(item));
+
+  if (displayOrders.length === 0) {
+    return 0;
+  }
+
+  return Math.max(...displayOrders) + 1;
+}
+
+function withOptionalDisplayOrder(payload, value) {
+  const normalizedValue = String(value ?? "").trim();
+
+  if (normalizedValue === "") {
+    return payload;
+  }
+
+  return {
+    ...payload,
+    display_order: Number(normalizedValue),
+  };
+}
+
+function prefersReducedMotion() {
+  return (
+    typeof window !== "undefined"
+    && window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches
+  );
 }
 
 function sortItemsByDisplayOrder(items) {
@@ -842,6 +872,25 @@ export default function AdminPage() {
   const deletingCertificationIdsRef = useRef(new Set());
   const markingMessageIdsRef = useRef(new Set());
   const deletingMessageIdsRef = useRef(new Set());
+  const socialLinksFormRef = useRef(null);
+  const socialLinkFirstFieldRef = useRef(null);
+  const skillFormRef = useRef(null);
+  const skillFirstFieldRef = useRef(null);
+  const projectFormRef = useRef(null);
+  const projectFirstFieldRef = useRef(null);
+  const experienceFormRef = useRef(null);
+  const experienceFirstFieldRef = useRef(null);
+  const educationFormRef = useRef(null);
+  const educationFirstFieldRef = useRef(null);
+  const certificationFormRef = useRef(null);
+  const certificationFirstFieldRef = useRef(null);
+  const suggestedSocialLinkDisplayOrder = getNextDisplayOrderValue(socialLinks);
+  const suggestedSkillDisplayOrder = getNextDisplayOrderValue(skills);
+  const suggestedProjectDisplayOrder = getNextDisplayOrderValue(projects);
+  const suggestedExperienceDisplayOrder = getNextDisplayOrderValue(experiences);
+  const suggestedEducationDisplayOrder = getNextDisplayOrderValue(educationList);
+  const suggestedCertificationDisplayOrder = getNextDisplayOrderValue(certifications);
+  const pendingEditFocusTokenRef = useRef(0);
 
   const resetAdminPanelState = useCallback(() => {
     setDashboard(null);
@@ -887,6 +936,42 @@ export default function AdminPage() {
     setFormValidationErrors(createInitialFormValidationErrors());
   }, []);
 
+  const cancelPendingEditFocus = useCallback(() => {
+    pendingEditFocusTokenRef.current += 1;
+  }, []);
+
+  const scrollToEditForm = useCallback((formRef, fieldRef) => {
+    const currentToken = pendingEditFocusTokenRef.current + 1;
+    pendingEditFocusTokenRef.current = currentToken;
+
+    requestAnimationFrame(() => {
+      if (pendingEditFocusTokenRef.current !== currentToken) {
+        return;
+      }
+
+      const formElement = formRef.current;
+      const fieldElement = fieldRef.current;
+
+      formElement?.scrollIntoView({
+        behavior: prefersReducedMotion() ? "auto" : "smooth",
+        block: "start",
+      });
+
+      requestAnimationFrame(() => {
+        if (pendingEditFocusTokenRef.current !== currentToken) {
+          return;
+        }
+
+        fieldElement?.focus?.({ preventScroll: true });
+      });
+    });
+  }, []);
+
+  const prepareFormForEdit = useCallback((formRef, fieldRef) => {
+    cancelPendingEditFocus();
+    scrollToEditForm(formRef, fieldRef);
+  }, [cancelPendingEditFocus, scrollToEditForm]);
+
   function showNotice(type, title, message = "") {
     setNotice({
       type,
@@ -907,6 +992,10 @@ export default function AdminPage() {
 
     return () => window.clearTimeout(timeoutId);
   }, [notice]);
+
+  useEffect(() => () => {
+    pendingEditFocusTokenRef.current += 1;
+  }, []);
 
   useEffect(() => {
     function handleResize() {
@@ -1499,12 +1588,14 @@ export default function AdminPage() {
       display_order: skill.display_order ?? 0,
       is_active: Boolean(skill.is_active),
     });
+    prepareFormForEdit(skillFormRef, skillFirstFieldRef);
   }
 
   function openSocialLinkEditor(socialLink) {
     setEditingSocialLinkId(socialLink.id);
     clearValidationErrors("socialLink");
     setSocialLinkForm(normalizeSocialLinkForm(socialLink));
+    prepareFormForEdit(socialLinksFormRef, socialLinkFirstFieldRef);
   }
 
   function openProjectEditor(project) {
@@ -1537,24 +1628,28 @@ export default function AdminPage() {
       is_active: Boolean(project.is_active),
       skill_ids: (project.skills || []).map((skill) => skill.id),
     });
+    prepareFormForEdit(projectFormRef, projectFirstFieldRef);
   }
 
   function openExperienceEditor(experience) {
     setEditingExperienceId(experience.id);
     clearValidationErrors("experience");
     setExperienceForm(normalizeExperienceForm(experience));
+    prepareFormForEdit(experienceFormRef, experienceFirstFieldRef);
   }
 
   function openEducationEditor(education) {
     setEditingEducationId(education.id);
     clearValidationErrors("education");
     setEducationForm(normalizeEducationForm(education));
+    prepareFormForEdit(educationFormRef, educationFirstFieldRef);
   }
 
   function openCertificationEditor(certification) {
     setEditingCertificationId(certification.id);
     clearValidationErrors("certification");
     setCertificationForm(normalizeCertificationForm(certification));
+    prepareFormForEdit(certificationFormRef, certificationFirstFieldRef);
   }
 
   async function handleLoginSubmit(event) {
@@ -1621,13 +1716,12 @@ export default function AdminPage() {
     clearValidationErrors("socialLink");
     setSavingSocialLink(true);
 
-    const payload = {
+    const payload = withOptionalDisplayOrder({
       platform: socialLinkForm.platform.trim(),
       url: socialLinkForm.url.trim(),
       icon_name: toNullableValue(socialLinkForm.icon_name),
-      display_order: Number(socialLinkForm.display_order || 0),
       is_active: Boolean(socialLinkForm.is_active),
-    };
+    }, socialLinkForm.display_order);
 
     try {
       if (editingSocialLinkId) {
@@ -1730,15 +1824,14 @@ export default function AdminPage() {
     clearValidationErrors("skill");
     setSavingSkill(true);
 
-    const payload = {
+    const payload = withOptionalDisplayOrder({
       name: skillForm.name.trim(),
       category: skillForm.category.trim(),
       level: skillForm.level.trim(),
       color: toNullableValue(skillForm.color),
       icon_asset_id: toNumberOrNull(skillForm.icon_asset_id),
-      display_order: Number(skillForm.display_order || 0),
       is_active: Boolean(skillForm.is_active),
-    };
+    }, skillForm.display_order);
 
     try {
       if (editingSkillId) {
@@ -1844,7 +1937,7 @@ export default function AdminPage() {
     clearValidationErrors("project");
     setSavingProject(true);
 
-    const payload = {
+    const payload = withOptionalDisplayOrder({
       title: projectForm.title.trim(),
       slug: projectForm.slug.trim(),
       short_description: projectForm.short_description.trim(),
@@ -1856,14 +1949,13 @@ export default function AdminPage() {
       confidentiality_note: toNullableValue(projectForm.confidentiality_note),
       client_display_name: toNullableValue(projectForm.client_display_name),
       allow_public_images: Boolean(projectForm.allow_public_images),
-      display_order: Number(projectForm.display_order || 0),
       is_featured: Boolean(projectForm.is_featured),
       is_active: Boolean(projectForm.is_active),
       skill_ids: projectForm.skill_ids,
       gallery_image_ids: Array.isArray(projectForm.gallery_image_ids)
         ? projectForm.gallery_image_ids.map((assetId) => Number(assetId))
         : [],
-    };
+    }, projectForm.display_order);
 
     try {
       if (editingProjectId) {
@@ -1992,7 +2084,7 @@ export default function AdminPage() {
     clearValidationErrors("experience");
     setSavingExperience(true);
 
-    const payload = {
+    const payload = withOptionalDisplayOrder({
       position: experienceForm.position.trim(),
       company: experienceForm.company.trim(),
       country: toNullableValue(experienceForm.country),
@@ -2001,10 +2093,9 @@ export default function AdminPage() {
       end_date: experienceForm.is_current ? null : toNullableValue(experienceForm.end_date),
       is_current: Boolean(experienceForm.is_current),
       description: toNullableValue(experienceForm.description),
-      display_order: Number(experienceForm.display_order || 0),
       is_active: Boolean(experienceForm.is_active),
       bullets: parseBulletsText(experienceForm.bullets_text),
-    };
+    }, experienceForm.display_order);
 
     try {
       if (editingExperienceId) {
@@ -2101,16 +2192,15 @@ export default function AdminPage() {
     clearValidationErrors("education");
     setSavingEducation(true);
 
-    const payload = {
+    const payload = withOptionalDisplayOrder({
       institution: educationForm.institution.trim(),
       degree: educationForm.degree.trim(),
       field_of_study: toNullableValue(educationForm.field_of_study),
       start_year: educationForm.start_year === "" ? null : Number(educationForm.start_year),
       end_year: educationForm.end_year === "" ? null : Number(educationForm.end_year),
       description: toNullableValue(educationForm.description),
-      display_order: Number(educationForm.display_order || 0),
       is_active: Boolean(educationForm.is_active),
-    };
+    }, educationForm.display_order);
 
     try {
       if (editingEducationId) {
@@ -2207,17 +2297,16 @@ export default function AdminPage() {
     clearValidationErrors("certification");
     setSavingCertification(true);
 
-    const payload = {
+    const payload = withOptionalDisplayOrder({
       name: certificationForm.name.trim(),
       issuer: toNullableValue(certificationForm.issuer),
       issue_date: certificationForm.issue_date || null,
       expiration_date: certificationForm.expiration_date || null,
       credential_url: toNullableValue(certificationForm.credential_url),
       description: toNullableValue(certificationForm.description),
-      display_order: Number(certificationForm.display_order || 0),
       is_active: Boolean(certificationForm.is_active),
       certificate_file_id: toNumberOrNull(certificationForm.certificate_file_id),
-    };
+    }, certificationForm.display_order);
 
     try {
       if (editingCertificationId) {
@@ -2685,6 +2774,9 @@ export default function AdminPage() {
         <AdminSocialLinksPanel
           socialLinks={socialLinks}
           socialLinkForm={socialLinkForm}
+          suggestedSocialLinkDisplayOrder={suggestedSocialLinkDisplayOrder}
+          formRef={socialLinksFormRef}
+          firstFieldRef={socialLinkFirstFieldRef}
           savingSocialLink={savingSocialLink}
           deletingSocialLinkIds={deletingSocialLinkIds}
           editingSocialLinkId={editingSocialLinkId}
@@ -2751,6 +2843,9 @@ export default function AdminPage() {
         <AdminSkillsPanel
           skills={skills}
           skillForm={skillForm}
+          suggestedDisplayOrder={suggestedSkillDisplayOrder}
+          formRef={skillFormRef}
+          firstFieldRef={skillFirstFieldRef}
           savingSkill={savingSkill}
           deletingSkillIds={deletingSkillIds}
           editingSkillId={editingSkillId}
@@ -2778,6 +2873,9 @@ export default function AdminPage() {
           projects={projects}
           skills={skills}
           projectForm={projectForm}
+          suggestedDisplayOrder={suggestedProjectDisplayOrder}
+          formRef={projectFormRef}
+          firstFieldRef={projectFirstFieldRef}
           confidentialImagesConfirmed={projectConfidentialImagesConfirmed}
           onConfidentialImagesConfirmedChange={setProjectConfidentialImagesConfirmed}
           savingProject={savingProject}
@@ -2813,6 +2911,9 @@ export default function AdminPage() {
         <AdminExperiencePanel
           experiences={experiences}
           experienceForm={experienceForm}
+          suggestedDisplayOrder={suggestedExperienceDisplayOrder}
+          formRef={experienceFormRef}
+          firstFieldRef={experienceFirstFieldRef}
           savingExperience={savingExperience}
           deletingExperienceIds={deletingExperienceIds}
           editingExperienceId={editingExperienceId}
@@ -2835,6 +2936,9 @@ export default function AdminPage() {
         <AdminEducationPanel
           education={educationList}
           educationForm={educationForm}
+          suggestedDisplayOrder={suggestedEducationDisplayOrder}
+          formRef={educationFormRef}
+          firstFieldRef={educationFirstFieldRef}
           savingEducation={savingEducation}
           deletingEducationIds={deletingEducationIds}
           editingEducationId={editingEducationId}
@@ -2857,6 +2961,9 @@ export default function AdminPage() {
         <AdminCertificationsPanel
           certifications={certifications}
           certificationForm={certificationForm}
+          suggestedDisplayOrder={suggestedCertificationDisplayOrder}
+          formRef={certificationFormRef}
+          firstFieldRef={certificationFirstFieldRef}
           savingCertification={savingCertification}
           deletingCertificationIds={deletingCertificationIds}
           editingCertificationId={editingCertificationId}

@@ -34,6 +34,9 @@ function AdminSkillIcon({ skill }) {
 export default function AdminSkillsPanel({
   skills,
   skillForm,
+  suggestedDisplayOrder,
+  formRef,
+  firstFieldRef,
   savingSkill,
   deletingSkillIds,
   editingSkillId,
@@ -83,7 +86,7 @@ export default function AdminSkillsPanel({
         </div>
       )}
 
-      <details className="admin-collapsible" open={editingSkillId ? true : undefined}>
+      <details ref={formRef} className="admin-collapsible" open={editingSkillId ? true : undefined}>
         <summary className="admin-collapsible__summary">
           <div className="admin-collapsible__summary-copy">
             <span className="admin-collapsible__eyebrow">Formulario</span>
@@ -106,7 +109,7 @@ export default function AdminSkillsPanel({
               <div className="admin-form-section__grid">
                 <label>
                   Nombre
-                  <input name="name" value={skillForm.name} onChange={onSkillChange} disabled={savingSkill} />
+                  <input ref={firstFieldRef} name="name" value={skillForm.name} onChange={onSkillChange} disabled={savingSkill} />
                 </label>
 
                 <label>
@@ -165,6 +168,11 @@ export default function AdminSkillsPanel({
                     onChange={onSkillChange}
                     disabled={savingSkill}
                   />
+                  {!editingSkillId && (
+                    <span className="muted">
+                      Déjalo vacío para asignar automáticamente el siguiente orden. Sugerido: {suggestedDisplayOrder}.
+                    </span>
+                  )}
                 </label>
 
                 <label className="toggle-row">

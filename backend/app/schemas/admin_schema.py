@@ -235,7 +235,7 @@ class SocialLinkCreate(BaseModel):
     platform: str = Field(..., min_length=2, max_length=80)
     url: str = Field(..., min_length=3, max_length=255)
     icon_name: str | None = Field(default=None, max_length=80)
-    display_order: int = 0
+    display_order: int | None = None
     is_active: bool = True
 
     @field_validator("platform", "url", "icon_name", mode="before")
@@ -267,7 +267,7 @@ class SkillCreate(BaseModel):
     level: str = Field(..., min_length=2, max_length=50)
     icon_asset_id: int | None = None
     color: str | None = Field(default=None, max_length=50)
-    display_order: int = 0
+    display_order: int | None = None
     is_active: bool = True
 
     @field_validator("name", "category", "level", "color", mode="before")
@@ -308,7 +308,7 @@ class ProjectCreate(BaseModel):
     repository_url: str | None = Field(default=None, max_length=255)
     demo_url: str | None = Field(default=None, max_length=255)
     is_featured: bool = False
-    display_order: int = 0
+    display_order: int | None = None
     is_active: bool = True
     skill_ids: list[int] = Field(default_factory=list)
     gallery_image_ids: list[int] = Field(default_factory=list)
@@ -396,7 +396,7 @@ class ExperienceCreate(BaseModel):
     end_date: date | None = None
     is_current: bool = False
     description: str | None = None
-    display_order: int = 0
+    display_order: int | None = None
     is_active: bool = True
     bullets: list[ExperienceBulletPayload] = Field(default_factory=list)
 
@@ -436,7 +436,7 @@ class EducationCreate(BaseModel):
     start_year: int | None = None
     end_year: int | None = None
     description: str | None = None
-    display_order: int = 0
+    display_order: int | None = None
     is_active: bool = True
 
     @field_validator("institution", "degree", "field_of_study", "description", mode="before")
@@ -473,7 +473,7 @@ class CertificationCreate(BaseModel):
     credential_url: str | None = Field(default=None, max_length=255)
     description: str | None = None
     certificate_file_id: int | None = None
-    display_order: int = 0
+    display_order: int | None = None
     is_active: bool = True
 
     @field_validator("name", "issuer", "credential_url", "description", mode="before")

@@ -4,6 +4,9 @@ import "./AdminCertificationsPanel.css";
 export default function AdminCertificationsPanel({
   certifications,
   certificationForm,
+  suggestedDisplayOrder,
+  formRef,
+  firstFieldRef,
   savingCertification,
   deletingCertificationIds,
   editingCertificationId,
@@ -53,7 +56,7 @@ export default function AdminCertificationsPanel({
         </div>
       )}
 
-      <details className="admin-collapsible" open={editingCertificationId ? true : undefined}>
+      <details ref={formRef} className="admin-collapsible" open={editingCertificationId ? true : undefined}>
         <summary className="admin-collapsible__summary">
           <div className="admin-collapsible__summary-copy">
             <span className="admin-collapsible__eyebrow">Formulario</span>
@@ -77,7 +80,7 @@ export default function AdminCertificationsPanel({
 
               <label>
                 Nombre
-                <input name="name" value={certificationForm.name} onChange={onCertificationChange} disabled={savingCertification} />
+                <input ref={firstFieldRef} name="name" value={certificationForm.name} onChange={onCertificationChange} disabled={savingCertification} />
               </label>
 
               <div className="admin-form-section__grid">
@@ -169,6 +172,11 @@ export default function AdminCertificationsPanel({
                     onChange={onCertificationChange}
                     disabled={savingCertification}
                   />
+                  {!editingCertificationId && (
+                    <span className="muted">
+                      Déjalo vacío para asignar automáticamente el siguiente orden. Sugerido: {suggestedDisplayOrder}.
+                    </span>
+                  )}
                 </label>
 
                 <label className="toggle-row">

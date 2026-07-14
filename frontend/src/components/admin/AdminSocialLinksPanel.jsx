@@ -3,6 +3,9 @@ import "./AdminSocialLinksPanel.css";
 export default function AdminSocialLinksPanel({
   socialLinks,
   socialLinkForm,
+  suggestedSocialLinkDisplayOrder,
+  formRef,
+  firstFieldRef,
   savingSocialLink,
   deletingSocialLinkIds,
   editingSocialLinkId,
@@ -48,7 +51,7 @@ export default function AdminSocialLinksPanel({
         </div>
       )}
 
-      <details className="admin-collapsible" open={editingSocialLinkId ? true : undefined}>
+      <details ref={formRef} className="admin-collapsible" open={editingSocialLinkId ? true : undefined}>
         <summary className="admin-collapsible__summary">
           <div className="admin-collapsible__summary-copy">
             <span className="admin-collapsible__eyebrow">Formulario</span>
@@ -75,7 +78,7 @@ export default function AdminSocialLinksPanel({
               <div className="admin-form-section__grid">
                 <label>
                   Plataforma
-                  <input name="platform" value={socialLinkForm.platform} onChange={onSocialLinkChange} disabled={savingSocialLink} />
+                  <input ref={firstFieldRef} name="platform" value={socialLinkForm.platform} onChange={onSocialLinkChange} disabled={savingSocialLink} />
                 </label>
 
                 <label>
@@ -87,6 +90,11 @@ export default function AdminSocialLinksPanel({
                     onChange={onSocialLinkChange}
                     disabled={savingSocialLink}
                   />
+                  {!editingSocialLinkId && (
+                    <span className="muted">
+                      Déjalo vacío para asignar automáticamente el siguiente orden. Sugerido: {suggestedSocialLinkDisplayOrder}.
+                    </span>
+                  )}
                 </label>
               </div>
 
